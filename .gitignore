@@ -1,0 +1,8 @@
+*~
+*.swp
+*.gb
+*.o
+/roms
+/target
+/Cargo.lock
+/*.dll
