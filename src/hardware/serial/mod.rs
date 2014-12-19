@@ -37,4 +37,4 @@ bitflags!(
     const CTRL_CLOCK = 1 << 0,
     const CTRL_START = 1 << 7
   }
-)
+);

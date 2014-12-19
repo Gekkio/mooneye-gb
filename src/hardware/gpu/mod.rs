@@ -78,7 +78,7 @@ bitflags!(
     const SPRITE_FLIPY = 1 << 6,
     const SPRITE_PRIORITY = 1 << 7
   }
-)
+);
 
 struct Palette {
   off: GbColor,
@@ -126,7 +126,7 @@ bitflags!(
     const CTRL_WINDOW_MAP = 1 << 6,
     const CTRL_LCD_ON = 1 << 7
   }
-)
+);
 
 bitflags!(
   flags Stat: u8 {
@@ -136,7 +136,7 @@ bitflags!(
     const STAT_ACCESS_OAM_INT = 1 << 5,
     const STAT_COMPARE_INT = 1 << 6
   }
-)
+);
 
 #[deriving(PartialEq, Eq)]
 enum Mode {

@@ -8,7 +8,7 @@ bitflags!(
     const HALF_CARRY = 0x20,
     const CARRY = 0x10
   }
-)
+);
 
 impl Flags {
   pub fn test(&self, test: bool) -> Flags {

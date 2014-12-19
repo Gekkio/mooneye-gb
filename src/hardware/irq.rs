@@ -66,7 +66,7 @@ bitflags!(
     const INT_SERIAL_IO_DONE = Interrupt::SerialIoDone as u8,
     const INT_JOYPAD = Interrupt::Joypad as u8,
   }
-)
+);
 
 impl InterruptType {
   fn isolate_highest_priority(&self) -> InterruptType {

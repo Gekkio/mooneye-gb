@@ -176,4 +176,4 @@ bitflags!(
     const CH_3 = 1 << 2,
     const CH_4 = 1 << 3
   }
-)
+);

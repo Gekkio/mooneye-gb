@@ -102,7 +102,7 @@ bitflags!(
     /// See docs/accuracy/joypad.markdown
     const JOYPAD_INITIAL_STATE = JOYPAD_WRITABLE.bits
   }
-)
+);
 
 impl JoypadReg {
   fn directional(key: &GbKey) -> JoypadReg {
