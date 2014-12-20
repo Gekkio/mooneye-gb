@@ -40,7 +40,9 @@
 .computegbchecksum
 
 .define DIV $FF04
-.export DIV
+.define IF $FF0F
+.define IE $FFFF
+.export DIV, IF, IE
 
 .macro nops ARGS count
   .dsb count, $00
