@@ -79,8 +79,7 @@ finish:
   call load_font
   call print_regs
   enable_lcd
-- halt
-  nop
+- nop
   jr -
 
 .macro print_reg ARGS char addr
