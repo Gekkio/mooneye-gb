@@ -2,10 +2,6 @@
 
 ## Open questions
 
-### What is the exact behaviour of DI and EI?
-
-These instructions don't change interrupts immediately, but with a delay. What happens if you do another DI/EI while a delayed operation is ongoing?
-
 ### Some instructions take more cycles than just the memory accesses. At which point in the instruction execution do these extra cycles occur?
 
 These instructions cost more than the memory accesses:
@@ -36,3 +32,17 @@ Most of these instructions involve writing a 16-bit register, which could explai
 
 Blargg's instruction timing ROM confirms that BIT takes 12, and RES/SET take 16 cycles, which makes perfect sense.
 Some opcode listings in the internet (e.g. GBCPUman.pdf) are wrong.
+
+### What is the exact behaviour of DI and EI?
+
+These instructions don't change interrupts immediately, but instead have a delay before they take effect. Both instructions simply set an internal flag, which will have take effect after the next instruction is executed. If you rapidly switch between DI/EI right after another, the internal flag has no effect during the switching, and the last instruction wins.
+
+So, assuming interrupts are disabled, and an interrupt has already been requested, this code will cause only one interrupt:
+
+    ei
+    di
+    ei
+    di
+    ei
+    nop ; <- interrupt is acknowledged between these two
+    nop ; <- instructions
