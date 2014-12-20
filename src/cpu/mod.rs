@@ -23,8 +23,7 @@ const HIRAM_SIZE: uint = 0x80;
 pub struct Cpu<H: Bus> {
   regs: Registers,
   ime: bool,
-  ime_disable: ImeChange,
-  ime_enable: ImeChange,
+  ime_change: ImeChange,
   halt: bool,
   hiram: [u8, ..HIRAM_SIZE],
   hardware: H
@@ -65,25 +64,8 @@ impl Cond {
 
 #[deriving(PartialEq, Eq, Show)]
 enum ImeChange {
-  None, Soon, Now
+  None, Soon(bool), Now(bool)
 }
-
-impl ImeChange {
-  fn check(&mut self) -> bool {
-    match *self {
-      ImeChange::None => false,
-      ImeChange::Soon => {
-        *self = ImeChange::Now;
-        false
-      },
-      ImeChange::Now => {
-        *self = ImeChange::None;
-        true
-      }
-    }
-  }
-}
-
 
 pub struct Immediate8;
 impl In8 for Immediate8 {
@@ -198,8 +180,7 @@ impl<H> Cpu<H> where H: Bus {
     Cpu {
       regs: Registers::new(),
       ime: true,
-      ime_disable: ImeChange::None,
-      ime_enable: ImeChange::None,
+      ime_change: ImeChange::None,
       halt: false,
       hiram: [0, ..HIRAM_SIZE],
       hardware: hardware
@@ -281,12 +262,18 @@ impl<H> Cpu<H> where H: Bus {
       }
     } else {
       self.decode();
-      if self.ime_disable.check() {
-        self.ime = false;
+
+      match self.ime_change {
+        ImeChange::None => (),
+        ImeChange::Soon(value) => {
+          self.ime_change = ImeChange::Now(value);
+        },
+        ImeChange::Now(value) => {
+          self.ime = value;
+          self.ime_change = ImeChange::None;
+        }
       }
-      if self.ime_enable.check() {
-        self.ime = true;
-      }
+
       if self.ime {
         match self.hardware.ack_interrupt() {
           None => (),
@@ -667,7 +654,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn reti(&mut self) {
-    self.ime_enable = ImeChange::Now;
+    self.ime_change = ImeChange::Now(true);
     self.ctrl_ret();
   }
   /// JP cc, nn
@@ -741,14 +728,14 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn di(&mut self) {
-    self.ime_disable = ImeChange::Soon;
+    self.ime_change = ImeChange::Soon(false);
   }
   /// EI
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn ei(&mut self) {
-    self.ime_enable = ImeChange::Soon;
+    self.ime_change = ImeChange::Soon(true);
   }
   /// CCF
   ///
