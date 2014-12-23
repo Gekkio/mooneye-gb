@@ -5,8 +5,7 @@ version = "0.0.0"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 
 [dependencies.sdl2]
-git = "https://github.com/Gekkio/rust-sdl2.git"
-branch = "macro-semicolons"
+git = "https://github.com/AngryLawyer/rust-sdl2.git"
 
 [dependencies.snooze-rs]
 git = "https://github.com/Gekkio/snooze-rs.git"
