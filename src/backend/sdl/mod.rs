@@ -1,5 +1,5 @@
 use sdl2;
-use sdl2::controller::ControllerButton;
+use sdl2::controller::{ControllerAxis, ControllerButton};
 use sdl2::event;
 use sdl2::event::Event;
 use sdl2::keycode::KeyCode;
@@ -215,6 +215,26 @@ fn controller_to_joypad_key(button: ControllerButton) -> Option<GbKey> {
   }
 }
 
+fn controller_axis_to_message(axis: ControllerAxis, value: i16) -> Option<BackendMessage> {
+  match axis {
+    ControllerAxis::LeftX => match value {
+      -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Left)),
+      -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Left)),
+      0...16383 => Some(BackendMessage::KeyUp(GbKey::Right)),
+      16384...32767 => Some(BackendMessage::KeyDown(GbKey::Right)),
+      _ => None
+    },
+    ControllerAxis::LeftY => match value {
+      -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Up)),
+      -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Up)),
+      0...16383 => Some(BackendMessage::KeyUp(GbKey::Down)),
+      16384...32767 => Some(BackendMessage::KeyDown(GbKey::Down)),
+      _ => None
+    },
+    _ => None
+  }
+}
+
 impl Backend<SharedMemory> for SdlBackend {
   fn main_loop(&mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) {
     loop {
@@ -263,6 +283,12 @@ impl Backend<SharedMemory> for SdlBackend {
           Event::ControllerButtonUp(_, _, button) => {
             match controller_to_joypad_key(button) {
               Some(key) => to_machine.send(BackendMessage::KeyUp(key)),
+              None => ()
+            }
+          },
+          Event::ControllerAxisMotion(_, _, axis, value) => {
+            match controller_axis_to_message(axis, value) {
+              Some(message) => to_machine.send(message),
               None => ()
             }
           },
