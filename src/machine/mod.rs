@@ -9,6 +9,7 @@ use backend::{
 use config::HardwareConfig;
 use cpu::Cpu;
 use gameboy;
+use hardware::Clock;
 use hardware::Hardware;
 use self::perf_counter::PerfCounter;
 
@@ -18,7 +19,8 @@ mod pulse;
 pub struct Machine<'a> {
   cpu: Cpu<Hardware<'a>>,
   perf_counter: PerfCounter,
-  mode: EmulationMode
+  mode: EmulationMode,
+  clock: Clock
 }
 
 pub struct Channels {
@@ -54,16 +56,22 @@ impl<'a> Machine<'a> {
     Machine {
       cpu: Cpu::new(Hardware::new(backend, config)),
       perf_counter: PerfCounter::new(),
-      mode: EmulationMode::Normal
+      mode: EmulationMode::Normal,
+      clock: Clock::new()
     }
   }
   fn emulate(&mut self) -> bool {
-    let start_clock = self.cpu.hardware().clock;
-    let end_clock = start_clock + PULSE_CYCLES;
-    while self.cpu.hardware().clock < end_clock {
-      self.cpu.execute();
+    let end_clock = self.clock + PULSE_CYCLES;
+
+    self.cpu.execute_until(end_clock);
+
+    self.perf_counter.update(end_clock.as_clock_cycles() - self.clock.as_clock_cycles());
+    self.clock = end_clock;
+
+    if self.clock.needs_normalize() {
+      self.clock.normalize();
+      self.cpu.normalize_clock();
     }
-    self.perf_counter.update(end_clock.as_clock_cycles() - start_clock.as_clock_cycles());
     true
   }
   fn debug_step(&mut self) {
@@ -85,7 +93,7 @@ impl<'a> Machine<'a> {
     loop {
       match limit.try_recv() {
         Ok(_) => {
-          println!("{}", self.cpu.hardware().clock.as_clock_cycles());
+          println!("{}", self.clock.as_clock_cycles());
           break;
         },
         _ => ()

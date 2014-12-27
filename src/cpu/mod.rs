@@ -2,6 +2,7 @@ use std::fmt;
 use std::num::Int;
 
 use hardware::Bus;
+use hardware::Clock;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
 use cpu::registers::{
   Registers, Reg8, Reg16, Flags,
@@ -26,7 +27,8 @@ pub struct Cpu<H: Bus> {
   ime_change: ImeChange,
   halt: bool,
   hiram: [u8, ..HIRAM_SIZE],
-  hardware: H
+  hardware: H,
+  clock: Clock
 }
 
 
@@ -183,7 +185,8 @@ impl<H> Cpu<H> where H: Bus {
       ime_change: ImeChange::None,
       halt: false,
       hiram: [0, ..HIRAM_SIZE],
-      hardware: hardware
+      hardware: hardware,
+      clock: Clock::new()
     }
   }
   pub fn hardware(&mut self) -> &mut H {
@@ -193,7 +196,11 @@ impl<H> Cpu<H> where H: Bus {
     self.regs.pc
   }
   pub fn disasm_op(&self) -> DisasmStr {
-    disasm::disasm(&self.hardware, self.regs.pc)
+    disasm::disasm(&self.hardware, self.regs.pc, self.clock)
+  }
+  pub fn normalize_clock(&mut self) {
+    self.clock.normalize();
+    self.hardware.normalize_clock();
   }
 
   pub fn read_hiram(&self, reladdr: u16) -> u8 {
@@ -204,19 +211,21 @@ impl<H> Cpu<H> where H: Bus {
   }
 
   fn read_u8(&mut self, addr: u16) -> u8 {
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
 
     if addr < 0xff80 || addr == 0xffff {
-      self.hardware.read(addr)
+      self.hardware.read(self.clock, addr)
     } else {
       self.read_hiram(addr & 0x7f)
     }
   }
   fn write_u8(&mut self, addr: u16, value: u8) {
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
 
     if addr < 0xff80 || addr == 0xffff {
-      self.hardware.write(addr, value);
+      self.hardware.write(self.clock, addr, value);
     } else {
       self.write_hiram(addr & 0x7f, value);
     }
@@ -258,7 +267,8 @@ impl<H> Cpu<H> where H: Bus {
       if self.hardware.has_interrupt() {
         self.halt = false;
       } else {
-        self.hardware.emulate();
+        self.clock.tick();
+        self.hardware.emulate(self.clock);
       }
     } else {
       self.decode();
@@ -283,11 +293,18 @@ impl<H> Cpu<H> where H: Bus {
             let pc = self.regs.pc;
             self.push_u16(pc);
             self.regs.pc = interrupt.get_addr();
-            self.hardware.emulate();
+            self.clock.tick();
+            self.hardware.emulate(self.clock);
             return;
           }
         }
       }
+    }
+  }
+
+  pub fn execute_until(&mut self, clock: Clock) {
+    while self.clock < clock {
+      self.execute();
     }
   }
 
@@ -340,21 +357,25 @@ impl<H> Cpu<H> where H: Bus {
   }
   fn ctrl_jp(&mut self, addr: u16) {
     self.regs.pc = addr;
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   fn ctrl_jr(&mut self, offset: i8) {
     self.regs.pc = (self.regs.pc as i16 + offset as i16) as u16;
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   fn ctrl_call(&mut self, addr: u16) {
     let pc = self.regs.pc;
     self.push_u16(pc);
     self.regs.pc = addr;
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   fn ctrl_ret(&mut self) {
     self.regs.pc = self.pop_u16();
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
 }
 
@@ -695,7 +716,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     if cond.check(self.regs.f) {
       self.ctrl_ret();
     }
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   /// RST n
   ///
@@ -705,7 +727,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     let pc = self.regs.pc;
     self.push_u16(pc);
     self.regs.pc = addr as u16;
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   // --- Miscellaneous
   /// HALT
@@ -817,7 +840,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn load16_sp_hl(&mut self) {
     let value = self.regs.read16(Reg16::HL);
     self.regs.sp = value;
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   /// LD HL, SP+e
   ///
@@ -830,7 +854,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     self.regs.write16(Reg16::HL, value);
     self.regs.f = HALF_CARRY.test((sp & 0x000f) + (offset & 0x000f) > 0x000f) |
                   CARRY.test((sp & 0x00ff) + (offset & 0x00ff) > 0x00ff);
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   /// PUSH rr
   ///
@@ -839,7 +864,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn push16(&mut self, reg: Reg16) {
     let value = self.regs.read16(reg);
     self.push_u16(value);
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   /// POP rr
   ///
@@ -863,7 +889,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
                   HALF_CARRY.test((hl & 0x07FF) + (value & 0x07FF) > 0x07FF) |
                   CARRY.test(hl > 0xffff - value);
     self.regs.write16(Reg16::HL, result);
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   /// ADD SP, e
   ///
@@ -875,8 +902,10 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     self.regs.sp = sp + val;
     self.regs.f = HALF_CARRY.test((sp & 0x000f) + (val & 0x000f) > 0x000f) |
                   CARRY.test((sp & 0x00ff) + (val & 0x00ff) > 0x00ff);
-    self.hardware.emulate();
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   /// INC rr
   ///
@@ -885,7 +914,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn inc16(&mut self, reg: Reg16) {
     let value = self.regs.read16(reg) + 1;
     self.regs.write16(reg, value);
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   /// DEC rr
   ///
@@ -894,7 +924,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn dec16(&mut self, reg: Reg16) {
     let value = self.regs.read16(reg) - 1;
     self.regs.write16(reg, value);
-    self.hardware.emulate();
+    self.clock.tick();
+    self.hardware.emulate(self.clock);
   }
   // --- Undefined
   fn undefined(&mut self, op: u8) {
