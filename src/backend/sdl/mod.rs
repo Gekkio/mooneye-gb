@@ -1,4 +1,5 @@
 use sdl2;
+use sdl2::controller::{ControllerAxis, ControllerButton};
 use sdl2::event;
 use sdl2::event::Event;
 use sdl2::keycode::KeyCode;
@@ -140,7 +141,7 @@ const SCREEN_RECT: rect::Rect = rect::Rect {
 
 impl SdlBackend {
   pub fn init() -> BackendResult<SdlBackend> {
-    sdl2::init(sdl2::INIT_VIDEO);
+    sdl2::init(sdl2::INIT_VIDEO | sdl2::INIT_GAME_CONTROLLER);
     let window =
       try!(Window::new("test", WindowPos::PosUndefined, WindowPos::PosUndefined, 640, 576, video::OPENGL));
     let renderer =
@@ -200,6 +201,40 @@ fn to_joypad_key(key: KeyCode) -> Option<GbKey> {
   }
 }
 
+fn controller_to_joypad_key(button: ControllerButton) -> Option<GbKey> {
+  match button {
+    ControllerButton::DPadRight => Some(GbKey::Right),
+    ControllerButton::DPadLeft => Some(GbKey::Left),
+    ControllerButton::DPadUp => Some(GbKey::Up),
+    ControllerButton::DPadDown => Some(GbKey::Down),
+    ControllerButton::A => Some(GbKey::B),
+    ControllerButton::B => Some(GbKey::A),
+    ControllerButton::Start => Some(GbKey::Start),
+    ControllerButton::Back => Some(GbKey::Select),
+    _ => None
+  }
+}
+
+fn controller_axis_to_message(axis: ControllerAxis, value: i16) -> Option<BackendMessage> {
+  match axis {
+    ControllerAxis::LeftX => match value {
+      -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Left)),
+      -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Left)),
+      0...16383 => Some(BackendMessage::KeyUp(GbKey::Right)),
+      16384...32767 => Some(BackendMessage::KeyDown(GbKey::Right)),
+      _ => None
+    },
+    ControllerAxis::LeftY => match value {
+      -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Up)),
+      -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Up)),
+      0...16383 => Some(BackendMessage::KeyUp(GbKey::Down)),
+      16384...32767 => Some(BackendMessage::KeyDown(GbKey::Down)),
+      _ => None
+    },
+    _ => None
+  }
+}
+
 impl Backend<SharedMemory> for SdlBackend {
   fn main_loop(&mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) {
     loop {
@@ -234,6 +269,27 @@ impl Backend<SharedMemory> for SdlBackend {
             match key {
               KeyCode::LShift => to_machine.send(BackendMessage::Turbo(false)),
               _ => ()
+            }
+          },
+          Event::ControllerDeviceAdded(_, id) => {
+            unsafe { sdl2::controller::ll::SDL_GameControllerOpen(id as i32); }
+          },
+          Event::ControllerButtonDown(_, _, button) => {
+            match controller_to_joypad_key(button) {
+              Some(key) => to_machine.send(BackendMessage::KeyDown(key)),
+              None => ()
+            }
+          },
+          Event::ControllerButtonUp(_, _, button) => {
+            match controller_to_joypad_key(button) {
+              Some(key) => to_machine.send(BackendMessage::KeyUp(key)),
+              None => ()
+            }
+          },
+          Event::ControllerAxisMotion(_, _, axis, value) => {
+            match controller_axis_to_message(axis, value) {
+              Some(message) => to_machine.send(message),
+              None => ()
             }
           },
           Event::None => break 'event,
