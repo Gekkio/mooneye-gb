@@ -33,14 +33,14 @@ pub struct SdlBackend {
 }
 
 struct SharedMemory {
-  pixel_buffer_lock: Mutex<PixelBuffer>,
+  pixel_buffer_lock: Mutex<Vec<u8>>,
   palette: Palette
 }
 
 impl SharedMemory {
   fn new() -> SharedMemory {
     SharedMemory {
-      pixel_buffer_lock: Mutex::new(PixelBuffer::new()),
+      pixel_buffer_lock: Mutex::new(Vec::from_elem(PIXEL_BUFFER_SIZE, 0xff)),
       palette: Palette::from_colors(&PALETTE)
     }
   }
@@ -73,8 +73,7 @@ impl Error for BackendError {
 
 impl BackendSharedMemory for SharedMemory {
   fn draw_scanline(&self, pixels: &[GbColor, ..160], y: u8) {
-    let mut out_pixels = self.pixel_buffer_lock.lock();
-    let data = &mut out_pixels.data;
+    let mut data = self.pixel_buffer_lock.lock();
     let ref palette = self.palette;
     let out_start = y as uint * PIXEL_BUFFER_STRIDE;
     let out_end = out_start + GB_SCREEN_W * 4;
@@ -91,18 +90,6 @@ const GB_SCREEN_H: uint = 144;
 const PIXEL_BUFFER_ROWS: uint = GB_SCREEN_H;
 const PIXEL_BUFFER_STRIDE: uint = 256 * 4;
 const PIXEL_BUFFER_SIZE: uint = PIXEL_BUFFER_STRIDE * PIXEL_BUFFER_ROWS;
-
-struct PixelBuffer {
-  data: [u8, ..PIXEL_BUFFER_SIZE]
-}
-
-impl PixelBuffer {
-  fn new() -> PixelBuffer {
-    PixelBuffer {
-      data: [0xff, ..PIXEL_BUFFER_SIZE]
-    }
-  }
-}
 
 struct Palette {
   colors: [[u8, ..4], ..4]
@@ -178,7 +165,7 @@ impl SdlBackend {
   fn refresh_gb_screen(&self) -> BackendResult<()> {
     {
       let pixels = self.shared_memory.pixel_buffer_lock.lock();
-      try!(self.texture.update(Some(SCREEN_RECT), &pixels.data, PIXEL_BUFFER_STRIDE as int));
+      try!(self.texture.update(Some(SCREEN_RECT), pixels[], PIXEL_BUFFER_STRIDE as int));
     }
     try!(self.renderer.set_logical_size(GB_SCREEN_W as int, GB_SCREEN_H as int));
     try!(self.renderer.copy(&self.texture, Some(SCREEN_RECT), Some(SCREEN_RECT)));
