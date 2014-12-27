@@ -15,7 +15,7 @@ use std::slice::bytes;
 use std::sync::{Arc, Mutex};
 
 use backend::{
-  Backend, BackendSharedMemory, GbColor, GbKey, BackendMessage
+  Backend, BackendSharedMemory, GbKey, BackendMessage
 };
 use backend::sdl::font::{TextAlign, Font};
 use backend::sdl::fps::FpsCounter;
@@ -74,14 +74,21 @@ impl Error for BackendError {
 }
 
 impl BackendSharedMemory for SharedMemory {
-  fn draw_scanline(&self, pixels: &[GbColor, ..160], y: u8) {
+  fn draw_screen(&self, pixels: &gameboy::ScreenBuffer) {
     let mut data = self.pixel_buffer_lock.lock();
     let ref palette = self.palette;
-    let out_start = y as uint * PIXEL_BUFFER_STRIDE;
-    let out_end = out_start + gameboy::SCREEN_WIDTH * 4;
-    let out_slice = data.slice_mut(out_start, out_end);
-    for (pixel, gb_color) in out_slice.chunks_mut(4).zip(pixels.iter()) {
-      bytes::copy_memory(pixel, palette.get_bytes(gb_color));
+    for y in range(0, gameboy::SCREEN_HEIGHT) {
+      let in_start = y * gameboy::SCREEN_WIDTH;
+      let in_end = in_start + gameboy::SCREEN_WIDTH;
+      let in_slice = pixels.slice(in_start, in_end);
+
+      let out_start = y * PIXEL_BUFFER_STRIDE;
+      let out_end = out_start + gameboy::SCREEN_WIDTH * 4;
+      let out_slice = data.slice_mut(out_start, out_end);
+
+      for (pixel, gb_color) in out_slice.chunks_mut(4).zip(in_slice.iter()) {
+        bytes::copy_memory(pixel, palette.get_bytes(gb_color));
+      }
     }
   }
 }
@@ -112,12 +119,12 @@ impl Palette {
       colors: colors
     }
   }
-  fn get_bytes<'a>(&'a self, gb_color: &GbColor) -> &'a [u8, ..4] {
+  fn get_bytes<'a>(&'a self, gb_color: &gameboy::Color) -> &'a [u8, ..4] {
     match *gb_color {
-      GbColor::Off => &self.colors[0],
-      GbColor::Light => &self.colors[1],
-      GbColor::Dark => &self.colors[2],
-      GbColor::On => &self.colors[3]
+      gameboy::Color::Off => &self.colors[0],
+      gameboy::Color::Light => &self.colors[1],
+      gameboy::Color::Dark => &self.colors[2],
+      gameboy::Color::On => &self.colors[3]
     }
   }
 }

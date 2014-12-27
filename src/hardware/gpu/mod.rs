@@ -2,7 +2,9 @@
 
 use std::fmt;
 
-use backend::{BackendSharedMemory, GbColor};
+use backend::BackendSharedMemory;
+use gameboy;
+use gameboy::Color;
 use hardware::irq::{Irq, Interrupt};
 use util::int::IntOps;
 
@@ -34,6 +36,7 @@ pub struct Gpu<'a> {
   oam: [Sprite, ..OAM_SPRITES],
   tile_map1: [u8, ..TILE_MAP_SIZE],
   tile_map2: [u8, ..TILE_MAP_SIZE],
+  back_buffer: Box<gameboy::ScreenBuffer>,
   backend: &'a (BackendSharedMemory + 'a)
 }
 
@@ -81,36 +84,36 @@ bitflags!(
 );
 
 struct Palette {
-  off: GbColor,
-  light: GbColor,
-  dark: GbColor,
-  on: GbColor,
+  off: Color,
+  light: Color,
+  dark: Color,
+  on: Color,
   bits: u8
 }
 
 impl Palette {
   fn new() -> Palette {
     Palette {
-      off: GbColor::Off,
-      light: GbColor::Off,
-      dark: GbColor::Off,
-      on: GbColor::Off,
+      off: Color::Off,
+      light: Color::Off,
+      dark: Color::Off,
+      on: Color::Off,
       bits: 0x00
     }
   }
-  fn get(&self, color: &GbColor) -> GbColor {
+  fn get(&self, color: &Color) -> Color {
     match *color {
-      GbColor::Off => self.off,
-      GbColor::Light => self.light,
-      GbColor::Dark => self.dark,
-      GbColor::On => self.on
+      Color::Off => self.off,
+      Color::Light => self.light,
+      Color::Dark => self.dark,
+      Color::On => self.on
     }
   }
   fn set_bits(&mut self, value: u8) {
-    self.off = GbColor::from_u8((value >> 0) & 0x3);
-    self.light = GbColor::from_u8((value >> 2) & 0x3);
-    self.dark = GbColor::from_u8((value >> 4) & 0x3);
-    self.on = GbColor::from_u8((value >> 6) & 0x3);
+    self.off = Color::from_u8((value >> 0) & 0x3);
+    self.light = Color::from_u8((value >> 2) & 0x3);
+    self.dark = Color::from_u8((value >> 4) & 0x3);
+    self.on = Color::from_u8((value >> 6) & 0x3);
     self.bits = value;
   }
 }
@@ -182,6 +185,7 @@ impl<'a> Gpu<'a> {
       oam: [Sprite::new(), ..OAM_SPRITES],
       tile_map1: [0, ..TILE_MAP_SIZE],
       tile_map2: [0, ..TILE_MAP_SIZE],
+      back_buffer: box gameboy::SCREEN_EMPTY,
       backend: backend
     }
   }
@@ -379,6 +383,7 @@ impl<'a> Gpu<'a> {
         if self.current_line < 144 {
           self.switch_mode(Mode::AccessOam, irq);
         } else {
+          self.backend.draw_screen(&*self.back_buffer);
           self.switch_mode(Mode::VBlank, irq);
         }
         self.check_compare_interrupt(irq);
@@ -406,7 +411,10 @@ impl<'a> Gpu<'a> {
     }
   }
   fn draw_line(&mut self) {
-    let mut pixels = [GbColor::Off, ..160];
+    let slice_start = gameboy::SCREEN_WIDTH * self.current_line as uint;
+    let slice_end = gameboy::SCREEN_WIDTH + slice_start;
+    let pixels = self.back_buffer.slice_mut(slice_start, slice_end);
+
     if self.control.contains(CTRL_BG_ON) {
       let addr_select = self.control.contains(CTRL_BG_ADDR);
       let tile_map =
@@ -415,7 +423,7 @@ impl<'a> Gpu<'a> {
 
       let y = self.current_line + self.scroll_y;
       let row = (y / 8) as uint;
-      for i in range(0, 160u) {
+      for i in range(0, gameboy::SCREEN_WIDTH) {
         let x = i as u8 + self.scroll_x;
         let col = (x / 8) as uint;
         let raw_tile_num = tile_map[row * 32 + col];
@@ -431,7 +439,7 @@ impl<'a> Gpu<'a> {
 
         let bit = (((x % 8) - 7) * -1) as uint;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
-        let color = self.bg_palette.get(&GbColor::from_u8(color_value));
+        let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
       }
     }
@@ -444,7 +452,7 @@ impl<'a> Gpu<'a> {
 
       let y = self.current_line - self.window_y;
       let row = (y / 8) as uint;
-      for i in range(window_x as uint, 160u) {
+      for i in range(window_x as uint, gameboy::SCREEN_WIDTH) {
         let mut x = i as u8 + self.scroll_x;
         if x >= window_x {
           x = i as u8 - window_x;
@@ -463,7 +471,7 @@ impl<'a> Gpu<'a> {
 
         let bit = (((x % 8) - 7) * -1) as uint;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
-        let color = self.bg_palette.get(&GbColor::from_u8(color_value));
+        let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
       }
     }
@@ -499,11 +507,11 @@ impl<'a> Gpu<'a> {
               if sprite.flags.contains(SPRITE_FLIPX) {
                 7 - x
               } else { x } as uint;
-            let raw_color = GbColor::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
+            let raw_color = Color::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
             let color = palette.get(&raw_color);
             let target_x = xpos + (7 - x);
-            if target_x < 159 && raw_color != GbColor::Off {
-              if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as uint] == GbColor::Off {
+            if target_x < 159 && raw_color != Color::Off {
+              if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as uint] == Color::Off {
                 pixels[target_x as uint] = color;
               }
             }
@@ -511,7 +519,6 @@ impl<'a> Gpu<'a> {
         }
       }
     }
-    self.backend.draw_scanline(&pixels, self.current_line);
   }
 }
 

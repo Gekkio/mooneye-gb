@@ -1,3 +1,4 @@
+use gameboy;
 use std::comm;
 use std::error::Error;
 use std::sync::Arc;
@@ -11,7 +12,7 @@ pub trait Backend<C: BackendSharedMemory> {
 }
 
 pub trait BackendSharedMemory {
-  fn draw_scanline(&self, &[GbColor, ..160], y: u8);
+  fn draw_screen(&self, &gameboy::ScreenBuffer);
 }
 
 pub enum BackendMessage {
@@ -21,20 +22,6 @@ pub enum BackendMessage {
 #[deriving(Show)]
 pub enum GbKey {
   Right, Left, Up, Down, A, B, Select, Start
-}
-
-#[deriving(PartialEq, FromPrimitive, Copy)]
-pub enum GbColor {
-  Off = 0,
-  Light = 1,
-  Dark = 2,
-  On = 3
-}
-
-impl GbColor {
-  pub fn from_u8(value: u8) -> GbColor {
-    FromPrimitive::from_u8(value).unwrap_or(GbColor::Off)
-  }
 }
 
 pub fn init() -> Result<sdl::SdlBackend, Box<Error>> {
