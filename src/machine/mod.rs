@@ -46,6 +46,9 @@ impl<'a> fmt::Show for Machine<'a> {
   }
 }
 
+/// Amount of cycles in each emulation pulse
+const PULSE_CYCLES: u32 = 10484; // 10ms worth of cycles
+
 impl<'a> Machine<'a> {
   pub fn new(backend: &'a BackendSharedMemory, config: HardwareConfig) -> Machine<'a> {
     Machine {
@@ -56,7 +59,7 @@ impl<'a> Machine<'a> {
   }
   fn emulate(&mut self) -> bool {
     let start_clock = self.cpu.hardware().clock;
-    let end_clock = start_clock + 70224 / 4;
+    let end_clock = start_clock + PULSE_CYCLES;
     while self.cpu.hardware().clock < end_clock {
       self.cpu.execute();
     }
@@ -99,7 +102,7 @@ impl<'a> Machine<'a> {
     let to_backend = channels.to_backend;
     self.reset();
 
-    let frame_duration = Duration::seconds(70224) / gameboy::CPU_SPEED_HZ as i32;
+    let pulse_duration = Duration::seconds(4 * PULSE_CYCLES as i64) / gameboy::CPU_SPEED_HZ as i32;
 
     let mut perf_timer = Timer::new().unwrap();
     let perf_update = perf_timer.periodic(Duration::milliseconds(100));
@@ -107,7 +110,7 @@ impl<'a> Machine<'a> {
     loop {
       match self.mode {
         EmulationMode::Normal => {
-          let pulse = pulse::start(frame_duration);
+          let pulse = pulse::start(pulse_duration);
 
           loop {
             select!(
