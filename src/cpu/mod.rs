@@ -202,6 +202,7 @@ impl<H> Cpu<H> where H: Bus {
     self.clock.normalize();
     self.hardware.normalize_clock();
   }
+  pub fn clock_cycles(&self) -> u32 { self.clock.as_clock_cycles() }
 
   pub fn read_hiram(&self, reladdr: u16) -> u8 {
     self.hiram[reladdr as uint]

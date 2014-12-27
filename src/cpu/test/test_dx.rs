@@ -8,7 +8,7 @@ fn test_d1() {
       cpu.regs.sp = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 12);
+  assert_eq!(cpu.clock_cycles(), 12);
   assert_eq!(cpu.regs.d, 0x42);
   assert_eq!(cpu.regs.e, 0x80);
 }
@@ -23,7 +23,7 @@ fn test_d5() {
       cpu.regs.sp = 0x04;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 16);
+  assert_eq!(cpu.clock_cycles(), 16);
   assert_eq!(cpu.regs.sp, 0x02);
   assert_eq!(cpu.hardware.memory[0x03], 0x42);
   assert_eq!(cpu.hardware.memory[0x02], 0x80);

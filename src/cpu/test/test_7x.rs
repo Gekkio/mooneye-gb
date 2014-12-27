@@ -10,7 +10,7 @@ fn test_70() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x42);
 }
 
@@ -24,7 +24,7 @@ fn test_71() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x42);
 }
 
@@ -38,7 +38,7 @@ fn test_72() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x42);
 }
 
@@ -52,7 +52,7 @@ fn test_73() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x42);
 }
 
@@ -65,7 +65,7 @@ fn test_74() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x00);
 }
 
@@ -78,7 +78,7 @@ fn test_75() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x02);
 }
 
@@ -90,7 +90,7 @@ fn test_76() {
       cpu.ime = true;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert!(cpu.halt);
 }
 
@@ -104,7 +104,7 @@ fn test_77() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x42);
 }
 
@@ -116,7 +116,7 @@ fn test_78() {
       cpu.regs.b = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -128,7 +128,7 @@ fn test_79() {
       cpu.regs.c = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -140,7 +140,7 @@ fn test_7a() {
       cpu.regs.d = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -152,7 +152,7 @@ fn test_7b() {
       cpu.regs.e = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -164,7 +164,7 @@ fn test_7c() {
       cpu.regs.h = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -176,7 +176,7 @@ fn test_7d() {
       cpu.regs.l = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -189,7 +189,7 @@ fn test_7e() {
       cpu.regs.l = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -201,6 +201,6 @@ fn test_7f() {
       cpu.regs.a = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 4);
+  assert_eq!(cpu.clock_cycles(), 4);
   assert_eq!(cpu.regs.a, 0x42);
 }

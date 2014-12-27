@@ -11,7 +11,7 @@ fn test_e0() {
       cpu.regs.a = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 12);
+  assert_eq!(cpu.clock_cycles(), 12);
   assert_eq!(cpu.read_hiram(0x00), 0x42);
 }
 
@@ -23,7 +23,7 @@ fn test_e1() {
       cpu.regs.sp = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 12);
+  assert_eq!(cpu.clock_cycles(), 12);
   assert_eq!(cpu.regs.h, 0x42);
   assert_eq!(cpu.regs.l, 0x80);
 }
@@ -37,7 +37,7 @@ fn test_e2() {
       cpu.regs.c = 0x80;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.read_hiram(0x00), 0x42);
 }
 
@@ -51,7 +51,7 @@ fn test_e5() {
       cpu.regs.sp = 0x04;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 16);
+  assert_eq!(cpu.clock_cycles(), 16);
   assert_eq!(cpu.regs.sp, 0x02);
   assert_eq!(cpu.hardware.memory[0x03], 0x42);
   assert_eq!(cpu.hardware.memory[0x02], 0x80);
@@ -65,7 +65,7 @@ fn test_ea() {
       cpu.regs.a = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 16);
+  assert_eq!(cpu.clock_cycles(), 16);
   assert_eq!(cpu.hardware.memory[0x04], 0x42);
 }
 
@@ -77,7 +77,7 @@ fn test_ee() {
       cpu.regs.a = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.regs.a, 0x7a);
   assert_eq!(cpu.regs.f, Flags::empty());
 }
@@ -90,7 +90,7 @@ fn test_ee_zero() {
       cpu.regs.a = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.cycles, 8);
+  assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.regs.a, 0x00);
   assert_eq!(cpu.regs.f, ZERO);
 }

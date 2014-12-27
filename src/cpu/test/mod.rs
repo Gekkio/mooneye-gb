@@ -1,6 +1,7 @@
 use test::Bencher;
 
 use hardware::Bus;
+use hardware::Clock;
 use hardware::irq::Interrupt;
 use cpu::Cpu;
 
@@ -23,29 +24,26 @@ mod test_ex;
 mod test_fx;
 
 struct TestHardware {
-  memory: Vec<u8>,
-  cycles: uint
+  memory: Vec<u8>
 }
 
 impl TestHardware {
   fn from_memory(memory: Vec<u8>) -> TestHardware {
     TestHardware {
-      memory: memory,
-      cycles: 0
+      memory: memory
     }
   }
 }
 
 impl<'a> Bus for TestHardware {
-  fn write(&mut self, addr: u16, value: u8) {
+  fn write(&mut self, clock: Clock, addr: u16, value: u8) {
     self.memory[addr as uint] = value;
   }
-  fn read(&self, addr: u16) -> u8 {
+  fn read(&self, clock: Clock, addr: u16) -> u8 {
     self.memory[addr as uint]
   }
-  fn emulate(&mut self) {
-    self.cycles += 4;
-  }
+  fn emulate(&mut self, clock: Clock) {}
+  fn normalize_clock(&mut self) {}
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
   fn has_interrupt(&self) -> bool { false }
 }

@@ -15,7 +15,7 @@ macro_rules! test_bit_r8(
             cpu.regs.$reg = 1 << $bit;
           }
         );
-        assert_eq!(cpu.hardware.cycles, 8);
+        assert_eq!(cpu.clock_cycles(), 8);
         assert_eq!(cpu.regs.f, HALF_CARRY);
       }
       {
@@ -25,7 +25,7 @@ macro_rules! test_bit_r8(
             cpu.regs.$reg = 0;
           }
         );
-        assert_eq!(cpu.hardware.cycles, 8);
+        assert_eq!(cpu.clock_cycles(), 8);
         assert_eq!(cpu.regs.f, ZERO | HALF_CARRY);
       }
     }
@@ -44,7 +44,7 @@ macro_rules! test_bit_hl(
             cpu.regs.l = 0x03;
           }
         );
-        assert_eq!(cpu.hardware.cycles, 12);
+        assert_eq!(cpu.clock_cycles(), 12);
         assert_eq!(cpu.regs.f, HALF_CARRY);
       }
       {
@@ -55,7 +55,7 @@ macro_rules! test_bit_hl(
             cpu.regs.l = 0x03;
           }
         );
-        assert_eq!(cpu.hardware.cycles, 12);
+        assert_eq!(cpu.clock_cycles(), 12);
         assert_eq!(cpu.regs.f, ZERO | HALF_CARRY);
       }
     }
