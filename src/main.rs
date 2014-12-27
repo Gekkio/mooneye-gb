@@ -28,7 +28,7 @@ mod machine;
 mod util;
 
 fn parse_seconds(text: &str) -> Result<Duration, ProgramResult> {
-  match from_str(text.as_slice()) {
+  match text.parse() {
     None => return Err(ProgramResult::Error(format!("Invalid duration {}", text))),
     Some(seconds) => return Ok(Duration::seconds(seconds))
   }

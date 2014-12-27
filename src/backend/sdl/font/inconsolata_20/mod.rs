@@ -1,7 +1,7 @@
 use std::collections::VecMap;
 
-pub const GLYPH_BYTES: &'static [u8] = include_bin!("glyph.rgba");
-pub const OUTLINE_BYTES: &'static [u8] = include_bin!("outline.rgba");
+pub const GLYPH_BYTES: &'static [u8] = include_bytes!("glyph.rgba");
+pub const OUTLINE_BYTES: &'static [u8] = include_bytes!("outline.rgba");
 
 pub fn offsets() -> VecMap<(i32, i32)> {
   let mut map = VecMap::new();

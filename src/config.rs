@@ -154,7 +154,7 @@ impl CartridgeConfig {
         if new_cartridge { data.slice(0x134, 0x13f) } else { data.slice(0x134, 0x143) };
 
       match slice.to_ascii_opt() {
-        Some(text) => text.as_str_ascii().trim_right_chars('\0').into_string(),
+        Some(text) => text.as_str_ascii().trim_right_chars('\0').to_string(),
         None => return Err(ProgramResult::Error("Invalid ROM title".to_string()))
       }
     };
