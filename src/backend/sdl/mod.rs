@@ -19,6 +19,7 @@ use backend::{
 };
 use backend::sdl::font::{TextAlign, Font};
 use backend::sdl::fps::FpsCounter;
+use gameboy;
 use machine::MachineMessage;
 
 mod font;
@@ -77,7 +78,7 @@ impl BackendSharedMemory for SharedMemory {
     let mut data = self.pixel_buffer_lock.lock();
     let ref palette = self.palette;
     let out_start = y as uint * PIXEL_BUFFER_STRIDE;
-    let out_end = out_start + GB_SCREEN_W * 4;
+    let out_end = out_start + gameboy::SCREEN_WIDTH * 4;
     let out_slice = data.slice_mut(out_start, out_end);
     for (pixel, gb_color) in out_slice.chunks_mut(4).zip(pixels.iter()) {
       bytes::copy_memory(pixel, palette.get_bytes(gb_color));
@@ -85,10 +86,7 @@ impl BackendSharedMemory for SharedMemory {
   }
 }
 
-const GB_SCREEN_W: uint = 160;
-const GB_SCREEN_H: uint = 144;
-
-const PIXEL_BUFFER_ROWS: uint = GB_SCREEN_H;
+const PIXEL_BUFFER_ROWS: uint = gameboy::SCREEN_HEIGHT;
 const PIXEL_BUFFER_STRIDE: uint = 256 * 4;
 const PIXEL_BUFFER_SIZE: uint = PIXEL_BUFFER_STRIDE * PIXEL_BUFFER_ROWS;
 
@@ -135,8 +133,8 @@ static PALETTE: [Color, ..4] =
 const SCREEN_RECT: rect::Rect = rect::Rect {
   x: 0,
   y: 0,
-  w: GB_SCREEN_W as i32,
-  h: GB_SCREEN_H as i32
+  w: gameboy::SCREEN_WIDTH as i32,
+  h: gameboy::SCREEN_HEIGHT as i32
 };
 
 impl SdlBackend {
@@ -168,19 +166,19 @@ impl SdlBackend {
       let pixels = self.shared_memory.pixel_buffer_lock.lock();
       try!(self.texture.update(Some(SCREEN_RECT), pixels[], PIXEL_BUFFER_STRIDE as int));
     }
-    try!(self.renderer.set_logical_size(GB_SCREEN_W as int, GB_SCREEN_H as int));
+    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as int, gameboy::SCREEN_HEIGHT as int));
     try!(self.renderer.copy(&self.texture, Some(SCREEN_RECT), Some(SCREEN_RECT)));
     Ok(())
   }
   fn present(&mut self) -> BackendResult<()> {
     try!(self.refresh_gb_screen());
-    try!(self.renderer.set_logical_size(GB_SCREEN_W as int * 4, GB_SCREEN_H as int * 4));
+    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as int * 4, gameboy::SCREEN_HEIGHT as int * 4));
 
     let speed_text = format!("{:0.0} %", self.relative_speed_stat);
     try!(self.font.draw_text(&self.renderer, 0, 0, TextAlign::Left, speed_text.as_slice()));
 
     let fps_text = format!("{:0.0} FPS", self.fps_counter.fps);
-    try!(self.font.draw_text(&self.renderer, GB_SCREEN_W as i32 * 4, 0, TextAlign::Right, fps_text.as_slice()));
+    try!(self.font.draw_text(&self.renderer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, fps_text.as_slice()));
     self.renderer.present();
     self.fps_counter.update();
     Ok(())
