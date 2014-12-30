@@ -1,0 +1,98 @@
+# Emulation accuracy
+
+## Open questions
+
+### Do joypad interrupts depend on the select bits P14-P15, or do we get an interrupt whenever any key is pressed regardless of select bit state?
+
+### Some instructions take more cycles than just the memory accesses. At which point in the instruction execution do these extra cycles occur?
+
+These instructions cost more than the memory accesses:
+
+* LD SP, HL
+* LD HL, (SP+e)
+* ADD HL, rr
+* ADD SP, e
+* JP cc, nn
+* JP nn
+* JR cc, n
+* JR n
+* INC rr
+* DEC rr
+* PUSH rr
+* RST
+* RET cc
+* RET
+* RETI
+
+Most of these instructions involve writing a 16-bit register, which could explain the timing.
+
+## Answered questions
+
+### Does BIT b, (HL) take 12 or 16 cycles?
+
+*Answer:* 12 cycles
+
+Blargg's instruction timing ROM confirms that BIT takes 12, and RES/SET take 16 cycles, which makes perfect sense.
+Some opcode listings in the internet (e.g. GBCPUman.pdf) are wrong.
+
+### What is the exact behaviour of DI and EI?
+
+These instructions don't change interrupts immediately, but instead have a delay before they take effect. Both instructions simply set an internal flag, which will have take effect after the next instruction is executed. If you rapidly switch between DI/EI right after another, the internal flag has no effect during the switching, and the last instruction wins.
+
+So, assuming interrupts are disabled, and an interrupt has already been requested, this code will cause only one interrupt:
+
+    ei
+    di
+    ei
+    di
+    ei
+    nop ; <- interrupt is acknowledged between these two
+    nop ; <- instructions
+
+### Is it possible to restore the bootrom by writing some value to $FF50?
+
+*Answer*: No
+
+This was tested on a GBP (MGB-001) with the following test ROM, which attempts to write all possible values to $FF50:
+
+      ld hl, $0000
+      ld b, $00         ; value to be written to $FF50
+
+    - ld a, b
+      ld ($FF00+$50), a
+      ld a, (HL)
+      cp $31            ; DMG bootrom should have $31 at $0000
+      jr z, +
+      inc b             ; attempt next value
+      jr nz, -          ; retry until overflow
+
+    + nop
+
+      ; if A is $FF and B is $00, test failed
+      ; A should be $31
+      ; B should contain the written value
+
+      jp finish
+
+### The joypad register (P1) has only 4 inputs (P10-P13). What happens if you enable both key select bits P14-P15 and press overlapping keys?
+
+Both sets of keys are "merged" in the input bits P10-P13. So, if you have both key select bits enabled and press any combination of A and Right, you will see P10 go down (= "set"). Also, if you press A and Right, and then stop pressing Right, P10 should still be down because A is still being pressed.
+
+### What is the initial state of the joypad register (P1)? Does the boot rom write to it?
+
+The DMG/GBP boot rom doesn't write to the joypad register, and the initial value is 0xCF.
+This means that key select bits P14-P15 (bits 4-5) are low (= "set").
+
+If GBC is used with old Gameboy games, the boot rom writes and reads from P1, because old games support
+palette switches with certain key combinations during boot. After booting, the value is 0xFF.
+This means all bits are high (= "unset").
+
+### Does writing to DIV ($FF04) reset both the internal and the visible register?
+
+*Answer:* Yes
+
+DIV is incremented every 64 t-cycles, so there is an internal counter that counts to 64. If we write any value to the DIV register, it is reset to 0, but we don't know if the internal counter is also reset.
+
+Consider the case where at time t=0 we reset the counter, and at time t=1 the DIV register would have incremented if we didn't do the reset. Do we see the DIV increment at time t=1 or t=64?
+
+A test ROM confirmed that increment happens at t=64, so the internal counter is also reset. See tests/div_timing.
