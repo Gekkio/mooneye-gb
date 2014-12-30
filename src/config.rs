@@ -6,6 +6,7 @@ use gameboy::{
 use std::fmt;
 use std::fmt::{Formatter, Show};
 use std::io::fs::File;
+use std::str;
 
 use util::program_result::ProgramResult;
 
@@ -152,11 +153,11 @@ impl CartridgeConfig {
     let title = {
       let slice =
         if new_cartridge { data.slice(0x134, 0x13f) } else { data.slice(0x134, 0x143) };
+      let utf8 = try!(str::from_utf8(slice).map_err(|_|{
+        ProgramResult::Error("Invalid ROM title".to_string())
+      }));
 
-      match slice.to_ascii_opt() {
-        Some(text) => text.as_str_ascii().trim_right_chars('\0').to_string(),
-        None => return Err(ProgramResult::Error("Invalid ROM title".to_string()))
-      }
+      utf8.trim_right_matches('\0').to_string()
     };
 
     let cartridge_type = try!(CartridgeType::from_u8(data[0x147]));
