@@ -14,6 +14,12 @@ Writes are ignored and reads return $FF?
 
 The GPU is probably able to access the OAM memory while an OAM DMA is active, so OAM DMA cannot be always emulated using a single big memory copy operation.
 
+### What happens if another OAM DMA is requested while one is already active?
+
+### What are supported source addresses for OAM DMA? Some sources claim that 0xE0-0xF1 are supported.
+
+### What happens if you try to do OAM DMA with an unsupported source address?
+
 ### Do joypad interrupts depend on the select bits P14-P15, or do we get an interrupt whenever any key is pressed regardless of select bit state?
 
 ### Some instructions take more cycles than just the memory accesses. At which point in the instruction execution do these extra cycles occur?
