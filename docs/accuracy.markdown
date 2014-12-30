@@ -2,6 +2,18 @@
 
 ## Open questions
 
+### How many cycles does OAM DMA take?
+
+This is important, because the cpu is not allowed to access memory other than hiram during OAM DMA.
+
+### What happens if the CPU accesses memory during OAM DMA?
+
+Writes are ignored and reads return $FF?
+
+### What is the exact cycle-by-cycle behaviour of OAM DMA?
+
+The GPU is probably able to access the OAM memory while an OAM DMA is active, so OAM DMA cannot be always emulated using a single big memory copy operation.
+
 ### Do joypad interrupts depend on the select bits P14-P15, or do we get an interrupt whenever any key is pressed regardless of select bit state?
 
 ### Some instructions take more cycles than just the memory accesses. At which point in the instruction execution do these extra cycles occur?
