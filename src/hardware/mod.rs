@@ -95,7 +95,7 @@ impl<'a> Hardware<'a> {
       return;
     }
     self.oam_dma.active = true;
-    self.oam_dma.end_clock = clock + 168;
+    self.oam_dma.end_clock = clock + 162;
     let addr = value as u16 << 8;
     for i in range(0, 0xa0) {
       let value = self.read_internal(clock, addr + i);
@@ -216,19 +216,21 @@ impl<'a> Hardware<'a> {
 
 impl<'a> Bus for Hardware<'a> {
   fn read(&self, clock: Clock, addr: u16) -> u8 {
-    if self.oam_dma.active {
-      panic!("OAM READ :(");
+    // TODO: print warning
+    if self.oam_dma.active { 0xff }
+    else {
+      self.read_internal(clock, addr)
     }
-    self.read_internal(clock, addr)
   }
   fn write(&mut self, clock: Clock, addr: u16, value: u8) {
-    if self.oam_dma.active {
-      panic!("OAM WRITE :(");
+    // TODO: print warning
+    if self.oam_dma.active { }
+    else {
+      self.write_internal(clock, addr, value)
     }
-    self.write_internal(clock, addr, value)
   }
   fn emulate(&mut self, clock: Clock) {
-    if self.oam_dma.active && self.oam_dma.end_clock >= clock {
+    if self.oam_dma.active && self.oam_dma.end_clock <= clock {
       self.oam_dma.active = false;
     }
     self.timer.emulate(&mut self.irq);
