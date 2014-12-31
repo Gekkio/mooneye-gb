@@ -2,23 +2,23 @@
 
 ## Open questions
 
-### How many cycles does OAM DMA take?
-
-This is important, because the cpu is not allowed to access memory other than hiram during OAM DMA.
-
 ### What happens if the CPU accesses memory during OAM DMA?
 
 Writes are ignored and reads return $FF?
+
+### What happens if another OAM DMA is requested while one is already active?
 
 ### What is the exact cycle-by-cycle behaviour of OAM DMA?
 
 The GPU is probably able to access the OAM memory while an OAM DMA is active, so OAM DMA cannot be always emulated using a single big memory copy operation.
 
-### What happens if another OAM DMA is requested while one is already active?
-
 ### What are supported source addresses for OAM DMA? Some sources claim that 0xE0-0xF1 are supported.
 
 ### What happens if you try to do OAM DMA with an unsupported source address?
+
+### What happens if there is an interrupt during OAM DMA? Is this even possible?
+
+If we assume that $FFFF is not readable by the CPU during OAM DMA, this would mean interrupts are not even possible.
 
 ### Do joypad interrupts depend on the select bits P14-P15, or do we get an interrupt whenever any key is pressed regardless of select bit state?
 
@@ -114,3 +114,18 @@ DIV is incremented every 64 t-cycles, so there is an internal counter that count
 Consider the case where at time t=0 we reset the counter, and at time t=1 the DIV register would have incremented if we didn't do the reset. Do we see the DIV increment at time t=1 or t=64?
 
 A test ROM confirmed that increment happens at t=64, so the internal counter is also reset. See tests/div_timing.
+
+### How many cycles does OAM DMA take?
+
+OAM DMA takes 162 t-cycles. The following test returns $15 in counter register C:
+
+      start_oam_dma
+      nops 6
+    - inc c
+      ld a, (hl)
+      cp $01
+      jr nz, -
+
+If we add one extra nop (= 7 nops in total), we get $14. In the 6 nops case, there are 19 ld a,(hl) calls which don't see data, and one call which sees the data. The total cycle count at the last failing call is 6 + 19 * (1 + 2 + 2 + 3) + (1 + 2) = 161 cycles. So, waiting for 161 cycles is not enough to see the DMA end. Adding one NOP makes the ld a, (hl) see memory normally, so therefore the total cycle length of OAM DMA is 162 cycles.
+
+We are copying 40 x 32 bits = 160 bytes, so most likely we have one cycle per byte, and the extra 2 are startup/teardown cycles...
