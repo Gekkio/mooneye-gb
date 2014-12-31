@@ -123,7 +123,10 @@ impl<'a> Hardware<'a> {
       0xf0 ... 0xfd => self.internal_ram.write_bank1(addr - 0xf000, value),
       0xfe => {
         match addr & 0xff {
-          0x00 ... 0x9f => self.gpu.write_oam(addr & 0xff, value),
+          0x00 ... 0x9f =>
+            if !self.oam_dma.active {
+              self.gpu.write_oam(addr & 0xff, value)
+            },
           _ => ()
         }
       },
@@ -176,7 +179,10 @@ impl<'a> Hardware<'a> {
       0xf0 ... 0xfd => self.internal_ram.read_bank1(addr - 0xf000),
       0xfe => {
         match addr & 0xff {
-          0x00 ... 0x9f => self.gpu.read_oam(addr & 0xff),
+          0x00 ... 0x9f =>
+            if self.oam_dma.active { 0xff } else {
+              self.gpu.read_oam(addr & 0xff)
+            },
           // 0x00 ... 0x9f => handle_oam!(),
           // 0xa0 ... 0xff => handle_unusable!(),
           _ => panic!("Unsupported read at ${:04x}", addr)
@@ -216,22 +222,16 @@ impl<'a> Hardware<'a> {
 
 impl<'a> Bus for Hardware<'a> {
   fn read(&self, clock: Clock, addr: u16) -> u8 {
-    // TODO: print warning
-    if self.oam_dma.active { 0xff }
-    else {
-      self.read_internal(clock, addr)
+    if self.oam_dma.active {
+      println!("Warning: read at ${:04x} during OAM DMA!", addr);
     }
+    self.read_internal(clock, addr)
   }
   fn write(&mut self, clock: Clock, addr: u16, value: u8) {
-    // TODO: print warning
     if self.oam_dma.active {
-      // OAM can be restarted while it is already active
-      if addr == 0xff46 {
-        self.start_oam_dma(clock, value);
-      }
-    } else {
-      self.write_internal(clock, addr, value)
+      println!("Warning: write at ${:04x} = {:02x} during OAM DMA!", addr, value)
     }
+    self.write_internal(clock, addr, value)
   }
   fn emulate(&mut self, clock: Clock) {
     if self.oam_dma.active && self.oam_dma.end_clock <= clock {
