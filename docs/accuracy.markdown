@@ -5,8 +5,7 @@
 ### What happens if the CPU accesses memory during OAM DMA?
 
 Writes are ignored and reads return $FF?
-
-### What happens if another OAM DMA is requested while one is already active?
+However, this might vary depending on the address, because $FF46 (OAM DMA register) writes still have an effect.
 
 ### What is the exact cycle-by-cycle behaviour of OAM DMA?
 
@@ -129,3 +128,7 @@ OAM DMA takes 162 t-cycles. The following test returns $15 in counter register C
 If we add one extra nop (= 7 nops in total), we get $14. In the 6 nops case, there are 19 ld a,(hl) calls which don't see data, and one call which sees the data. The total cycle count at the last failing call is 6 + 19 * (1 + 2 + 2 + 3) + (1 + 2) = 161 cycles. So, waiting for 161 cycles is not enough to see the DMA end. Adding one NOP makes the ld a, (hl) see memory normally, so therefore the total cycle length of OAM DMA is 162 cycles.
 
 We are copying 40 x 32 bits = 160 bytes, so most likely we have one cycle per byte, and the extra 2 are startup/teardown cycles...
+
+### What happens if another OAM DMA is requested while one is already active?
+
+A new OAM DMA is started, so the entire process starts all over again.

@@ -224,8 +224,12 @@ impl<'a> Bus for Hardware<'a> {
   }
   fn write(&mut self, clock: Clock, addr: u16, value: u8) {
     // TODO: print warning
-    if self.oam_dma.active { }
-    else {
+    if self.oam_dma.active {
+      // OAM can be restarted while it is already active
+      if addr == 0xff46 {
+        self.start_oam_dma(clock, value);
+      }
+    } else {
       self.write_internal(clock, addr, value)
     }
   }
