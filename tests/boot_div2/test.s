@@ -16,4 +16,6 @@
   ; A should contain $27
   ; B, C should contain $26
 
-  jp finish
+test_finish:
+  save_results
+  jp print_results

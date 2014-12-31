@@ -41,13 +41,14 @@
   ; D contains counter E value
   ; E contains register IF value
 
+test_finish:
   ; GBP MGB-001 / GBASP AGS-101 (probably DMG/GBC as well)
-  ; B should contain $00
-  ; C should contain $E8
-  ; D should contain $01
-  ; E should contain $E0
-
-  jp finish
+  save_results
+  assert_b $00
+  assert_c $E8
+  assert_d $01
+  assert_e $E0
+  jp print_results
 
 .org $58
   inc e

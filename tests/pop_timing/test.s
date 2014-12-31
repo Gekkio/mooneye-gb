@@ -64,11 +64,12 @@
   ld sp, $CFFD
   pop bc
 
+test_finish:
   ; GBP MGB-001 / GBASP AGS-101 (probably DMG/GBC as well)
-  ; A should contain $01
-  ; B should contain $00
-  ; C should contain $01
-  ; D should contain $00
-  ; E should contain $01
-
-  jp finish
+  save_results
+  assert_a $01
+  assert_b $00
+  assert_c $01
+  assert_d $00
+  assert_e $01
+  jp print_results

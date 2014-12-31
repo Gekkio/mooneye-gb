@@ -39,18 +39,25 @@
 .computegbcomplementcheck
 .computegbchecksum
 
+.define VRAM $8000
+.define OAM $FE00
 .define DIV $FF04
 .define IF $FF0F
+.define DMA $FF46
 .define IE $FFFF
-.export DIV, IF, IE
+.export VRAM, OAM, DIV, IF, DMA, IE
 
 .macro nops ARGS count
   .dsb count, $00
 .endm
 
 .macro wait_vblank
+  wait_ly $90
+.endm
+
+.macro wait_ly ARGS value
 - ld a, ($FF00+$44)
-  cp $90
+  cp value
   jr nz, -
 .endm
 
@@ -66,36 +73,78 @@
 
 .org $1000
 
-finish:
-  ; .db $ED
+.macro save_results
   di
-  ld sp, $d008
+  ld sp, $d908
   push hl
   push de
   push bc
   push af
+  xor a
+  ld b, $08
+  ld hl, $d000
+- ld (HL+), a
+  dec b
+  jr nz, -
+  ld b, a
+.endm
+
+.macro assert_a ARGS value
+  ld a, value
+  ld ($d001), a
+  set 0, b
+.endm
+.macro assert_f ARGS value
+  ld a, value
+  ld ($d000), a
+  set 1, b
+.endm
+.macro assert_b ARGS value
+  ld a, value
+  ld ($d003), a
+  set 2, b
+.endm
+.macro assert_c ARGS value
+  ld a, value
+  ld ($d002), a
+  set 3, b
+.endm
+.macro assert_d ARGS value
+  ld a, value
+  ld ($d005), a
+  set 4, b
+.endm
+.macro assert_e ARGS value
+  ld a, value
+  ld ($d004), a
+  set 5, b
+.endm
+.macro assert_h ARGS value
+  ld a, value
+  ld ($d007), a
+  set 6, b
+.endm
+.macro assert_l ARGS value
+  ld a, value
+  ld ($d006), a
+  set 7, b
+.endm
+
+print_results:
+  ld a, b
+  ld ($d008), a
   ld sp, $dfff
   wait_vblank
   disable_lcd
   call reset_screen
   call load_font
   call print_regs
+  call check_asserts
   enable_lcd
+  ld a, e
+  debug
 - nop
   jr -
-
-.macro print_reg ARGS char addr
-  ld a, char
-  ld (HL+), a
-  ld a, ':'
-  ld (HL+), a
-  ld a, ' '
-  ld (HL+), a
-  ld a, (addr)
-  call print_a
-  ld a, ' '
-  ld (HL+), a
-.endm
 
 print_digit:
   ld a, $0F
@@ -115,22 +164,117 @@ print_a:
   call print_digit
   ret
 
+.macro print_char ARGS char
+  ld a, char
+  ld (HL+), a
+.endm
+
+.macro check_assert ARGS char value expected
+  print_char char
+  print_char ':'
+  print_char ' '
+
+  ld a, (expected)
+  ld c, a
+  ld a, (value)
+  cp c
+  jr z, +
+  ld a, c
+  call print_a
+  print_char '!'
+  ld a, $01
+  jr ++
++ print_char 'O'
+  print_char 'K'
+  print_char ' '
+  xor a
+++
+  ld (expected), a
+  ld bc, 26
+  add hl, bc
+  ret
+.endm
+
+check_assert_a:
+  check_assert 'A' $d901 $d001
+check_assert_f:
+  check_assert 'F' $d900 $d000
+check_assert_b:
+  check_assert 'B' $d903 $d003
+check_assert_c:
+  check_assert 'C' $d902 $d002
+check_assert_d:
+  check_assert 'D' $d905 $d005
+check_assert_e:
+  check_assert 'E' $d904 $d004
+check_assert_h:
+  check_assert 'H' $d907 $d007
+check_assert_l:
+  check_assert 'L' $d906 $d006
+
+check_asserts:
+  ld bc, 64
+  add hl, bc
+  ld a, ($d008)
+  ld e, a
+  bit 0, e
+  call nz, check_assert_a
+  bit 1, e
+  call nz, check_assert_f
+  bit 2, e
+  call nz, check_assert_b
+  bit 3, e
+  call nz, check_assert_c
+  bit 4, e
+  call nz, check_assert_d
+  bit 5, e
+  call nz, check_assert_e
+  bit 6, e
+  call nz, check_assert_h
+  bit 7, e
+  call nz, check_assert_l
+
+  xor a
+  ld e, a
+
+  ld bc, $d008
+- dec bc
+  ld a, (bc)
+  add e
+  ld e, a
+  ld a, c
+  or a
+  jr nz, -
+
+  ret
+
+.macro print_reg ARGS char addr
+  print_char char
+  print_char ':'
+  print_char ' '
+  ld a, (addr)
+  call print_a
+  print_char ' '
+.endm
+
 print_regs:
   ld hl, $9820
-  print_reg 'A' $d001
-  print_reg 'F' $d000
+  print_reg 'A' $d901
+  print_reg 'F' $d900
   ld bc, 20
   add hl, bc
-  print_reg 'B' $d003
-  print_reg 'C' $d002
+  print_reg 'B' $d903
+  print_reg 'C' $d902
   ld bc, 20
   add hl, bc
-  print_reg 'D' $d005
-  print_reg 'E' $d004
+  print_reg 'D' $d905
+  print_reg 'E' $d904
   ld bc, 20
   add hl, bc
-  print_reg 'H' $d007
-  print_reg 'L' $d006
+  print_reg 'H' $d907
+  print_reg 'L' $d906
+  ld bc, 20
+  add hl, bc
   ret
 
 .define NUM_CHARS 128
@@ -140,6 +284,13 @@ load_font:
   ld hl, $8010
   ld de, $2000
   ld bc, NUM_CHARS * CHAR_BYTES  
+  call memcpy
+  ret
+
+; HL target
+; DE source
+; BC number of bytes
+memcpy:
 - ld a, (de)
   ld (hl+), a
   inc de

@@ -21,12 +21,13 @@
   ; jump to handler $58
   inc b
 
+test_finish:
   ; GBP MGB-001 / GBASP AGS-101 (probably DMG/GBC as well)
-  ; B should contain $01
-  ; D should contain $01
-  ; E should contain $01
-
-  jp finish
+  save_results
+  assert_b $01
+  assert_d $01
+  assert_e $01
+  jp print_results
 
 .org $40
   inc d
@@ -34,4 +35,4 @@
 
 .org $58
   inc e
-  jp finish
+  jp test_finish
