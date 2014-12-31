@@ -1,13 +1,13 @@
 .incdir "../common"
 .include "common.i"
 
-  ldh a, (DIV-$FF00)
+  ld_a_ff DIV
   ld c, a
   nops 1
-  ldh a, (DIV-$FF00)
+  ld_a_ff DIV
   ld b, a
   nops 15
-  ldh a, (DIV-$FF00)
+  ld_a_ff DIV
 
   ; GBP MGB-001 (probably DMG as well):
   ; A should contain $AC

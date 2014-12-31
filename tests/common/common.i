@@ -41,34 +41,49 @@
 
 .define VRAM $8000
 .define OAM $FE00
-.define DIV $FF04
-.define IF $FF0F
-.define DMA $FF46
-.define IE $FFFF
-.export VRAM, OAM, DIV, IF, DMA, IE
+.export VRAM, OAM
+
+.define DIV  $FF04
+.define IF   $FF0F
+.define LCDC $FF40
+.define LY   $FF44
+.define DMA  $FF46
+.define IE   $FFFF
+.export DIV, IF, LCDC, LY, DMA, IE
 
 .macro nops ARGS count
   .dsb count, $00
 .endm
 
 .macro wait_vblank
+  ; wait for LY=143 first to ensure we get a fresh v-blank
+  wait_ly $89
+  ; wait for LY=144
   wait_ly $90
 .endm
 
 .macro wait_ly ARGS value
-- ld a, ($FF00+$44)
+- ld_a_ff LY
   cp value
   jr nz, -
 .endm
 
 .macro disable_lcd
-  ld hl, $FF40
+  ld hl, LCDC
   res 7, (HL)
 .endm
 
 .macro enable_lcd
-  ld hl, $FF40
+  ld hl, LCDC
   set 7, (HL)
+.endm
+
+.macro ld_a_ff ARGS addr
+  ldh a, (addr - $FF00)
+.endm
+
+.macro ld_ff_a ARGS addr
+  ldh (addr - $FF00), a
 .endm
 
 .org $1000
@@ -304,7 +319,7 @@ reset_screen:
   xor a
   ld ($ff42), a
   ld ($ff43), a
-  ld hl, $8000
+  ld hl, VRAM
   ld bc, $2000-1
 - xor a
   ld (hl+), a

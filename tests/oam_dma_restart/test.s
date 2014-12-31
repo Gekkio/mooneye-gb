@@ -4,9 +4,6 @@
 .include "common.i"
 
 .macro start_oam_dma
-  ; wait for next frame to ensure each start_oam_dma
-  ; waits for a different vblank
-  wait_ly $00
   ; wait for vblank and set $FE00 to $00, so we can wait until
   ; we see $01 after DMA
   wait_vblank
@@ -15,7 +12,7 @@
 
   ; start OAM DMA $8000 -> $FE00
   ld a, $80
-  ldh (DMA - $FF00), a
+  ld_ff_a DMA
 .endm
 
   di
@@ -54,7 +51,7 @@ test:
   ld b, 40
   start_oam_dma
   nops 7
-  ldh (DMA - $FF00), a
+  ld_ff_a DMA
 - dec b
   jr nz, -
 
@@ -66,7 +63,7 @@ test:
   ld b, 40
   start_oam_dma
   nops 7
-  ldh (DMA - $FF00), a
+  ld_ff_a DMA
 - dec b
   jr nz, -
   nops 1
