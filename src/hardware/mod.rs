@@ -176,6 +176,7 @@ impl<'a> Hardware<'a> {
       0xf0 ... 0xfd => self.internal_ram.read_bank1(addr - 0xf000),
       0xfe => {
         match addr & 0xff {
+          0x00 ... 0x9f => self.gpu.read_oam(addr & 0xff),
           // 0x00 ... 0x9f => handle_oam!(),
           // 0xa0 ... 0xff => handle_unusable!(),
           _ => panic!("Unsupported read at ${:04x}", addr)
