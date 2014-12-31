@@ -23,7 +23,7 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 
 ### Some instructions take more cycles than just the memory accesses. At which point in the instruction execution do these extra cycles occur?
 
-These instructions cost more than the memory accesses:
+These instructions cost more than the memory accesses and need to be investigated:
 
 * LD SP, HL
 * LD HL, (SP+e)
@@ -35,7 +35,6 @@ These instructions cost more than the memory accesses:
 * JR n
 * INC rr
 * DEC rr
-* PUSH rr
 * RST
 * RET cc
 * RET
@@ -132,3 +131,12 @@ We are copying 40 x 32 bits = 160 bytes, so most likely we have one cycle per by
 ### What happens if another OAM DMA is requested while one is already active?
 
 A new OAM DMA is started, so the entire process starts all over again.
+
+### What is the exact timing for PUSH rr?
+
+PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles POP rr):
+
+    t = 0: instruction decoding
+    t = 1: internal delay
+    t = 2: memory access for high byte
+    t = 3: memory access for low byte

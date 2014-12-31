@@ -864,9 +864,9 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///        - - - -
   fn push16(&mut self, reg: Reg16) {
     let value = self.regs.read16(reg);
-    self.push_u16(value);
     self.clock.tick();
     self.hardware.emulate(self.clock);
+    self.push_u16(value);
   }
   /// POP rr
   ///
