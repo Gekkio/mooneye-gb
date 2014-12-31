@@ -342,6 +342,25 @@ reset_screen:
   jr nz, -
   ret
 
+; Copy test procedure to hiram $FF80 and jump to it.
+; This is for tests that involve OAM DMA.
+; During OAM DMA the CPU cannot access any other memory,
+; so our code needs to be there
+.macro run_hiram_test
+  ld hl, $FF80
+  ld de, hiram_test
+  ld bc, $60 ; 0x60 bytes should be enough
+  call memcpy
+  ; jump to test procedure in hiram
+  jp $FF80
+.endm
+
+.macro start_oam_dma ARGS value
+  wait_vblank
+  ld a, $80
+  ld_ff_a DMA
+.endm
+
 .org $2000
 font:
   ; 8x8 ASCII bitmap font by Darkrose

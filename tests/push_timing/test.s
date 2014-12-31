@@ -7,13 +7,6 @@
 .incdir "../common"
 .include "common.i"
 
-.macro start_oam_dma
-  ; start OAM DMA $8000 -> $FE00
-  wait_vblank
-  ld a, $80
-  ld_ff_a DMA
-.endm
-
   di
 
   ; set first $20 bytes of VRAM to $81, so we
@@ -24,23 +17,7 @@
   ld a, $81
   call memset
 
-  ; copy test procedure to hiram $FF80
-  ; during OAM DMA the CPU cannot access any other memory,
-  ; so our code needs to be there
-  ld hl, $FF80
-  ld de, test
-  ld bc, $60 ; 0x60 bytes should be enough
-  call memcpy
-
-  ; set hl, reset registers
-  ld hl, OAM
-  xor a
-  ld b, a
-  ld c, a
-  ld d, a
-
-  ; jump to test procedure in hiram
-  jp $FF80
+  run_hiram_test
 
 test_finish:
   ; GBP MGB-001 / GBASP AGS-101 (probably DMG/GBC as well)
@@ -51,12 +28,12 @@ test_finish:
   assert_e $24
   jp print_results
 
-test:
+hiram_test:
   ld sp, OAM+$10
   ld d, $42
   ld e, $24
 
-  start_oam_dma
+  start_oam_dma $80
   ld a, 39
 - dec a
   jr nz, -
@@ -67,7 +44,7 @@ test:
   nops 7
   pop hl
 
-  start_oam_dma
+  start_oam_dma $80
   ld a, 39
 - dec a
   jr nz, -
