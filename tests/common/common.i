@@ -315,6 +315,19 @@ memcpy:
   jr nz, -
   ret
 
+; HL target
+; BC number of bytes
+; A value
+memset:
+  ld d, a
+- ld a, d
+  ld (hl+), a
+  dec bc
+  ld a, b
+  or c
+  jr nz, -
+  ret
+
 reset_screen:
   xor a
   ld ($ff42), a
