@@ -58,7 +58,8 @@ struct Sprite {
   x: u8,
   y: u8,
   tile_num: u8,
-  flags: SpriteFlags
+  flags: SpriteFlags,
+  flags_bits: u8
 }
 
 impl Sprite {
@@ -67,7 +68,8 @@ impl Sprite {
       x: 0,
       y: 0,
       tile_num: 0,
-      flags: SpriteFlags::empty()
+      flags: SpriteFlags::empty(),
+      flags_bits: 0
     }
   }
 }
@@ -300,7 +302,10 @@ impl<'a> Gpu<'a> {
     }
     let sprite = &mut self.oam[reladdr as uint / 4];
     match reladdr as uint % 4 {
-      3 => sprite.flags = SpriteFlags::from_bits_truncate(value),
+      3 => {
+        sprite.flags = SpriteFlags::from_bits_truncate(value);
+        sprite.flags_bits = value;
+      },
       2 => sprite.tile_num = value,
       1 => sprite.x = value - 8,
       _ => sprite.y = value - 16
@@ -329,9 +334,9 @@ impl<'a> Gpu<'a> {
     if self.mode == Mode::AccessVram || self.mode == Mode::AccessOam {
       return UNDEFINED_READ;
     }
-    let sprite = &self.oam[reladdr as uint / 16];
+    let sprite = &self.oam[reladdr as uint / 4];
     match reladdr as uint % 4 {
-      3 => sprite.flags.bits | SPRITE_UNUSED_MASK,
+      3 => sprite.flags_bits,
       2 => sprite.tile_num,
       1 => sprite.x + 8,
       _ => sprite.y + 16
