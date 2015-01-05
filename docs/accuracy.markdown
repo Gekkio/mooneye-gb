@@ -46,11 +46,13 @@ Most of these instructions involve writing a 16-bit register, which could explai
 
 5 cycles in total involving internal delays and a PC push. But when exactly does the push happen?
 
+*See: tests/intr_timing*
+
 ## Answered questions
 
 ### Does BIT b, (HL) take 12 or 16 cycles?
 
-*Answer:* 12 cycles
+12 cycles.
 
 Blargg's instruction timing ROM confirms that BIT takes 12, and RES/SET take 16 cycles, which makes perfect sense.
 Some opcode listings in the internet (e.g. GBCPUman.pdf) are wrong.
@@ -69,9 +71,11 @@ So, assuming interrupts are disabled, and an interrupt has already been requeste
     nop ; <- interrupt is acknowledged between these two
     nop ; <- instructions
 
+*See: tests/ei_timing, tests/rapid_di_ei*
+
 ### Is it possible to restore the bootrom by writing some value to $FF50?
 
-*Answer*: No
+No.
 
 This was tested on a GBP (MGB-001) with the following test ROM, which attempts to write all possible values to $FF50:
 
@@ -115,7 +119,9 @@ DIV is incremented every 64 t-cycles, so there is an internal counter that count
 
 Consider the case where at time t=0 we reset the counter, and at time t=1 the DIV register would have incremented if we didn't do the reset. Do we see the DIV increment at time t=1 or t=64?
 
-A test ROM confirmed that increment happens at t=64, so the internal counter is also reset. See tests/div_timing.
+A test ROM confirmed that increment happens at t=64, so the internal counter is also reset.
+
+*See: tests/div_timing*
 
 ### How many cycles does OAM DMA take?
 
@@ -132,9 +138,13 @@ If we add one extra nop (= 7 nops in total), we get $14. In the 6 nops case, the
 
 We are copying 40 x 32 bits = 160 bytes, so most likely we have one cycle per byte, and the extra 2 are startup/teardown cycles...
 
+*See: tests/oam_dma_timing*
+
 ### What happens if another OAM DMA is requested while one is already active?
 
 A new OAM DMA is started, so the entire process starts all over again.
+
+*See: tests/oam_dma_restart*
 
 ### What is the exact timing for PUSH rr?
 
@@ -144,3 +154,5 @@ PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles P
     t = 1: internal delay
     t = 2: memory access for high byte
     t = 3: memory access for low byte
+
+*See: tests/push_timing*
