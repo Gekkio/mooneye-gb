@@ -294,6 +294,10 @@ impl<H> Cpu<H> where H: Bus {
             self.regs.pc = interrupt.get_addr();
             self.time.tick();
             self.hardware.emulate(self.time);
+            self.time.tick();
+            self.hardware.emulate(self.time);
+            self.time.tick();
+            self.hardware.emulate(self.time);
             return;
           }
         }
