@@ -1,6 +1,7 @@
 use std::fmt;
 use std::num::Int;
 
+use gameboy::{HiramData, HIRAM_EMPTY};
 use hardware::Bus;
 use hardware::Clock;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
@@ -18,15 +19,12 @@ mod registers;
 #[cfg(test)]
 mod test;
 
-const HIRAM_SIZE: uint = 0x80;
-
-
 pub struct Cpu<H: Bus> {
   regs: Registers,
   ime: bool,
   ime_change: ImeChange,
   halt: bool,
-  hiram: [u8; HIRAM_SIZE],
+  hiram: HiramData,
   hardware: H,
   clock: Clock
 }
@@ -184,7 +182,7 @@ impl<H> Cpu<H> where H: Bus {
       ime: true,
       ime_change: ImeChange::None,
       halt: false,
-      hiram: [0; HIRAM_SIZE],
+      hiram: HIRAM_EMPTY,
       hardware: hardware,
       clock: Clock::new()
     }
