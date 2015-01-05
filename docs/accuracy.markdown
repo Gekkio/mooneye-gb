@@ -25,20 +25,24 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 
 These instructions cost more than the memory accesses and need to be investigated:
 
-* LD SP, HL
 * LD HL, (SP+e)
-* ADD HL, rr
 * ADD SP, e
 * JP cc, nn
 * JP nn
 * JR cc, n
 * JR n
-* INC rr
-* DEC rr
 * RST
 * RET cc
 * RET
 * RETI
+
+These instructions have just internal delays and no memory accesses, so the
+timing does not matter as it is not observable:
+
+* LD SP, HL
+* ADD HL, rr
+* INC rr
+* DEC rr
 
 Most of these instructions involve writing a 16-bit register, which could explain the timing.
 
