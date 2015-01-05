@@ -42,6 +42,10 @@ These instructions cost more than the memory accesses and need to be investigate
 
 Most of these instructions involve writing a 16-bit register, which could explain the timing.
 
+### What is the exact timing of CPU servicing an interrupt?
+
+5 cycles in total involving internal delays and a PC push. But when exactly does the push happen?
+
 ## Answered questions
 
 ### Does BIT b, (HL) take 12 or 16 cycles?
