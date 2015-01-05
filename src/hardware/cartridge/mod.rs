@@ -1,3 +1,5 @@
+use std::iter;
+
 use config::{
   CartridgeConfig,
   CartridgeRamSize,
@@ -47,7 +49,7 @@ impl Cartridge {
       rom: config.data,
       rom_bank: 0,
       rom_offset: 0x4000,
-      ram: Vec::from_elem(ram_size, 0),
+      ram: iter::repeat(0).take(ram_size).collect(),
       ram_offset: 0x0000,
       ram_bank: 0,
       mbc1_ram_banking: false,

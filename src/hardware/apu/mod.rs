@@ -1,3 +1,5 @@
+use std::num::FromPrimitive;
+
 use self::ch1::Ch1;
 use self::ch2::Ch2;
 use self::ch3::Ch3;
@@ -26,7 +28,7 @@ pub struct Apu {
   cycles: uint
 }
 
-#[deriving(Copy, FromPrimitive)]
+#[derive(Copy, FromPrimitive)]
 enum Volume {
   Vol0 = 0x00,
   Vol1 = 0x01,
@@ -145,9 +147,9 @@ impl Apu {
     }
   }
   pub fn get_ctrl_volume(&self) -> u8 {
-    self.term1_volume as u8 |
+    (self.term1_volume as u8) |
     if self.term1_vin { 1 << 3 } else { 0 } |
-    self.term2_volume as u8 << 4 |
+    (self.term2_volume as u8) << 4 |
     if self.term2_vin { 1 << 7 } else { 0 }
   }
   pub fn set_ctrl_volume(&mut self, value: u8) {

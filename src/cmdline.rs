@@ -26,7 +26,7 @@ pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
     print!("{}", long);
     return Err(ProgramResult::Exit);
   }
-  let cartridge = match matches.free.as_slice().head() {
+  let cartridge = match matches.free.as_slice().first() {
     Some(arg) => arg.clone(),
     None => {
       let short = short_usage(program, &opts);

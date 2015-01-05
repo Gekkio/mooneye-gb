@@ -96,7 +96,7 @@ impl<'a> Hardware<'a> {
     }
     self.oam_dma.active = true;
     self.oam_dma.end_clock = clock + 162;
-    let addr = value as u16 << 8;
+    let addr = (value as u16) << 8;
     for i in range(0, 0xa0) {
       let value = self.read_internal(clock, addr + i);
       self.gpu.write_oam(i, value);

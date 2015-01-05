@@ -1,4 +1,4 @@
-#![feature(globs, macro_rules)]
+#![feature(associated_types, default_type_params, globs, macro_rules, old_orphan_check)]
 
 extern crate collections;
 extern crate getopts;
@@ -11,6 +11,7 @@ extern crate test;
 
 use std::io::fs::{PathExtensions};
 use std::os;
+use std::thread::Thread;
 use std::time::duration::Duration;
 
 use backend::Backend;
@@ -85,7 +86,7 @@ fn main() {
   let (backend_tx, backend_rx) = backend::new_channel();
   let (machine_tx, machine_rx) = machine::new_channel();
 
-  spawn(move || {
+  Thread::spawn(move || {
     let mut mach = Machine::new(&*shared_memory, hardware_config);
     let channels = machine::Channels::new(machine_tx, backend_rx);
 
@@ -93,7 +94,7 @@ fn main() {
       Some(duration) => { mach.main_benchmark(channels, duration); },
       None => { mach.main_loop(channels); }
     }
-  });
+  }).detach();
 
   backend.main_loop(backend_tx, machine_rx);
 }

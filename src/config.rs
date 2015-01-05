@@ -1,13 +1,14 @@
+use std::fmt;
+use std::fmt::{Formatter, Show};
+use std::io::fs::File;
+use std::num::FromPrimitive;
+use std::str;
+
 use gameboy::{
   BootromData,
   BOOTROM_EMPTY, BOOTROM_SIZE,
   ROM_BANK_SIZE
 };
-use std::fmt;
-use std::fmt::{Formatter, Show};
-use std::io::fs::File;
-use std::str;
-
 use util::program_result::ProgramResult;
 
 pub struct HardwareConfig {
@@ -42,7 +43,7 @@ impl Show for CartridgeConfig {
   }
 }
 
-#[deriving(PartialEq, Eq, FromPrimitive)]
+#[derive(PartialEq, Eq, FromPrimitive)]
 pub enum CartridgeType {
   RomOnly = 0x00,
   Mbc1 = 0x01,
@@ -79,7 +80,7 @@ impl CartridgeType {
 
 }
 
-#[deriving(PartialEq, Eq, FromPrimitive)]
+#[derive(PartialEq, Eq, FromPrimitive)]
 pub enum CartridgeRomSize {
   NoRomBanks = 0x00,
   RomBanks4 = 0x01,
@@ -120,7 +121,7 @@ impl CartridgeRomSize {
   }
 }
 
-#[deriving(PartialEq, Eq, FromPrimitive)]
+#[derive(PartialEq, Eq, FromPrimitive)]
 pub enum CartridgeRamSize {
   NoRam = 0x00,
   Ram2K = 0x01,

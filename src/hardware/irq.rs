@@ -1,3 +1,5 @@
+use std::num::FromPrimitive;
+
 use util::int::IntOps;
 
 pub struct Irq {
@@ -35,7 +37,7 @@ impl Irq {
   pub fn has_interrupt(&self) -> bool { (self.int_enable & self.int_flag) != InterruptType::empty() }
 }
 
-#[deriving(FromPrimitive, Show)]
+#[derive(FromPrimitive, Show)]
 pub enum Interrupt {
   VBlank = 1 << 0,
   LcdStat = 1 << 1,

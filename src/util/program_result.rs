@@ -5,7 +5,7 @@ use std::io::IoError;
 use std::os;
 use std::str::SendStr;
 
-#[deriving(Show)]
+#[derive(Show)]
 pub enum ProgramResult {
   Exit,
   Error(String)

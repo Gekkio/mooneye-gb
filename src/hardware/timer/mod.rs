@@ -1,3 +1,5 @@
+use std::num::FromPrimitive;
+
 use hardware::Clock;
 use hardware::irq::{Irq, Interrupt};
 
@@ -12,7 +14,7 @@ pub struct Timer {
   divider_clock: Clock,
 }
 
-#[deriving(FromPrimitive, Copy)]
+#[derive(FromPrimitive, Copy)]
 enum InputClock {
   Hz4096 = 0,
   Hz262144 = 1,

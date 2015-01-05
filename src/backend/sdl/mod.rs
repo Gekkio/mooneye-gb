@@ -9,10 +9,11 @@ use sdl2::render;
 use sdl2::render::{RenderDriverIndex, Renderer, Texture, TextureAccess};
 use sdl2::video;
 use sdl2::video::{Window, WindowPos};
-use std::comm;
 use std::error::{Error, FromError};
+use std::iter;
 use std::slice::bytes;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{Receiver, SyncSender, TryRecvError};
 
 use backend::{
   Backend, BackendSharedMemory, GbKey, BackendMessage
@@ -42,7 +43,7 @@ struct SharedMemory {
 impl SharedMemory {
   fn new() -> SharedMemory {
     SharedMemory {
-      pixel_buffer_lock: Mutex::new(Vec::from_elem(PIXEL_BUFFER_SIZE, 0xff)),
+      pixel_buffer_lock: Mutex::new(iter::repeat(0xff).take(PIXEL_BUFFER_SIZE).collect()),
       palette: Palette::from_colors(&PALETTE)
     }
   }
@@ -75,7 +76,7 @@ impl Error for BackendError {
 
 impl BackendSharedMemory for SharedMemory {
   fn draw_screen(&self, pixels: &gameboy::ScreenBuffer) {
-    let mut data = self.pixel_buffer_lock.lock();
+    let mut data = self.pixel_buffer_lock.lock().unwrap();
     let ref palette = self.palette;
     for y in range(0, gameboy::SCREEN_HEIGHT) {
       let in_start = y * gameboy::SCREEN_WIDTH;
@@ -98,12 +99,12 @@ const PIXEL_BUFFER_STRIDE: uint = 256 * 4;
 const PIXEL_BUFFER_SIZE: uint = PIXEL_BUFFER_STRIDE * PIXEL_BUFFER_ROWS;
 
 struct Palette {
-  colors: [[u8, ..4], ..4]
+  colors: [[u8; 4]; 4]
 }
 
 impl Palette {
-  fn from_colors(colors: &[Color, ..4]) -> Palette {
-    fn convert(color: &Color) -> [u8, ..4] {
+  fn from_colors(colors: &[Color; 4]) -> Palette {
+    fn convert(color: &Color) -> [u8; 4] {
       match *color {
         Color::RGBA(r, g, b, a) => [a, b, g, r],
         _ => [0, 0, 0, 0]
@@ -119,7 +120,7 @@ impl Palette {
       colors: colors
     }
   }
-  fn get_bytes<'a>(&'a self, gb_color: &gameboy::Color) -> &'a [u8, ..4] {
+  fn get_bytes<'a>(&'a self, gb_color: &gameboy::Color) -> &'a [u8; 4] {
     match *gb_color {
       gameboy::Color::Off => &self.colors[0],
       gameboy::Color::Light => &self.colors[1],
@@ -129,7 +130,7 @@ impl Palette {
   }
 }
 
-static PALETTE: [Color, ..4] =
+static PALETTE: [Color; 4] =
   [
     Color::RGBA(0xbd, 0xe6, 0x12, 255),
     Color::RGBA(0x90, 0xb3, 0x0f, 255),
@@ -170,7 +171,7 @@ impl SdlBackend {
   }
   fn refresh_gb_screen(&self) -> BackendResult<()> {
     {
-      let pixels = self.shared_memory.pixel_buffer_lock.lock();
+      let pixels = self.shared_memory.pixel_buffer_lock.lock().unwrap();
       try!(self.texture.update(Some(SCREEN_RECT), pixels[], PIXEL_BUFFER_STRIDE as int));
     }
     try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as int, gameboy::SCREEN_HEIGHT as int));
@@ -244,7 +245,7 @@ impl Backend<SharedMemory> for SdlBackend {
   fn main_loop(&mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) {
     loop {
       match from_machine.try_recv() {
-        Err(comm::Disconnected) => break,
+        Err(TryRecvError::Disconnected) => break,
         Ok(MachineMessage::RelativeSpeedStat(value)) => self.relative_speed_stat = value,
         _ => ()
       }
@@ -255,24 +256,24 @@ impl Backend<SharedMemory> for SdlBackend {
           Event::KeyDown(_, _, key, _, _, _) if key == KeyCode::Escape => return,
           Event::KeyDown(_, _, key, _, _, _) => {
             match to_joypad_key(key) {
-              Some(key) => to_machine.send(BackendMessage::KeyDown(key)),
+              Some(key) => to_machine.send(BackendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
             match key {
-              KeyCode::Home => to_machine.send(BackendMessage::Break),
-              KeyCode::End => to_machine.send(BackendMessage::Run),
-              KeyCode::PageDown => to_machine.send(BackendMessage::Step),
-              KeyCode::LShift => to_machine.send(BackendMessage::Turbo(true)),
+              KeyCode::Home => to_machine.send(BackendMessage::Break).unwrap(),
+              KeyCode::End => to_machine.send(BackendMessage::Run).unwrap(),
+              KeyCode::PageDown => to_machine.send(BackendMessage::Step).unwrap(),
+              KeyCode::LShift => to_machine.send(BackendMessage::Turbo(true)).unwrap(),
               _ => ()
             }
           },
           Event::KeyUp(_, _, key, _, _, _) => {
             match to_joypad_key(key) {
-              Some(key) => to_machine.send(BackendMessage::KeyUp(key)),
+              Some(key) => to_machine.send(BackendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
             match key {
-              KeyCode::LShift => to_machine.send(BackendMessage::Turbo(false)),
+              KeyCode::LShift => to_machine.send(BackendMessage::Turbo(false)).unwrap(),
               _ => ()
             }
           },
@@ -281,19 +282,19 @@ impl Backend<SharedMemory> for SdlBackend {
           },
           Event::ControllerButtonDown(_, _, button) => {
             match controller_to_joypad_key(button) {
-              Some(key) => to_machine.send(BackendMessage::KeyDown(key)),
+              Some(key) => to_machine.send(BackendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
           },
           Event::ControllerButtonUp(_, _, button) => {
             match controller_to_joypad_key(button) {
-              Some(key) => to_machine.send(BackendMessage::KeyUp(key)),
+              Some(key) => to_machine.send(BackendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
           },
           Event::ControllerAxisMotion(_, _, axis, value) => {
             match controller_axis_to_message(axis, value) {
-              Some(message) => to_machine.send(message),
+              Some(message) => to_machine.send(message).unwrap(),
               None => ()
             }
           },

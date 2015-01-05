@@ -26,7 +26,7 @@ pub struct Cpu<H: Bus> {
   ime: bool,
   ime_change: ImeChange,
   halt: bool,
-  hiram: [u8, ..HIRAM_SIZE],
+  hiram: [u8; HIRAM_SIZE],
   hardware: H,
   clock: Clock
 }
@@ -48,7 +48,7 @@ pub trait Out16: ToDisasmStr {
 }
 
 
-#[deriving(Copy, Show)]
+#[derive(Copy, Show)]
 pub enum Cond {
   NZ, Z,
   NC, C
@@ -64,7 +64,7 @@ impl Cond {
   }
 }
 
-#[deriving(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Show)]
 enum ImeChange {
   None, Soon(bool), Now(bool)
 }
@@ -106,7 +106,7 @@ impl Out16 for Reg16 {
 }
 
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub enum Addr {
   BC, DE, HL, HLD, HLI,
   Direct, ZeroPage, ZeroPageC
@@ -184,7 +184,7 @@ impl<H> Cpu<H> where H: Bus {
       ime: true,
       ime_change: ImeChange::None,
       halt: false,
-      hiram: [0, ..HIRAM_SIZE],
+      hiram: [0; HIRAM_SIZE],
       hardware: hardware,
       clock: Clock::new()
     }
@@ -234,7 +234,7 @@ impl<H> Cpu<H> where H: Bus {
 
   fn read_u16(&mut self, addr: u16) -> u16 {
     (self.read_u8(addr) as u16) |
-    (self.read_u8(addr + 1) as u16 << 8)
+    ((self.read_u8(addr + 1) as u16) << 8)
   }
   fn write_u16(&mut self, addr: u16, value: u16) {
     self.write_u8(addr, value as u8);
@@ -256,7 +256,7 @@ impl<H> Cpu<H> where H: Bus {
   fn pop_u16(&mut self) -> u16 {
     let l = self.pop_u8();
     let h = self.pop_u8();
-    (h as u16 << 8) + (l as u16)
+    ((h as u16) << 8) + (l as u16)
   }
   fn push_u16(&mut self, value: u16) {
     self.push_u8((value >> 8) as u8);

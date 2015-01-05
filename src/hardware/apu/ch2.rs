@@ -1,3 +1,5 @@
+use std::num::FromPrimitive;
+
 use super::envelope::Envelope;
 use super::wave_duty::WaveDuty;
 
@@ -28,7 +30,7 @@ impl Ch2 {
     const REG1_MASK: u8 = 0x3F;
 
     REG1_MASK |
-    (self.wave_duty as u8 << 6)
+    ((self.wave_duty as u8) << 6)
   }
   pub fn write_reg1(&mut self, value: u8) {
     self.wave_duty = FromPrimitive::from_u8((value >> 6) & 0x03).unwrap();
@@ -46,7 +48,7 @@ impl Ch2 {
   pub fn write_reg4(&mut self, value: u8) {
     self.status = value & (1 << 7) != 0;
     self.use_counter = value & (1 << 6) != 0;
-    self.freq_bits = (self.freq_bits & 0xff) | (value as u16 << 8);
+    self.freq_bits = (self.freq_bits & 0xff) | ((value as u16) << 8);
     if self.status && self.counter == 0 {
       self.counter = 64;
     }

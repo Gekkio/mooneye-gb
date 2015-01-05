@@ -1,4 +1,6 @@
-#[deriving(Copy, FromPrimitive)]
+use std::num::FromPrimitive;
+
+#[derive(Copy, FromPrimitive)]
 enum Volume {
   None = 0,
   Full = 1,
@@ -7,7 +9,7 @@ enum Volume {
 }
 
 pub struct Ch3 {
-  wave_ram: [u8, ..16],
+  wave_ram: [u8; 16],
   enabled: bool,
   volume: Volume,
   freq_bits: u16,
@@ -19,7 +21,7 @@ pub struct Ch3 {
 impl Ch3 {
   pub fn new() -> Ch3 {
     Ch3 {
-      wave_ram: [0, ..16],
+      wave_ram: [0; 16],
       enabled: false,
       volume: Volume::None,
       freq_bits: 0,
@@ -57,7 +59,7 @@ impl Ch3 {
     const REG2_MASK: u8 = 0x9f;
 
     REG2_MASK |
-    (self.volume as u8 << 5)
+    ((self.volume as u8) << 5)
   }
   pub fn write_reg2(&mut self, value: u8) {
     self.volume = FromPrimitive::from_u8((value >> 5) & 0x03).unwrap();
@@ -74,7 +76,7 @@ impl Ch3 {
   pub fn write_reg4(&mut self, value: u8) {
     self.status = value & (1 << 7) != 0;
     self.use_counter = value & (1 << 6) != 0;
-    self.freq_bits = (self.freq_bits & 0xff) | (value as u16 << 8);
+    self.freq_bits = (self.freq_bits & 0xff) | ((value as u16) << 8);
     if self.status && self.counter == 0 {
       self.counter = 256;
     }

@@ -18,7 +18,7 @@ pub trait CpuOps<R> {
   fn next_u16(&mut self) -> u16 {
     let l = self.next_u8();
     let h = self.next_u8();
-    (h as u16 << 8) | (l as u16)
+    ((h as u16) << 8) | (l as u16)
   }
   // --- 8-bit operations
   // 8-bit loads

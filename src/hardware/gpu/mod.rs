@@ -32,28 +32,28 @@ pub struct Gpu<'a> {
   obj_palette1: Palette,
   mode: Mode,
   cycles: int,
-  character_ram: [Tile, ..CHARACTER_RAM_TILES],
-  oam: [Sprite, ..OAM_SPRITES],
-  tile_map1: [u8, ..TILE_MAP_SIZE],
-  tile_map2: [u8, ..TILE_MAP_SIZE],
+  character_ram: [Tile; CHARACTER_RAM_TILES],
+  oam: [Sprite; OAM_SPRITES],
+  tile_map1: [u8; TILE_MAP_SIZE],
+  tile_map2: [u8; TILE_MAP_SIZE],
   back_buffer: Box<gameboy::ScreenBuffer>,
   backend: &'a (BackendSharedMemory + 'a)
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 struct Tile {
-  data: [u8, ..16]
+  data: [u8; 16]
 }
 
 impl Tile {
   fn new() -> Tile {
     Tile {
-      data: [0, ..16]
+      data: [0; 16]
     }
   }
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 struct Sprite {
   x: u8,
   y: u8,
@@ -143,7 +143,7 @@ bitflags!(
   }
 );
 
-#[deriving(PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 enum Mode {
   AccessOam, AccessVram, HBlank, VBlank
 }
@@ -183,10 +183,10 @@ impl<'a> Gpu<'a> {
       obj_palette1: Palette::new(),
       mode: Mode::AccessOam,
       cycles: ACCESS_OAM_CYCLES,
-      character_ram: [Tile::new(), ..CHARACTER_RAM_TILES],
-      oam: [Sprite::new(), ..OAM_SPRITES],
-      tile_map1: [0, ..TILE_MAP_SIZE],
-      tile_map2: [0, ..TILE_MAP_SIZE],
+      character_ram: [Tile::new(); CHARACTER_RAM_TILES],
+      oam: [Sprite::new(); OAM_SPRITES],
+      tile_map1: [0; TILE_MAP_SIZE],
+      tile_map2: [0; TILE_MAP_SIZE],
       back_buffer: box gameboy::SCREEN_EMPTY,
       backend: backend
     }

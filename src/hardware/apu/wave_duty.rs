@@ -1,4 +1,4 @@
-#[deriving(Copy, FromPrimitive)]
+#[derive(Copy, FromPrimitive)]
 pub enum WaveDuty {
   HalfQuarter = 0,
   Quarter = 1,

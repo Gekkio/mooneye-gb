@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use gameboy::{BootromData, BOOTROM_EMPTY};
 
 pub struct Bootrom {
@@ -27,7 +29,8 @@ impl Bootrom {
   pub fn deactivate(&mut self) { self.active = false; }
 }
 
-impl Index<u16, u8> for Bootrom {
+impl Index<u16> for Bootrom {
+  type Output = u8;
   fn index(&self, index: &u16) -> &u8 {
     &self.data[*index as uint]
   }

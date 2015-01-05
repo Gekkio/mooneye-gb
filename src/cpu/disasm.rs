@@ -1,3 +1,4 @@
+use std::borrow::IntoCow;
 use std::fmt::Show;
 use std::str::CowString;
 

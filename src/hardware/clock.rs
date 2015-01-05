@@ -1,8 +1,9 @@
 use std::num::Int;
+use std::ops::{Add, Sub};
 
 pub type Cycles = u32;
 
-#[deriving(PartialEq, Eq, PartialOrd, Ord, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub struct Clock {
   m_cycles: Cycles
 }
@@ -40,13 +41,15 @@ impl Clock {
   }
 }
 
-impl Add<Cycles, Clock> for Clock {
+impl Add<Cycles> for Clock {
+  type Output = Clock;
   fn add(self, rhs: Cycles) -> Clock {
     Clock::from_machine_cycles(self.m_cycles + rhs)
   }
 }
 
-impl Sub<Clock, Clock> for Clock {
+impl Sub for Clock {
+  type Output = Clock;
   fn sub(self, rhs: Clock) -> Clock {
     Clock::from_machine_cycles(self.m_cycles - rhs.m_cycles)
   }

@@ -24,12 +24,12 @@ impl fmt::Show for Flags {
   }
 }
 
-#[deriving(Copy, Show)]
+#[derive(Copy, Show)]
 pub enum Reg8 {
   A, B, C, D, E, H, L
 }
 
-#[deriving(Copy, Show)]
+#[derive(Copy, Show)]
 pub enum Reg16 {
   AF, BC, DE, HL, SP
 }
@@ -66,10 +66,10 @@ impl Registers {
   pub fn read16(&self, reg: Reg16) -> u16 {
     use self::Reg16::*;
     match reg {
-      AF => (self.a as u16 << 8) | (self.f.get() as u16),
-      BC => (self.b as u16 << 8) | (self.c as u16),
-      DE => (self.d as u16 << 8) | (self.e as u16),
-      HL => (self.h as u16 << 8) | (self.l as u16),
+      AF => ((self.a as u16) << 8) | (self.f.get() as u16),
+      BC => ((self.b as u16) << 8) | (self.c as u16),
+      DE => ((self.d as u16) << 8) | (self.e as u16),
+      HL => ((self.h as u16) << 8) | (self.l as u16),
       SP => self.sp,
     }
   }

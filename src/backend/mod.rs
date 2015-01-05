@@ -1,7 +1,7 @@
 use gameboy;
-use std::comm;
 use std::error::Error;
 use std::sync::Arc;
+use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 use machine::MachineMessage;
 
 pub mod sdl;
@@ -19,7 +19,7 @@ pub enum BackendMessage {
   KeyDown(GbKey), KeyUp(GbKey), Break, Step, Run, Turbo(bool)
 }
 
-#[deriving(Show)]
+#[derive(Show)]
 pub enum GbKey {
   Right, Left, Up, Down, A, B, Select, Start
 }
@@ -32,5 +32,5 @@ pub fn init() -> Result<sdl::SdlBackend, Box<Error>> {
 }
 
 pub fn new_channel() -> (SyncSender<BackendMessage>, Receiver<BackendMessage>) {
-  comm::sync_channel(128)
+  sync_channel(128)
 }

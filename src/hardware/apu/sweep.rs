@@ -1,4 +1,6 @@
-#[deriving(Copy, FromPrimitive)]
+use std::num::FromPrimitive;
+
+#[derive(Copy, FromPrimitive)]
 enum Time {
   None = 0,
   Div1 = 1,
@@ -28,7 +30,7 @@ impl Sweep {
     const MASK: u8 = 0x80;
 
     MASK |
-    (self.time as u8 << 4) |
+    ((self.time as u8) << 4) |
     if self.increasing { 1 << 3 } else { 0 } |
     (self.shift)
   }

@@ -1,6 +1,6 @@
-use std::comm;
 use std::fmt;
 use std::io::timer::Timer;
+use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
 use std::time::duration::Duration;
 
 use backend::{
@@ -99,7 +99,7 @@ impl<'a> Machine<'a> {
         _ => ()
       }
       match from_backend.try_recv() {
-        Err(comm::Disconnected) => break,
+        Err(TryRecvError::Disconnected) => break,
         _ => ()
       }
       self.emulate();
@@ -122,7 +122,7 @@ impl<'a> Machine<'a> {
 
           loop {
             select!(
-              backend_event = from_backend.recv_opt() => {
+              backend_event = from_backend.recv() => {
                 match backend_event {
                   Err(_) => return,
                   Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
@@ -132,11 +132,11 @@ impl<'a> Machine<'a> {
                   _ => ()
                 }
               },
-              () = perf_update.recv() => {
+              _ = perf_update.recv() => {
                 let value = self.perf_counter.get_relative_speed();
-                to_backend.send(MachineMessage::RelativeSpeedStat(value));
+                to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
               },
-              () = pulse.recv() => {
+              _ = pulse.recv() => {
                 if !self.emulate() {
                   break;
                 }
@@ -147,7 +147,7 @@ impl<'a> Machine<'a> {
         EmulationMode::MaxSpeed => {
           loop {
             match from_backend.try_recv() {
-              Err(comm::Disconnected) => return,
+              Err(TryRecvError::Disconnected) => return,
               Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
               Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
               Ok(BackendMessage::Turbo(false)) => { self.mode = EmulationMode::Normal; break },
@@ -155,10 +155,10 @@ impl<'a> Machine<'a> {
               _ => ()
             }
             match perf_update.try_recv() {
-              Err(comm::Disconnected) => return,
+              Err(TryRecvError::Disconnected) => return,
               Ok(_) => {
                 let value = self.perf_counter.get_relative_speed();
-                to_backend.send(MachineMessage::RelativeSpeedStat(value));
+                to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
               },
               _ => ()
             }
@@ -170,7 +170,7 @@ impl<'a> Machine<'a> {
         EmulationMode::Debug => {
           self.debug_status();
           loop {
-            match from_backend.recv_opt() {
+            match from_backend.recv() {
               Err(_) => return,
               Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
               Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
@@ -193,5 +193,5 @@ enum EmulationMode {
 }
 
 pub fn new_channel() -> (SyncSender<MachineMessage>, Receiver<MachineMessage>) {
-  comm::sync_channel(128)
+  sync_channel(128)
 }
