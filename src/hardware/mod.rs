@@ -8,6 +8,7 @@ use backend::{
   GbKey
 };
 use config::HardwareConfig;
+use emulation::{EmuTime, MachineCycles};
 use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
 use hardware::cartridge::Cartridge;
@@ -19,12 +20,10 @@ use hardware::irq::{
 use hardware::joypad::Joypad;
 use hardware::serial::Serial;
 use hardware::timer::Timer;
-pub use self::clock::Clock;
 
 mod apu;
 mod bootrom;
 mod cartridge;
-mod clock;
 mod gpu;
 mod internal_ram;
 pub mod irq;
@@ -33,12 +32,12 @@ mod serial;
 mod timer;
 
 pub trait Bus {
-  fn write(&mut self, Clock, u16, u8);
-  fn read(&self, Clock, u16) -> u8;
-  fn emulate(&mut self, Clock);
+  fn write(&mut self, EmuTime, u16, u8);
+  fn read(&self, EmuTime, u16) -> u8;
+  fn emulate(&mut self, EmuTime);
   fn ack_interrupt(&mut self) -> Option<Interrupt>;
   fn has_interrupt(&self) -> bool;
-  fn normalize_clock(&mut self);
+  fn rewind_time(&mut self);
 }
 
 pub struct Hardware<'a> {
@@ -56,14 +55,14 @@ pub struct Hardware<'a> {
 
 struct OamDma {
   active: bool,
-  end_clock: Clock
+  end_time: EmuTime
 }
 
 impl OamDma {
   fn new() -> OamDma {
     OamDma {
       active: false,
-      end_clock: Clock::new()
+      end_time: EmuTime::zero()
     }
   }
 }
@@ -89,27 +88,27 @@ impl<'a> Hardware<'a> {
   pub fn key_up(&mut self, key: GbKey) {
     self.joypad.key_up(key);
   }
-  fn start_oam_dma(&mut self, clock: Clock, value: u8) {
+  fn start_oam_dma(&mut self, time: EmuTime, value: u8) {
     if value < 0x80 || value > 0xdf {
       println!("Invalid DMA {:02x}", value);
       return;
     }
     self.oam_dma.active = true;
-    self.oam_dma.end_clock = clock + 162;
+    self.oam_dma.end_time = time + MachineCycles(162);
     let addr = (value as u16) << 8;
     for i in range(0, 0xa0) {
-      let value = self.read_internal(clock, addr + i);
+      let value = self.read_internal(time, addr + i);
       self.gpu.write_oam(i, value);
     }
   }
-  pub fn dump_mem(&self, clock: Clock, addr: u16, chunks: uint) {
+  pub fn dump_mem(&self, time: EmuTime, addr: u16, chunks: uint) {
     for i in range_step(addr, addr + (chunks as u16 * 8), 8) {
       println!("${:04x}: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}", i,
-               self.read(clock, i + 0), self.read(clock, i + 1), self.read(clock, i + 2), self.read(clock, i + 3),
-               self.read(clock, i + 4), self.read(clock, i + 5), self.read(clock, i + 6), self.read(clock, i + 7));
+               self.read(time, i + 0), self.read(time, i + 1), self.read(time, i + 2), self.read(time, i + 3),
+               self.read(time, i + 4), self.read(time, i + 5), self.read(time, i + 6), self.read(time, i + 7));
     }
   }
-  fn write_internal(&mut self, clock: Clock, addr: u16, value: u8) {
+  fn write_internal(&mut self, time: EmuTime, addr: u16, value: u8) {
     match addr >> 8 {
       0x00 ... 0x7f => self.cartridge.write_control(addr, value),
       0x80 ... 0x97 => self.gpu.write_character_ram(addr - 0x8000, value),
@@ -135,7 +134,7 @@ impl<'a> Hardware<'a> {
           0x00 => self.joypad.set_register(value),
           0x01 => self.serial.set_data(value),
           0x02 => self.serial.set_control(value),
-          0x04 => self.timer.reset_divider(clock),
+          0x04 => self.timer.reset_divider(time),
           0x05 => self.timer.set_counter(value),
           0x06 => self.timer.set_modulo(value),
           0x07 => self.timer.set_control(value),
@@ -147,7 +146,7 @@ impl<'a> Hardware<'a> {
           0x43 => self.gpu.set_scroll_x(value),
           0x44 => self.gpu.reset_current_line(),
           0x45 => self.gpu.set_compare_line(value),
-          0x46 => self.start_oam_dma(clock, value),
+          0x46 => self.start_oam_dma(time, value),
           0x47 => self.gpu.set_bg_palette(value),
           0x48 => self.gpu.set_obj_palette0(value),
           0x49 => self.gpu.set_obj_palette1(value),
@@ -161,7 +160,7 @@ impl<'a> Hardware<'a> {
       _ => panic!("Unsupported write at ${:04x} = {:02x}", addr, value)
     }
   }
-  fn read_internal(&self, clock: Clock, addr: u16) -> u8 {
+  fn read_internal(&self, time: EmuTime, addr: u16) -> u8 {
     match addr >> 8 {
       0x00 ... 0x3f => {
         if addr < 0x100 && self.bootrom.is_active() { self.bootrom[addr] }
@@ -193,7 +192,7 @@ impl<'a> Hardware<'a> {
           0x00 => self.joypad.get_register(),
           0x01 => panic!("Unsupported read at ${:04x}", addr),
           0x02 => panic!("Unsupported read at ${:04x}", addr),
-          0x04 => self.timer.get_divider(clock),
+          0x04 => self.timer.get_divider(time),
           0x05 => self.timer.get_counter(),
           0x06 => self.timer.get_modulo(),
           0x07 => self.timer.get_control(),
@@ -221,20 +220,20 @@ impl<'a> Hardware<'a> {
 }
 
 impl<'a> Bus for Hardware<'a> {
-  fn read(&self, clock: Clock, addr: u16) -> u8 {
+  fn read(&self, time: EmuTime, addr: u16) -> u8 {
     if self.oam_dma.active {
       println!("Warning: read at ${:04x} during OAM DMA!", addr);
     }
-    self.read_internal(clock, addr)
+    self.read_internal(time, addr)
   }
-  fn write(&mut self, clock: Clock, addr: u16, value: u8) {
+  fn write(&mut self, time: EmuTime, addr: u16, value: u8) {
     if self.oam_dma.active {
       println!("Warning: write at ${:04x} = {:02x} during OAM DMA!", addr, value)
     }
-    self.write_internal(clock, addr, value)
+    self.write_internal(time, addr, value)
   }
-  fn emulate(&mut self, clock: Clock) {
-    if self.oam_dma.active && self.oam_dma.end_clock <= clock {
+  fn emulate(&mut self, time: EmuTime) {
+    if self.oam_dma.active && self.oam_dma.end_time <= time {
       self.oam_dma.active = false;
     }
     self.timer.emulate(&mut self.irq);
@@ -243,8 +242,8 @@ impl<'a> Bus for Hardware<'a> {
   }
   fn ack_interrupt(&mut self) -> Option<Interrupt> { self.irq.ack_interrupt() }
   fn has_interrupt(&self) -> bool { self.irq.has_interrupt() }
-  fn normalize_clock(&mut self) {
-    self.timer.normalize_clock();
+  fn rewind_time(&mut self) {
+    self.timer.rewind_time();
   }
 }
 

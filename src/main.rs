@@ -23,6 +23,7 @@ mod backend;
 mod cmdline;
 mod config;
 mod cpu;
+mod emulation;
 mod gameboy;
 mod hardware;
 mod machine;

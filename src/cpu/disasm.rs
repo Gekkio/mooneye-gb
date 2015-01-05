@@ -10,15 +10,15 @@ use cpu::{
   Immediate16, Direct16
 };
 use cpu::registers::Reg16;
+use emulation::EmuTime;
 use hardware::Bus;
-use hardware::Clock;
 
 pub type DisasmStr = CowString<'static>;
 
 struct Disasm<'a> {
   pc: u16,
   bus: &'a (Bus + 'a),
-  clock: Clock
+  time: EmuTime
 }
 
 pub trait ToDisasmStr {
@@ -85,7 +85,7 @@ impl<'a> CpuOps<DisasmStr> for Disasm<'a> {
   fn next_u8(&mut self) -> u8 {
     let addr = self.pc;
     self.pc += 1;
-    self.bus.read(self.clock, addr)
+    self.bus.read(self.time, addr)
   }
   // --- 8-bit operations
   // 8-bit loads
@@ -165,11 +165,11 @@ impl<'a> CpuOps<DisasmStr> for Disasm<'a> {
   fn undefined_debug(&mut self) -> DisasmStr { self.null_op("DBG") }
 }
 
-pub fn disasm<B: Bus>(bus: &B, pc_start: u16, clock: Clock) -> DisasmStr {
+pub fn disasm<B: Bus>(bus: &B, pc_start: u16, time: EmuTime) -> DisasmStr {
   let mut disasm = Disasm {
     pc: pc_start,
     bus: bus,
-    clock: clock
+    time: time
   };
   disasm.decode()
 }

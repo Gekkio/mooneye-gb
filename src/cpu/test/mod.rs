@@ -1,9 +1,9 @@
 use test::Bencher;
 
-use hardware::Bus;
-use hardware::Clock;
-use hardware::irq::Interrupt;
 use cpu::Cpu;
+use emulation::EmuTime;
+use hardware::Bus;
+use hardware::irq::Interrupt;
 
 mod cb_test;
 mod test_0x;
@@ -36,14 +36,14 @@ impl TestHardware {
 }
 
 impl<'a> Bus for TestHardware {
-  fn write(&mut self, clock: Clock, addr: u16, value: u8) {
+  fn write(&mut self, time: EmuTime, addr: u16, value: u8) {
     self.memory[addr as uint] = value;
   }
-  fn read(&self, clock: Clock, addr: u16) -> u8 {
+  fn read(&self, time: EmuTime, addr: u16) -> u8 {
     self.memory[addr as uint]
   }
-  fn emulate(&mut self, clock: Clock) {}
-  fn normalize_clock(&mut self) {}
+  fn emulate(&mut self, time: EmuTime) {}
+  fn rewind_time(&mut self) {}
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
   fn has_interrupt(&self) -> bool { false }
 }

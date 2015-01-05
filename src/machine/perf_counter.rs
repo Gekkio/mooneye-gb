@@ -1,6 +1,8 @@
 use std::collections::RingBuf;
 use time::precise_time_s;
 
+use emulation::MachineCycles;
+
 const HISTORY_SIZE: uint = 64;
 const EXPECTED_CYCLES_PER_SECOND: f64 = 4194304.0;
 
@@ -17,9 +19,9 @@ impl PerfCounter {
       last_time: precise_time_s()
     }
   }
-  pub fn update(&mut self, cycles: u32) {
+  pub fn update(&mut self, cycles: MachineCycles) {
     let time = precise_time_s();
-    let cycles_per_s = cycles as f64 / (time - self.last_time);
+    let cycles_per_s = cycles.as_clock_cycles() as f64 / (time - self.last_time);
 
     self.make_room_for_new_element();
     self.history.push_front(cycles_per_s);

@@ -8,8 +8,7 @@ use backend::{
 };
 use config::HardwareConfig;
 use cpu::Cpu;
-use gameboy;
-use hardware::Clock;
+use emulation::{EmuTime, MachineCycles};
 use hardware::Hardware;
 use self::perf_counter::PerfCounter;
 
@@ -20,7 +19,7 @@ pub struct Machine<'a> {
   cpu: Cpu<Hardware<'a>>,
   perf_counter: PerfCounter,
   mode: EmulationMode,
-  clock: Clock
+  time: EmuTime
 }
 
 pub struct Channels {
@@ -49,7 +48,7 @@ impl<'a> fmt::Show for Machine<'a> {
 }
 
 /// Amount of cycles in each emulation pulse
-const PULSE_CYCLES: u32 = 10484; // 10ms worth of cycles
+const PULSE_CYCLES: MachineCycles = MachineCycles(10484); // 10ms worth of cycles
 
 impl<'a> Machine<'a> {
   pub fn new(backend: &'a BackendSharedMemory, config: HardwareConfig) -> Machine<'a> {
@@ -57,20 +56,20 @@ impl<'a> Machine<'a> {
       cpu: Cpu::new(Hardware::new(backend, config)),
       perf_counter: PerfCounter::new(),
       mode: EmulationMode::Normal,
-      clock: Clock::new()
+      time: EmuTime::zero()
     }
   }
   fn emulate(&mut self) -> bool {
-    let end_clock = self.clock + PULSE_CYCLES;
+    let end_time = self.time + PULSE_CYCLES;
 
-    self.cpu.execute_until(end_clock);
+    self.cpu.execute_until(end_time);
 
-    self.perf_counter.update(end_clock.as_clock_cycles() - self.clock.as_clock_cycles());
-    self.clock = end_clock;
+    self.perf_counter.update(end_time - self.time);
+    self.time = end_time;
 
-    if self.clock.needs_normalize() {
-      self.clock.normalize();
-      self.cpu.normalize_clock();
+    if self.time.needs_rewind() {
+      self.time.rewind();
+      self.cpu.rewind_time();
     }
     true
   }
@@ -93,7 +92,7 @@ impl<'a> Machine<'a> {
     loop {
       match limit.try_recv() {
         Ok(_) => {
-          println!("{}", self.clock.as_clock_cycles());
+          println!("{}", self.time.cycles().as_clock_cycles());
           break;
         },
         _ => ()
@@ -110,7 +109,7 @@ impl<'a> Machine<'a> {
     let to_backend = channels.to_backend;
     self.reset();
 
-    let pulse_duration = Duration::seconds(4 * PULSE_CYCLES as i64) / gameboy::CPU_SPEED_HZ as i32;
+    let pulse_duration = PULSE_CYCLES.as_duration();
 
     let mut perf_timer = Timer::new().unwrap();
     let perf_update = perf_timer.periodic(Duration::milliseconds(100));
