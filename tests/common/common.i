@@ -40,16 +40,30 @@
 .computegbchecksum
 
 .define VRAM $8000
-.define OAM $FE00
-.export VRAM, OAM
+.define OAM  $FE00
+
+.define P1   $FF00
+.define SB   $FF01
+.define SC   $FF02
 
 .define DIV  $FF04
+.define TIMA $FF05
+.define TMA  $FF06
+.define TAC  $FF07
 .define IF   $FF0F
 .define LCDC $FF40
+.define STAT $FF41
+.define SCY  $FF42
+.define SCX  $FF43
 .define LY   $FF44
+.define LYC  $FF45
 .define DMA  $FF46
+.define BGP  $FF47
+.define OBP0 $FF48
+.define OBP1 $FF49
+.define WY   $FF4A
+.define WX   $FF4B
 .define IE   $FFFF
-.export DIV, IF, LCDC, LY, DMA, IE
 
 .macro nops ARGS count
   .dsb count, $00
