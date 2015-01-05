@@ -7,7 +7,7 @@ use machine::MachineMessage;
 pub mod sdl;
 
 pub trait Backend<C: BackendSharedMemory> {
-  fn main_loop(&mut self, SyncSender<BackendMessage>, Receiver<MachineMessage>);
+  fn main_loop(self, SyncSender<BackendMessage>, Receiver<MachineMessage>);
   fn shared_memory(&self) -> Arc<C>;
 }
 

@@ -78,7 +78,7 @@ fn main() {
 
   println!("{}", hardware_config);
 
-  let mut backend = match backend::init() {
+  let backend = match backend::init() {
     Err(error) => panic!("{}", error.description()),
     Ok(backend) => backend
   };

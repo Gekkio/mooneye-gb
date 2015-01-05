@@ -242,7 +242,7 @@ fn controller_axis_to_message(axis: ControllerAxis, value: i16) -> Option<Backen
 }
 
 impl Backend<SharedMemory> for SdlBackend {
-  fn main_loop(&mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) {
+  fn main_loop(mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) {
     loop {
       match from_machine.try_recv() {
         Err(TryRecvError::Disconnected) => break,
@@ -307,6 +307,9 @@ impl Backend<SharedMemory> for SdlBackend {
         _ => ()
       }
     }
+    drop(self.font);
+    drop(self.texture);
+    drop(self.renderer);
     sdl2::quit();
   }
   fn shared_memory(&self) -> Arc<SharedMemory> {
