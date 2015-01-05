@@ -3,18 +3,11 @@ use std::error::FromError;
 use std::io::stdio;
 use std::io::IoError;
 use std::os;
-use std::str::SendStr;
 
 #[derive(Show)]
 pub enum ProgramResult {
   Exit,
   Error(String)
-}
-
-impl<'a> FromError<SendStr> for ProgramResult {
-  fn from_error(err: SendStr) -> ProgramResult {
-    ProgramResult::Error(format!("SendStr: {}", err))
-  }
 }
 
 impl FromError<IoError> for ProgramResult {

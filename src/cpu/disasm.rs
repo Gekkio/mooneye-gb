@@ -1,6 +1,6 @@
 use std::borrow::IntoCow;
 use std::fmt::Show;
-use std::str::CowString;
+use std::string::CowString;
 
 use cpu::{
   CpuOps, Cond,
