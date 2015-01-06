@@ -25,12 +25,6 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 
 These instructions cost more than the memory accesses and need to be investigated:
 
-* CALL nn
-* CALL cc, nn
-* JP cc, nn
-* JP nn
-* JR cc, n
-* JR n
 * RET cc
 * RET
 * RETI
@@ -197,3 +191,32 @@ RST has an extra internal delay before the PC push:
     t = 3: PC push: memory access for low byte
 
 *See: tests/rst_timing*
+
+### What is the exact timing of CALL/JP/JR (not JP HL!)?
+
+JP nn has an extra internal delay:
+
+    t = 0: instruction decoding
+    t = 1: nn read: memory access for low byte
+    t = 2: nn read: memory access for high byte
+    ; cc matches or unconditional
+    t = 3: internal delay
+
+JR n has an extra internal delay:
+
+    t = 0: instruction decoding
+    t = 1: n read: memory access
+    ; cc matches or unconditional
+    t = 2: internal delay
+
+CALL has an extra internal delay before the PC push:
+
+    t = 0: instruction decoding
+    t = 1: nn read: memory access for low byte
+    t = 2: nn read: memory access for high byte
+    ; cc matches or unconditional
+    t = 3: internal delay
+    t = 4: PC push: memory access for high byte
+    t = 5: PC push: memory access for low byte
+
+*See: tests/call\_timing, tests/call\_timing2, tests/call\_cc\_timing, tests/jp\_timing, tests/jp\_cc\_timing*
