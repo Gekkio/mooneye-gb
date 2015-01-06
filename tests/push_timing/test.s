@@ -39,7 +39,7 @@ hiram_test:
   jr nz, -
   nops 2
 
-  ; OAM is accessable at t=2
+  ; OAM is accessible at t=2
   push de
   nops 7
   pop hl
@@ -50,7 +50,7 @@ hiram_test:
   jr nz, -
   nops 1
 
-  ; OAM is accessable at t=3
+  ; OAM is accessible at t=3
   push de
   nops 7
   pop de
