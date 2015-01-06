@@ -143,7 +143,7 @@ A new OAM DMA is started, so the entire process starts all over again.
 
 *See: tests/oam_dma_restart*
 
-### What is the exact timing for PUSH rr?
+### What is the exact timing of PUSH rr?
 
 PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles POP rr):
 
@@ -166,7 +166,7 @@ PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles P
 
 *See: tests/intr_timing, tests/intr_timing2*
 
-### Whait is the exact timing of LD HL, SP+e?
+### What is the exact timing of LD HL, SP+e?
 
 LD HL, SP+e has an extra internal delay after decoding and reading of e:
 
