@@ -46,12 +46,6 @@ timing does not matter as it is not observable:
 
 Most of these instructions involve writing a 16-bit register, which could explain the timing.
 
-### What is the exact timing of CPU servicing an interrupt?
-
-5 cycles in total involving internal delays and a PC push. But when exactly does the push happen?
-
-*See: tests/intr_timing*
-
 ## Answered questions
 
 ### Does BIT b, (HL) take 12 or 16 cycles?
@@ -160,3 +154,15 @@ PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles P
     t = 3: memory access for low byte
 
 *See: tests/push_timing*
+
+### What is the exact timing of CPU servicing an interrupt?
+
+5 cycles in total involving internal delays and a PC push:
+
+    t = 0: internal delay
+    t = 1: internal delay
+    t = 2; internal delay
+    t = 3: PC push: memory access for high byte
+    t = 4: PC push: memory access for low byte
+
+*See: tests/intr_timing, tests/intr_timing2*
