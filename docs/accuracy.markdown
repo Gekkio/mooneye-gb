@@ -25,7 +25,6 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 
 These instructions cost more than the memory accesses and need to be investigated:
 
-* ADD SP, e
 * JP cc, nn
 * JP nn
 * JR cc, n
@@ -173,3 +172,12 @@ LD HL, SP+e has an extra internal delay after decoding and reading of e:
     t = 0: instruction decoding
     t = 1: memory access for e
     t = 2: internal delay
+
+### What is the exact timing of ADD SP, e?
+
+ADD SP, e has two extra internal delays after decoding and reading of e:
+
+    t = 0: instruction decoding
+    t = 1: memory access for e
+    t = 2: internal delay
+    t = 3: internal delay
