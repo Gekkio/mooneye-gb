@@ -181,3 +181,14 @@ ADD SP, e has two extra internal delays after decoding and reading of e:
     t = 1: memory access for e
     t = 2: internal delay
     t = 3: internal delay
+
+### What is the exact timing of RST?
+
+RST has an extra internal delay before the PC push:
+
+    t = 0: instruction decoding
+    t = 1: internal delay
+    t = 2: PC push: memory access for high byte
+    t = 3: PC push: memory access for low byte
+
+*See: tests/rst_timing*
