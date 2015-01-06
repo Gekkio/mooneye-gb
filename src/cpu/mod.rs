@@ -289,15 +289,15 @@ impl<H> Cpu<H> where H: Bus {
           Some(interrupt) => {
             self.halt = false;
             self.ime = false;
+            self.time.tick();
+            self.hardware.emulate(self.time);
+            self.time.tick();
+            self.hardware.emulate(self.time);
+            self.time.tick();
+            self.hardware.emulate(self.time);
             let pc = self.regs.pc;
             self.push_u16(pc);
             self.regs.pc = interrupt.get_addr();
-            self.time.tick();
-            self.hardware.emulate(self.time);
-            self.time.tick();
-            self.hardware.emulate(self.time);
-            self.time.tick();
-            self.hardware.emulate(self.time);
             return;
           }
         }
