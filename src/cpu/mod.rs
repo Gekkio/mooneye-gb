@@ -370,10 +370,10 @@ impl<H> Cpu<H> where H: Bus {
   }
   fn ctrl_call(&mut self, addr: u16) {
     let pc = self.regs.pc;
-    self.push_u16(pc);
-    self.regs.pc = addr;
     self.time.tick();
     self.hardware.emulate(self.time);
+    self.push_u16(pc);
+    self.regs.pc = addr;
   }
   fn ctrl_ret(&mut self) {
     self.regs.pc = self.pop_u16();
