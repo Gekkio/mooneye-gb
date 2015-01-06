@@ -728,10 +728,10 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///        - - - -
   fn rst(&mut self, addr: u8) {
     let pc = self.regs.pc;
-    self.push_u16(pc);
-    self.regs.pc = addr as u16;
     self.time.tick();
     self.hardware.emulate(self.time);
+    self.push_u16(pc);
+    self.regs.pc = addr as u16;
   }
   // --- Miscellaneous
   /// HALT
