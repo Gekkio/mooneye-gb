@@ -35,7 +35,7 @@ test_finish:
   assert_b $81
   assert_c $A7
   assert_d $FF
-  assert_e $CF
+  assert_e $D1
   jp print_results
 
 hiram_test:
@@ -54,9 +54,8 @@ hiram_test:
   ; OAM is accessible at t=4, so we expect to see
   ; incorrect (= $81 written by OAM DMA) high byte, but correct low byte
 
-  nop
   ; never executed
-  jp test_finish
+  test_failure
 
 test_round1:
   pop bc
@@ -74,9 +73,8 @@ test_round1:
   ; OAM is accessible at t=3, so we expect to see
   ; correct high byte and low byte
 
-  nop
   ; never executed
-  jp test_finish
+  test_failure
 
 test_round2:
   pop de

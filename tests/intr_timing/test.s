@@ -44,7 +44,7 @@
   trigger_intr
 
   ; never executed
-  jp test_finish
+  test_failure
 
 test_round1:
   ld a, (bc)
@@ -58,7 +58,7 @@ test_round1:
   trigger_intr
 
   ; never executed
-  jp test_finish
+  test_failure
 
 test_round2:
   ld a, (bc)

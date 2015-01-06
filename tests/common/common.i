@@ -69,6 +69,17 @@
   .dsb count, $00
 .endm
 
+; BC = BC - DE
+.macro sub16
+  ld a, c
+  sub e
+  ld c, a
+
+  ld a, b
+  sbc d
+  ld b, a
+.endm
+
 .macro wait_vblank
   ; wait for LY=143 first to ensure we get a fresh v-blank
   wait_ly $89
@@ -305,6 +316,45 @@ print_regs:
   ld bc, 20
   add hl, bc
   ret
+
+.macro test_failure
+  ld sp, $fffe
+  call print_failure
+.endm
+
+print_failure:
+  wait_vblank
+  disable_lcd
+  call reset_screen
+  call load_font
+  ld hl, $9820
+  print_char 'F'
+  print_char 'A'
+  print_char 'I'
+  print_char 'L'
+  print_char 'E'
+  print_char 'D'
+  ld bc, 26
+  add hl, bc
+  print_char 'P'
+  print_char 'C'
+  print_char ':'
+  print_char ' '
+
+  ; load PC
+  ld sp, $fffe - 2
+  pop bc
+  ; subtract $06 to get the PC value where test_failure was called
+  ld de, $0006
+  sub16
+
+  ld a, b
+  call print_a
+  ld a, c
+  call print_a
+  enable_lcd
+- nop
+  jr -
 
 .define NUM_CHARS 128
 .define CHAR_BYTES 16
