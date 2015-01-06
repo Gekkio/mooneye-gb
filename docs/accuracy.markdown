@@ -25,7 +25,6 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 
 These instructions cost more than the memory accesses and need to be investigated:
 
-* LD HL, (SP+e)
 * ADD SP, e
 * JP cc, nn
 * JP nn
@@ -166,3 +165,11 @@ PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles P
     t = 4: PC push: memory access for low byte
 
 *See: tests/intr_timing, tests/intr_timing2*
+
+### Whait is the exact timing of LD HL, SP+e?
+
+LD HL, SP+e has an extra internal delay after decoding and reading of e:
+
+    t = 0: instruction decoding
+    t = 1: memory access for e
+    t = 2: internal delay
