@@ -1,7 +1,7 @@
 ; interrupt servicing is expected to have the following timing:
 ; t = 0: internal delay
 ; t = 1: internal delay
-; t = 2; internal delay
+; t = 2: internal delay
 ; t = 3: PC push: memory access for high byte
 ; t = 4: PC push: memory access for low byte
 

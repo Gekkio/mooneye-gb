@@ -25,11 +25,12 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 
 These instructions cost more than the memory accesses and need to be investigated:
 
+* CALL nn
+* CALL cc, nn
 * JP cc, nn
 * JP nn
 * JR cc, n
 * JR n
-* RST
 * RET cc
 * RET
 * RETI
@@ -159,7 +160,7 @@ PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles P
 
     t = 0: internal delay
     t = 1: internal delay
-    t = 2; internal delay
+    t = 2: internal delay
     t = 3: PC push: memory access for high byte
     t = 4: PC push: memory access for low byte
 
@@ -173,6 +174,8 @@ LD HL, SP+e has an extra internal delay after decoding and reading of e:
     t = 1: memory access for e
     t = 2: internal delay
 
+*See: tests/ld_hl_sp_e_timing*
+
 ### What is the exact timing of ADD SP, e?
 
 ADD SP, e has two extra internal delays after decoding and reading of e:
@@ -181,6 +184,8 @@ ADD SP, e has two extra internal delays after decoding and reading of e:
     t = 1: memory access for e
     t = 2: internal delay
     t = 3: internal delay
+
+*See: tests/add_sp_e_timing*
 
 ### What is the exact timing of RST?
 
