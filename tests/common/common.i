@@ -181,6 +181,8 @@ print_results:
   call print_regs
   call check_asserts
   enable_lcd
+  wait_vblank
+  wait_vblank
   ld a, e
   debug
 - nop
