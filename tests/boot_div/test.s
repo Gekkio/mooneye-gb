@@ -12,7 +12,7 @@
   ; GBP MGB-001 (probably DMG as well):
   ; A should contain $AC
   ; B, C should contain $AB
-  ; GBASP AGS-101 (probably GBC as well):
+  ; GBC CGB-001 / GBASP AGS-101 (probably GBA as well):
   ; A, B, C should contain $26
 
 test_finish:

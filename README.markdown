@@ -32,7 +32,7 @@ There's tons of documentation and tons of emulators in the internet, but in the 
 4. Run the test ROM on real hardware. If the test ROM made an invalid hypothesis, go back to 1.
 5. Replicate the behaviour in the emulator
 
-All test ROMs are manually run with a Gameboy Pocket (model MGB-001) and a Gameboy Advance SP (model AGS-101).
+All test ROMs are manually run with a Gameboy Pocket (model MGB-001), Gameboy Color (model CGB-001) and a Gameboy Advance SP (model AGS-101).
 
 ## Performance
 

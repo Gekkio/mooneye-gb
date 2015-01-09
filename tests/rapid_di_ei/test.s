@@ -50,7 +50,7 @@
   di
 
 test_finish:
-  ; GBP MGB-001 / GBASP AGS-101 (probably DMG/GBC as well)
+  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
   assert_b $00
   assert_c $00

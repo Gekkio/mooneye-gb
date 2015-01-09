@@ -67,7 +67,7 @@ test_round2:
   jp test_finish
 
 test_finish:
-  ; GBP MGB-001 / GBASP AGS-101 (probably DMG/GBC as well)
+  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
   assert_d $00
   assert_e $01
