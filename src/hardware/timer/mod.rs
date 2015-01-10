@@ -10,7 +10,7 @@ pub struct Timer {
   modulo: u8,
   enabled: bool,
   input_clock: InputClock,
-  timer_cycles: int,
+  timer_cycles: i32,
   divider_time: EmuTime,
 }
 
@@ -23,7 +23,7 @@ enum InputClock {
 }
 
 impl InputClock {
-  fn cycles(&self) -> int {
+  fn cycles(&self) -> i32 {
     match *self {
       InputClock::Hz4096 => 1024 / 4,
       InputClock::Hz16384 => 256 / 4,

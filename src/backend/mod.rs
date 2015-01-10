@@ -27,7 +27,7 @@ pub enum GbKey {
 pub fn init() -> Result<sdl::SdlBackend, Box<Error>> {
   match sdl::SdlBackend::init() {
     Ok(backend) => Ok(backend),
-    Err(error) => Err(box error as Box<Error>)
+    Err(error) => Err(Box::new(error) as Box<Error>)
   }
 }
 

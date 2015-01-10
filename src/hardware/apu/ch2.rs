@@ -8,7 +8,7 @@ pub struct Ch2 {
   pub envelope: Envelope,
   freq_bits: u16,
   use_counter: bool,
-  counter: uint,
+  counter: usize,
   pub status: bool
 }
 
@@ -34,7 +34,7 @@ impl Ch2 {
   }
   pub fn write_reg1(&mut self, value: u8) {
     self.wave_duty = FromPrimitive::from_u8((value >> 6) & 0x03).unwrap();
-    self.counter = 64 - (value & 0x3f) as uint;
+    self.counter = 64 - (value & 0x3f) as usize;
   }
   pub fn write_reg3(&mut self, value: u8) {
     self.freq_bits = (self.freq_bits & 0x700) | value as u16;

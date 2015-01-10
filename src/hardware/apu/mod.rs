@@ -25,7 +25,7 @@ pub struct Apu {
   ch2: Ch2,
   ch3: Ch3,
   ch4: Ch4,
-  cycles: uint
+  cycles: usize
 }
 
 #[derive(Copy, FromPrimitive)]

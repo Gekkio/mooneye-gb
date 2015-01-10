@@ -8,13 +8,13 @@ use gameboy::Color;
 use hardware::irq::{Irq, Interrupt};
 use util::int::IntOps;
 
-const CHARACTER_RAM_TILES: uint = 384;
-const TILE_MAP_SIZE: uint = 0x400;
-const OAM_SPRITES: uint = 40;
-const ACCESS_OAM_CYCLES: int = 80 / 4;
-const ACCESS_VRAM_CYCLES: int = 172 / 4;
-const HBLANK_CYCLES: int = 204 / 4;
-const VBLANK_LINE_CYCLES: int = 456 / 4;
+const CHARACTER_RAM_TILES: usize = 384;
+const TILE_MAP_SIZE: usize = 0x400;
+const OAM_SPRITES: usize = 40;
+const ACCESS_OAM_CYCLES: isize = 80 / 4;
+const ACCESS_VRAM_CYCLES: isize = 172 / 4;
+const HBLANK_CYCLES: isize = 204 / 4;
+const VBLANK_LINE_CYCLES: isize = 456 / 4;
 const UNDEFINED_READ: u8 = 0xff;
 const STAT_UNUSED_MASK: u8 = (1 << 7);
 
@@ -31,7 +31,7 @@ pub struct Gpu<'a> {
   obj_palette0: Palette,
   obj_palette1: Palette,
   mode: Mode,
-  cycles: int,
+  cycles: isize,
   character_ram: [Tile; CHARACTER_RAM_TILES],
   oam: [Sprite; OAM_SPRITES],
   tile_map1: [u8; TILE_MAP_SIZE],
@@ -149,7 +149,7 @@ enum Mode {
 }
 
 impl Mode {
-  fn cycles(&self) -> int {
+  fn cycles(&self) -> isize {
     match *self {
       Mode::AccessOam => ACCESS_OAM_CYCLES,
       Mode::AccessVram => ACCESS_VRAM_CYCLES,
@@ -187,7 +187,7 @@ impl<'a> Gpu<'a> {
       oam: [Sprite::new(); OAM_SPRITES],
       tile_map1: [0; TILE_MAP_SIZE],
       tile_map2: [0; TILE_MAP_SIZE],
-      back_buffer: box gameboy::SCREEN_EMPTY,
+      back_buffer: Box::new(gameboy::SCREEN_EMPTY),
       backend: backend
     }
   }
@@ -281,27 +281,27 @@ impl<'a> Gpu<'a> {
     if self.mode == Mode::AccessVram {
       return;
     }
-    let tile = &mut self.character_ram[reladdr as uint / 16];
-    tile.data[reladdr as uint % 16] = value;
+    let tile = &mut self.character_ram[reladdr as usize / 16];
+    tile.data[reladdr as usize % 16] = value;
   }
   pub fn write_tile_map1(&mut self, reladdr: u16, value: u8) {
     if self.mode == Mode::AccessVram {
       return;
     }
-    self.tile_map1[reladdr as uint] = value;
+    self.tile_map1[reladdr as usize] = value;
   }
   pub fn write_tile_map2(&mut self, reladdr: u16, value: u8) {
     if self.mode == Mode::AccessVram {
       return;
     }
-    self.tile_map2[reladdr as uint] = value;
+    self.tile_map2[reladdr as usize] = value;
   }
   pub fn write_oam(&mut self, reladdr: u16, value: u8) {
     if self.mode == Mode::AccessVram || self.mode == Mode::AccessOam {
       return;
     }
-    let sprite = &mut self.oam[reladdr as uint / 4];
-    match reladdr as uint % 4 {
+    let sprite = &mut self.oam[reladdr as usize / 4];
+    match reladdr as usize % 4 {
       3 => {
         sprite.flags = SpriteFlags::from_bits_truncate(value);
         sprite.flags_bits = value;
@@ -315,27 +315,27 @@ impl<'a> Gpu<'a> {
     if self.mode == Mode::AccessVram {
       return UNDEFINED_READ;
     }
-    let tile = &self.character_ram[reladdr as uint / 16];
-    tile.data[reladdr as uint % 16]
+    let tile = &self.character_ram[reladdr as usize / 16];
+    tile.data[reladdr as usize % 16]
   }
   pub fn read_tile_map1(&self, reladdr: u16) -> u8 {
     if self.mode == Mode::AccessVram {
       return UNDEFINED_READ;
     }
-    self.tile_map1[reladdr as uint]
+    self.tile_map1[reladdr as usize]
   }
   pub fn read_tile_map2(&self, reladdr: u16) -> u8 {
     if self.mode == Mode::AccessVram {
       return UNDEFINED_READ;
     }
-    self.tile_map2[reladdr as uint]
+    self.tile_map2[reladdr as usize]
   }
   pub fn read_oam(&self, reladdr: u16) -> u8 {
     if self.mode == Mode::AccessVram || self.mode == Mode::AccessOam {
       return UNDEFINED_READ;
     }
-    let sprite = &self.oam[reladdr as uint / 4];
-    match reladdr as uint % 4 {
+    let sprite = &self.oam[reladdr as usize / 4];
+    match reladdr as usize % 4 {
       3 => sprite.flags_bits,
       2 => sprite.tile_num,
       1 => sprite.x + 8,
@@ -416,7 +416,7 @@ impl<'a> Gpu<'a> {
     }
   }
   fn draw_line(&mut self) {
-    let slice_start = gameboy::SCREEN_WIDTH * self.current_line as uint;
+    let slice_start = gameboy::SCREEN_WIDTH * self.current_line as usize;
     let slice_end = gameboy::SCREEN_WIDTH + slice_start;
     let pixels = self.back_buffer.slice_mut(slice_start, slice_end);
 
@@ -427,22 +427,22 @@ impl<'a> Gpu<'a> {
         else { &self.tile_map1 };
 
       let y = self.current_line + self.scroll_y;
-      let row = (y / 8) as uint;
+      let row = (y / 8) as usize;
       for i in range(0, gameboy::SCREEN_WIDTH) {
         let x = i as u8 + self.scroll_x;
-        let col = (x / 8) as uint;
+        let col = (x / 8) as usize;
         let raw_tile_num = tile_map[row * 32 + col];
 
         let tile_num =
-          if addr_select { raw_tile_num as uint }
-          else { 128 + ((raw_tile_num as i8 as i16) + 128) as uint };
+          if addr_select { raw_tile_num as usize }
+          else { 128 + ((raw_tile_num as i8 as i16) + 128) as usize };
         let tile = &self.character_ram[tile_num];
 
         let line = (y % 8) * 2;
-        let data1 = tile.data[(line as u16) as uint];
-        let data2 = tile.data[(line as u16 + 1) as uint];
+        let data1 = tile.data[(line as u16) as usize];
+        let data2 = tile.data[(line as u16 + 1) as usize];
 
-        let bit = (((x % 8) - 7) * -1) as uint;
+        let bit = (((x % 8) - 7) * -1) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
         let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
@@ -456,25 +456,25 @@ impl<'a> Gpu<'a> {
         else { &self.tile_map1 };
 
       let y = self.current_line - self.window_y;
-      let row = (y / 8) as uint;
-      for i in range(window_x as uint, gameboy::SCREEN_WIDTH) {
+      let row = (y / 8) as usize;
+      for i in range(window_x as usize, gameboy::SCREEN_WIDTH) {
         let mut x = i as u8 + self.scroll_x;
         if x >= window_x {
           x = i as u8 - window_x;
         }
-        let col = (x / 8) as uint;
+        let col = (x / 8) as usize;
         let raw_tile_num = tile_map[row * 32 + col];
 
         let tile_num =
-          if addr_select { raw_tile_num as uint }
-          else { 128 + ((raw_tile_num as i8 as i16) + 128) as uint };
+          if addr_select { raw_tile_num as usize }
+          else { 128 + ((raw_tile_num as i8 as i16) + 128) as usize };
         let tile = &self.character_ram[tile_num];
 
         let line = (y % 8) * 2;
-        let data1 = tile.data[(line as u16) as uint];
-        let data2 = tile.data[(line as u16 + 1) as uint];
+        let data1 = tile.data[(line as u16) as usize];
+        let data2 = tile.data[(line as u16 + 1) as usize];
 
-        let bit = (((x % 8) - 7) * -1) as uint;
+        let bit = (((x % 8) - 7) * -1) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
         let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
@@ -483,15 +483,15 @@ impl<'a> Gpu<'a> {
     if self.control.contains(CTRL_OBJ_ON) {
       let size =
         if self.control.contains(CTRL_OBJ_SIZE) { 16 } else { 8 };
-      for i in range(0, 40u) {
+      for i in range(0, 40) {
         let sprite = self.oam[i];
         let ypos = sprite.y;
         let xpos = sprite.x;
         let palette =
           if sprite.flags.contains(SPRITE_PALETTE) { &self.obj_palette1 }
           else { &self.obj_palette0 };
-        if self.current_line >= ypos && (self.current_line as uint) < (ypos + size) as uint {
-          let mut tile_num = sprite.tile_num as uint;
+        if self.current_line >= ypos && (self.current_line as usize) < (ypos + size) as usize {
+          let mut tile_num = sprite.tile_num as usize;
           let mut line =
             if sprite.flags.contains(SPRITE_FLIPY) {
               size - (self.current_line - ypos) - 1
@@ -504,20 +504,20 @@ impl<'a> Gpu<'a> {
           }
           line *= 2;
           let tile = &self.character_ram[tile_num];
-          let data1 = tile.data[(line as u16) as uint];
-          let data2 = tile.data[(line as u16 + 1) as uint];
+          let data1 = tile.data[(line as u16) as usize];
+          let data2 = tile.data[(line as u16 + 1) as usize];
 
           for x in range(0, 8u8).rev() {
             let bit =
               if sprite.flags.contains(SPRITE_FLIPX) {
                 7 - x
-              } else { x } as uint;
+              } else { x } as usize;
             let raw_color = Color::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
             let color = palette.get(&raw_color);
             let target_x = xpos + (7 - x);
             if target_x < 159 && raw_color != Color::Off {
-              if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as uint] == Color::Off {
-                pixels[target_x as uint] = color;
+              if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as usize] == Color::Off {
+                pixels[target_x as usize] = color;
               }
             }
           }

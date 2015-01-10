@@ -101,7 +101,7 @@ impl<'a> Hardware<'a> {
       self.gpu.write_oam(i, value);
     }
   }
-  pub fn dump_mem(&self, time: EmuTime, addr: u16, chunks: uint) {
+  pub fn dump_mem(&self, time: EmuTime, addr: u16, chunks: usize) {
     for i in range_step(addr, addr + (chunks as u16 * 8), 8) {
       println!("${:04x}: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}", i,
                self.read(time, i + 0), self.read(time, i + 1), self.read(time, i + 2), self.read(time, i + 3),
@@ -249,6 +249,6 @@ impl<'a> Bus for Hardware<'a> {
 
 impl<'a> fmt::Show for Hardware<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", self.gpu)
+    write!(f, "{:?}", self.gpu)
   }
 }

@@ -94,9 +94,9 @@ impl BackendSharedMemory for SharedMemory {
   }
 }
 
-const PIXEL_BUFFER_ROWS: uint = gameboy::SCREEN_HEIGHT;
-const PIXEL_BUFFER_STRIDE: uint = 256 * 4;
-const PIXEL_BUFFER_SIZE: uint = PIXEL_BUFFER_STRIDE * PIXEL_BUFFER_ROWS;
+const PIXEL_BUFFER_ROWS: usize = gameboy::SCREEN_HEIGHT;
+const PIXEL_BUFFER_STRIDE: usize = 256 * 4;
+const PIXEL_BUFFER_SIZE: usize = PIXEL_BUFFER_STRIDE * PIXEL_BUFFER_ROWS;
 
 struct Palette {
   colors: [[u8; 4]; 4]
@@ -172,15 +172,15 @@ impl SdlBackend {
   fn refresh_gb_screen(&self) -> BackendResult<()> {
     {
       let pixels = self.shared_memory.pixel_buffer_lock.lock().unwrap();
-      try!(self.texture.update(Some(SCREEN_RECT), pixels[], PIXEL_BUFFER_STRIDE as int));
+      try!(self.texture.update(Some(SCREEN_RECT), pixels.as_slice(), PIXEL_BUFFER_STRIDE as isize));
     }
-    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as int, gameboy::SCREEN_HEIGHT as int));
+    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as isize, gameboy::SCREEN_HEIGHT as isize));
     try!(self.renderer.copy(&self.texture, Some(SCREEN_RECT), Some(SCREEN_RECT)));
     Ok(())
   }
   fn present(&mut self) -> BackendResult<()> {
     try!(self.refresh_gb_screen());
-    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as int * 4, gameboy::SCREEN_HEIGHT as int * 4));
+    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as isize * 4, gameboy::SCREEN_HEIGHT as isize * 4));
 
     let speed_text = format!("{:0.0} %", self.relative_speed_stat);
     try!(self.font.draw_text(&self.renderer, 0, 0, TextAlign::Left, speed_text.as_slice()));

@@ -172,7 +172,7 @@ impl Out8 for Reg8 {
 
 impl<H> fmt::Show for Cpu<H> where H: Bus {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", self.regs)
+    write!(f, "{:?}", self.regs)
   }
 }
 impl<H> Cpu<H> where H: Bus {
@@ -203,10 +203,10 @@ impl<H> Cpu<H> where H: Bus {
   pub fn clock_cycles(&self) -> u32 { self.time.cycles().as_clock_cycles() }
 
   pub fn read_hiram(&self, reladdr: u16) -> u8 {
-    self.hiram[reladdr as uint]
+    self.hiram[reladdr as usize]
   }
   pub fn write_hiram(&mut self, reladdr: u16, value: u8) {
-    self.hiram[reladdr as uint] = value;
+    self.hiram[reladdr as usize] = value;
   }
 
   fn read_u8(&mut self, addr: u16) -> u8 {
@@ -612,7 +612,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///
   /// Flags: Z N H C
   ///        * 0 1 -
-  fn bit<I: In8>(&mut self, bit: uint, in8: I) {
+  fn bit<I: In8>(&mut self, bit: usize, in8: I) {
     let value = in8.read(self) & (1 << bit);
     self.regs.f = ZERO.test(value == 0) |
                   HALF_CARRY |
@@ -622,7 +622,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn set<IO: In8+Out8>(&mut self, bit: uint, io: IO) {
+  fn set<IO: In8+Out8>(&mut self, bit: usize, io: IO) {
     let value = io.read(self) | (1 << bit);
     io.write(self, value);
   }
@@ -630,7 +630,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn res<IO: In8+Out8>(&mut self, bit: uint, io: IO) {
+  fn res<IO: In8+Out8>(&mut self, bit: usize, io: IO) {
     let value = io.read(self) & !(1 << bit);
     io.write(self, value);
   }

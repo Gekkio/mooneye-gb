@@ -4,7 +4,7 @@ pub struct Ch4 {
   pub envelope: Envelope,
   noise_opt: u8,
   use_counter: bool,
-  counter: uint,
+  counter: usize,
   pub status: bool
 }
 
@@ -22,7 +22,7 @@ impl Ch4 {
     *self = Ch4::new()
   }
   pub fn write_reg1(&mut self, value: u8) {
-    self.counter = 64 - (value & 0x3f) as uint;
+    self.counter = 64 - (value & 0x3f) as usize;
   }
   pub fn read_reg3(&self) -> u8 { self.noise_opt }
   pub fn write_reg3(&mut self, value: u8) { self.noise_opt = value }

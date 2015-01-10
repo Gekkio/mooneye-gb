@@ -14,7 +14,7 @@ pub struct Ch3 {
   volume: Volume,
   freq_bits: u16,
   use_counter: bool,
-  counter: uint,
+  counter: usize,
   pub status: bool
 }
 
@@ -38,10 +38,10 @@ impl Ch3 {
     self.status = false;
   }
   pub fn read_wave_ram(&self, reladdr: u16) -> u8 {
-    self.wave_ram[reladdr as uint]
+    self.wave_ram[reladdr as usize]
   }
   pub fn write_wave_ram(&mut self, reladdr: u16, value: u8) {
-    self.wave_ram[reladdr as uint] = value;
+    self.wave_ram[reladdr as usize] = value;
   }
   pub fn read_reg0(&self) -> u8 {
     const REG0_MASK: u8 = 0x7f;
@@ -53,7 +53,7 @@ impl Ch3 {
     self.enabled = value & (1 << 7) != 0;
   }
   pub fn write_reg1(&mut self, value: u8) {
-    self.counter = 256 - value as uint;
+    self.counter = 256 - value as usize;
   }
   pub fn read_reg2(&self) -> u8 {
     const REG2_MASK: u8 = 0x9f;

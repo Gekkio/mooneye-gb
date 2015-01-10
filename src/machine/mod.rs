@@ -43,7 +43,7 @@ impl Channels {
 
 impl<'a> fmt::Show for Machine<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", self.cpu)
+    write!(f, "{:?}", self.cpu)
   }
 }
 
@@ -80,7 +80,7 @@ impl<'a> Machine<'a> {
   fn debug_status(&mut self) {
     let pc = self.cpu.get_pc();
     let op = self.cpu.disasm_op();
-    println!("${:04x}: {:18} {}", pc, op, self);
+    println!("${:04x}: {:18} {:?}", pc, op, self);
   }
   pub fn main_benchmark(&mut self, channels: Channels, duration: Duration) {
     let from_backend = channels.from_backend;

@@ -19,16 +19,16 @@ impl Color {
   }
 }
 
-pub const BOOTROM_SIZE: uint = 0x100;
+pub const BOOTROM_SIZE: usize = 0x100;
 pub const BOOTROM_EMPTY: BootromData = [0; BOOTROM_SIZE];
-pub const CPU_SPEED_HZ: uint = 4_194_304;
-pub const HIRAM_SIZE: uint = 0x80;
+pub const CPU_SPEED_HZ: usize = 4_194_304;
+pub const HIRAM_SIZE: usize = 0x80;
 pub const HIRAM_EMPTY: HiramData = [0; HIRAM_SIZE];
-pub const ROM_BANK_SIZE: uint = 0x4000;
-pub const RAM_BANK_SIZE: uint = 0x2000;
-pub const SCREEN_WIDTH: uint = 160;
-pub const SCREEN_HEIGHT: uint = 144;
-pub const SCREEN_PIXELS: uint = SCREEN_WIDTH * SCREEN_HEIGHT;
+pub const ROM_BANK_SIZE: usize = 0x4000;
+pub const RAM_BANK_SIZE: usize = 0x2000;
+pub const SCREEN_WIDTH: usize = 160;
+pub const SCREEN_HEIGHT: usize = 144;
+pub const SCREEN_PIXELS: usize = SCREEN_WIDTH * SCREEN_HEIGHT;
 pub const SCREEN_EMPTY: ScreenBuffer = [Color::Off; SCREEN_PIXELS];
-pub const WRAM_BANK_SIZE: uint = 0x1000;
+pub const WRAM_BANK_SIZE: usize = 0x1000;
 pub const WRAM_BANK_EMPTY: WramBank = [0; WRAM_BANK_SIZE];

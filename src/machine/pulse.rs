@@ -11,6 +11,6 @@ pub fn start(duration: Duration) -> Receiver<()> {
       snooze.wait().unwrap();
       if let Err(_) = tx.send(()) { break }
     }
-  }).detach();
+  });
   rx
 }

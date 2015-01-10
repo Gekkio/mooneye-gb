@@ -27,7 +27,7 @@ pub trait ToDisasmStr {
 
 impl<T> ToDisasmStr for T where T: Show {
   fn to_disasm_str<'a>(&self, _: &mut Disasm<'a>) -> DisasmStr {
-    (format!("{}", *self)).into_cow()
+    (format!("{:?}", *self)).into_cow()
   }
 }
 
@@ -113,9 +113,9 @@ impl<'a> CpuOps<DisasmStr> for Disasm<'a> {
   fn  sra<IO: In8+Out8>(&mut self, io: IO) -> DisasmStr { self.unary_op( "SRA", io) }
   fn  srl<IO: In8+Out8>(&mut self, io: IO) -> DisasmStr { self.unary_op( "SRL", io) }
   fn swap<IO: In8+Out8>(&mut self, io: IO) -> DisasmStr { self.unary_op("SWAP", io) }
-  fn  bit<I:  In8>     (&mut self, bit: uint, in8: I) -> DisasmStr { self.binary_op("BIT", bit, in8) }
-  fn  set<IO: In8+Out8>(&mut self, bit: uint, io: IO) -> DisasmStr { self.binary_op("SET", bit, io) }
-  fn  res<IO: In8+Out8>(&mut self, bit: uint, io: IO) -> DisasmStr { self.binary_op("RES", bit, io) }
+  fn  bit<I:  In8>     (&mut self, bit: usize, in8: I) -> DisasmStr { self.binary_op("BIT", bit, in8) }
+  fn  set<IO: In8+Out8>(&mut self, bit: usize, io: IO) -> DisasmStr { self.binary_op("SET", bit, io) }
+  fn  res<IO: In8+Out8>(&mut self, bit: usize, io: IO) -> DisasmStr { self.binary_op("RES", bit, io) }
   // --- Control
   fn      jp(&mut self) -> DisasmStr { self.unary_op(  "JP", Immediate16) }
   fn   jp_hl(&mut self) -> DisasmStr { self.null_op("JP HL") }

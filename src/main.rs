@@ -1,4 +1,4 @@
-#![feature(associated_types, default_type_params, globs, macro_rules, old_orphan_check)]
+#![allow(unstable)]
 
 extern crate collections;
 extern crate getopts;
@@ -76,7 +76,7 @@ fn main() {
     }
   };
 
-  println!("{}", hardware_config);
+  println!("{:?}", hardware_config);
 
   let backend = match backend::init() {
     Err(error) => panic!("{}", error.description()),
@@ -95,7 +95,7 @@ fn main() {
       Some(duration) => { mach.main_benchmark(channels, duration); },
       None => { mach.main_loop(channels); }
     }
-  }).detach();
+  });
 
   backend.main_loop(backend_tx, machine_rx);
 }

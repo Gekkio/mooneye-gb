@@ -3,7 +3,7 @@ use time::precise_time_s;
 
 use emulation::MachineCycles;
 
-const HISTORY_SIZE: uint = 64;
+const HISTORY_SIZE: usize = 64;
 const EXPECTED_CYCLES_PER_SECOND: f64 = 4194304.0;
 
 /// A cycles-per-second counter

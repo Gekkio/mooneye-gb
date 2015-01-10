@@ -18,6 +18,12 @@ impl Flags {
   pub fn set(&mut self, value: u8) { *self = Flags::from_bits_truncate(value) }
 }
 
+impl fmt::String for Flags {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "{:04b}", self.bits >> 4)
+  }
+}
+
 impl fmt::Show for Flags {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{:04b}", self.bits >> 4)

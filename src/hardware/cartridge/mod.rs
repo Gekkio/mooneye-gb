@@ -27,10 +27,10 @@ impl Mbc {
 pub struct Cartridge {
   mbc: Mbc,
   rom: Vec<u8>,
-  rom_offset: uint,
+  rom_offset: usize,
   rom_bank: u8,
   ram: Vec<u8>,
-  ram_offset: uint,
+  ram_offset: usize,
   ram_bank: u8,
   mbc1_ram_banking: bool,
   writable: bool
@@ -58,10 +58,10 @@ impl Cartridge {
   }
 
   pub fn read_rom_bank0(&self, reladdr: u16) -> u8 {
-    self.rom[reladdr as uint]
+    self.rom[reladdr as usize]
   }
   pub fn read_rom_bankx(&self, reladdr: u16) -> u8 {
-    self.rom[self.rom_offset + reladdr as uint]
+    self.rom[self.rom_offset + reladdr as usize]
   }
   pub fn write_control(&mut self, reladdr: u16, value: u8) {
     match self.mbc {
@@ -94,7 +94,7 @@ impl Cartridge {
   }
   pub fn read_ram(&self, reladdr: u16) -> u8 {
     if self.writable {
-      if let Some(addr) = self.ram.as_slice().get(self.ram_offset + reladdr as uint) {
+      if let Some(addr) = self.ram.as_slice().get(self.ram_offset + reladdr as usize) {
         return *addr
       }
     }
@@ -102,7 +102,7 @@ impl Cartridge {
   }
   pub fn write_ram(&mut self, reladdr: u16, value: u8) {
     if self.writable {
-      if let Some(addr) = self.ram.as_mut_slice().get_mut(self.ram_offset + reladdr as uint) {
+      if let Some(addr) = self.ram.as_mut_slice().get_mut(self.ram_offset + reladdr as usize) {
         *addr = value;
       }
     }
@@ -115,7 +115,7 @@ impl Cartridge {
             0x00 => 0x01,
             bank => bank
           };
-        self.rom_offset = ROM_BANK_SIZE * bank as uint;
+        self.rom_offset = ROM_BANK_SIZE * bank as usize;
       },
       _ => ()
     }
@@ -123,7 +123,7 @@ impl Cartridge {
   fn update_ram_offset(&mut self) {
     match self.mbc {
       Mbc::Mbc1 => {
-        self.ram_offset = RAM_BANK_SIZE * self.ram_bank as uint;
+        self.ram_offset = RAM_BANK_SIZE * self.ram_bank as usize;
       },
       _ => ()
     }

@@ -1,7 +1,7 @@
 use std::collections::RingBuf;
 use time;
 
-const HISTORY_SIZE: uint = 64;
+const HISTORY_SIZE: usize = 64;
 const RECALC_INTERVAL_SECONDS: f64 = 0.200;
 
 pub struct FpsCounter {

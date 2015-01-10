@@ -17,16 +17,16 @@ impl InternalRam {
   }
 
   pub fn read_bank0(&self, reladdr: u16) -> u8 {
-    self.wram_bank0[reladdr as uint]
+    self.wram_bank0[reladdr as usize]
   }
   pub fn write_bank0(&mut self, reladdr: u16, value: u8) {
-    self.wram_bank0[reladdr as uint] = value;
+    self.wram_bank0[reladdr as usize] = value;
   }
 
   pub fn read_bank1(&self, reladdr: u16) -> u8 {
-    self.wram_bank1[reladdr as uint]
+    self.wram_bank1[reladdr as usize]
   }
   pub fn write_bank1(&mut self, reladdr: u16, value: u8) {
-    self.wram_bank1[reladdr as uint] = value;
+    self.wram_bank1[reladdr as usize] = value;
   }
 }

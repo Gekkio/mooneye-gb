@@ -52,7 +52,7 @@ impl Font {
     })
   }
   pub fn draw_char(&self, renderer: &Renderer, ch: char, dst_x: i32, dst_y: i32) -> BackendResult<()> {
-    let value = ch as uint;
+    let value = ch as usize;
     match self.offsets.get(&value) {
       Some(&(x, y)) => {
         let src_rect = Rect {

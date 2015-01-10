@@ -32,6 +32,6 @@ impl Bootrom {
 impl Index<u16> for Bootrom {
   type Output = u8;
   fn index(&self, index: &u16) -> &u8 {
-    &self.data[*index as uint]
+    &self.data[*index as usize]
   }
 }

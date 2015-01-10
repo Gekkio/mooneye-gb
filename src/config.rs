@@ -22,7 +22,7 @@ impl Show for HardwareConfig {
       Some(_) => "yes",
       None => "no"
     }));
-    write!(f, "{}", self.cartridge)
+    write!(f, "{:?}", self.cartridge)
   }
 }
 
@@ -36,10 +36,10 @@ pub struct CartridgeConfig {
 
 impl Show for CartridgeConfig {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    try!(writeln!(f, "Title: {}", self.title));
-    try!(writeln!(f, "Type: {}", self.cartridge_type));
-    try!(writeln!(f, "ROM: {}", self.rom_size));
-    writeln!(f, "RAM: {}", self.ram_size)
+    try!(writeln!(f, "Title: {:?}", self.title));
+    try!(writeln!(f, "Type: {:?}", self.cartridge_type));
+    try!(writeln!(f, "ROM: {:?}", self.rom_size));
+    writeln!(f, "RAM: {:?}", self.ram_size)
   }
 }
 
@@ -109,7 +109,7 @@ impl CartridgeRomSize {
       _ => Err(ProgramResult::Error(format!("Unsupported rom size {:02x}", value)))
     }
   }
-  pub fn as_uint(&self) -> uint {
+  pub fn as_usize(&self) -> usize {
     use self::CartridgeRomSize::*;
     match *self {
       NoRomBanks => ROM_BANK_SIZE * 2,
@@ -166,13 +166,13 @@ impl CartridgeConfig {
     let ram_size = try!(CartridgeRamSize::from_u8(data[0x149]));
 
     if cartridge_type.should_have_ram() && ram_size == CartridgeRamSize::NoRam {
-      return Err(ProgramResult::Error(format!("{} cartridge without ram", cartridge_type)))
+      return Err(ProgramResult::Error(format!("{:?} cartridge without ram", cartridge_type)))
     }
     if !cartridge_type.should_have_ram() && ram_size != CartridgeRamSize::NoRam {
-      return Err(ProgramResult::Error(format!("{} cartridge with ram size {:02x}", cartridge_type, data[0x149])))
+      return Err(ProgramResult::Error(format!("{:?} cartridge with ram size {:02x}", cartridge_type, data[0x149])))
     }
-    if data.len() != rom_size.as_uint() {
-      return Err(ProgramResult::Error(format!("Expected {} bytes of cartridge ROM, got {}", rom_size.as_uint(), data.len())));
+    if data.len() != rom_size.as_usize() {
+      return Err(ProgramResult::Error(format!("Expected {} bytes of cartridge ROM, got {:?}", rom_size.as_usize(), data.len())));
     }
 
     Ok(CartridgeConfig {

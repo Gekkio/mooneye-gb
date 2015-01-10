@@ -46,9 +46,9 @@ pub trait CpuOps<R> {
   fn  sra<IO: In8+Out8>(&mut self, IO) -> R;
   fn  srl<IO: In8+Out8>(&mut self, IO) -> R;
   fn swap<IO: In8+Out8>(&mut self, IO) -> R;
-  fn  bit<I:  In8>     (&mut self, uint, I) -> R;
-  fn  set<IO: In8+Out8>(&mut self, uint, IO) -> R;
-  fn  res<IO: In8+Out8>(&mut self, uint, IO) -> R;
+  fn  bit<I:  In8>     (&mut self, usize, I) -> R;
+  fn  set<IO: In8+Out8>(&mut self, usize, IO) -> R;
+  fn  res<IO: In8+Out8>(&mut self, usize, IO) -> R;
   // --- Control
   fn      jp(&mut self) -> R;
   fn   jp_hl(&mut self) -> R;
