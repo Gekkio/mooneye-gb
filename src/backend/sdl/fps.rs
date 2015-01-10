@@ -1,5 +1,5 @@
+use clock_ticks::precise_time_s;
 use std::collections::RingBuf;
-use time;
 
 const HISTORY_SIZE: usize = 64;
 const RECALC_INTERVAL_SECONDS: f64 = 0.200;
@@ -16,12 +16,12 @@ impl FpsCounter {
     FpsCounter {
       fps: 0.0,
       history: RingBuf::with_capacity(HISTORY_SIZE),
-      last_time: time::precise_time_s(),
+      last_time: precise_time_s(),
       last_recalc: 0.0
     }
   }
   pub fn update(&mut self) {
-    let time = time::precise_time_s();
+    let time = precise_time_s();
 
     if self.history.len() >= HISTORY_SIZE {
       let _ = self.history.pop_back();

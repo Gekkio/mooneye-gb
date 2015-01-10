@@ -1,5 +1,5 @@
+use clock_ticks::precise_time_s;
 use std::collections::RingBuf;
-use time::precise_time_s;
 
 use emulation::MachineCycles;
 

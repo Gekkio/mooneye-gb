@@ -1,11 +1,11 @@
 #![allow(unstable)]
 
+extern crate clock_ticks;
 extern crate collections;
 extern crate getopts;
 extern crate libc;
 extern crate sdl2;
 extern crate snooze;
-extern crate time;
 #[cfg(test)]
 extern crate test;
 

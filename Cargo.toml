@@ -4,11 +4,11 @@ name = "mooneye-gb"
 version = "0.0.0"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 
+[dependencies.clock_ticks]
+git = "https://github.com/tomaka/clock_ticks"
+
 [dependencies.sdl2]
 git = "https://github.com/AngryLawyer/rust-sdl2.git"
 
 [dependencies.snooze-rs]
 git = "https://github.com/Gekkio/snooze-rs.git"
-
-[dependencies.time]
-git = "https://github.com/rust-lang/time.git"
