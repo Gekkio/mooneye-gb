@@ -40,6 +40,10 @@ All test ROMs are manually run with a Gameboy Pocket (model MGB-001), Gameboy Co
 
 On a i7-3770K desktop machine I can usually run ROMs with 2000 - 4000% speed. Without optimizations the speed drops to 150 - 200%, which is still fine for development purposes.
 
+Raspberry Pi with X11 desktop works but is too slow because there is no OpenGL acceleration.
+
+The emulator is runnable on Android, but cross-compiling and packaging is a huge pain and touch controls would have to be implemented, so I'm not supporting Android at the moment.
+
 ## Running the emulator
 
 1. Acquire a Gameboy bootrom, and put it to `~/.mooneye-gb/boot.bin`
