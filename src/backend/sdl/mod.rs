@@ -179,6 +179,7 @@ impl SdlBackend {
     Ok(())
   }
   fn present(&mut self) -> BackendResult<()> {
+    try!(self.renderer.clear());
     try!(self.refresh_gb_screen());
     try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as isize * 4, gameboy::SCREEN_HEIGHT as isize * 4));
 
