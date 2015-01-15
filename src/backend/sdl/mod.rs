@@ -132,10 +132,10 @@ impl Palette {
 
 static PALETTE: [Color; 4] =
   [
-    Color::RGBA(0xbd, 0xe6, 0x12, 255),
-    Color::RGBA(0x90, 0xb3, 0x0f, 255),
-    Color::RGBA(0x30, 0x62, 0x30, 255),
-    Color::RGBA(0x07, 0x1a, 0x07, 255)
+    Color::RGBA(255, 247, 123, 255),
+    Color::RGBA(181, 174, 74,  255),
+    Color::RGBA(107, 105, 49,  255),
+    Color::RGBA(33,  32,  16,  255)
   ];
 
 const SCREEN_RECT: rect::Rect = rect::Rect {
