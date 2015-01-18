@@ -1,5 +1,7 @@
 #![allow(unstable)]
 
+#[macro_use]
+extern crate bitflags;
 extern crate clock_ticks;
 extern crate collections;
 extern crate getopts;

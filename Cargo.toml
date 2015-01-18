@@ -4,6 +4,9 @@ name = "mooneye-gb"
 version = "0.0.0"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 
+[dependencies]
+bitflags = "0.1.0"
+
 [dependencies.clock_ticks]
 git = "https://github.com/tomaka/clock_ticks"
 
