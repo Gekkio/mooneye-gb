@@ -1,7 +1,7 @@
 ; LD HL, SP+e is expected to have the following timing:
-; t = 0: instruction decoding
-; t = 1: memory access for e
-; t = 2: internal delay
+; M = 0: instruction decoding
+; M = 1: memory access for e
+; M = 2: internal delay
 
 .incdir "../common"
 .include "common.i"

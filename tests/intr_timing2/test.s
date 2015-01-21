@@ -1,9 +1,9 @@
 ; interrupt servicing is expected to have the following timing:
-; t = 0: internal delay
-; t = 1: internal delay
-; t = 2: internal delay
-; t = 3: PC push: memory access for high byte
-; t = 4: PC push: memory access for low byte
+; M = 0: internal delay
+; M = 1: internal delay
+; M = 2: internal delay
+; M = 3: PC push: memory access for high byte
+; M = 4: PC push: memory access for low byte
 
 .incdir "../common"
 .include "common.i"
@@ -51,7 +51,7 @@ hiram_test:
   ; set hl to address of test_round1 in hiram
   ld hl, $FF80 + (test_round1 - hiram_test)
   trigger_intr
-  ; OAM is accessible at t=4, so we expect to see
+  ; OAM is accessible at M=4, so we expect to see
   ; incorrect (= $81 written by OAM DMA) high byte, but correct low byte
 
   ; never executed
@@ -70,7 +70,7 @@ test_round1:
   ; set hl to address of test_round2 in hiram
   ld hl, $FF80 + (test_round2 - hiram_test)
   trigger_intr
-  ; OAM is accessible at t=3, so we expect to see
+  ; OAM is accessible at M=3, so we expect to see
   ; correct high byte and low byte
 
   ; never executed

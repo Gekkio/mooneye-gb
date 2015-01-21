@@ -1,8 +1,8 @@
 ; PUSH rr is expected to have the following timing:
-; t = 0: instruction decoding
-; t = 1: internal delay
-; t = 2: memory access for high byte
-; t = 3: memory access for low byte
+; M = 0: instruction decoding
+; M = 1: internal delay
+; M = 2: memory access for high byte
+; M = 3: memory access for low byte
 
 .incdir "../common"
 .include "common.i"
@@ -39,7 +39,7 @@ hiram_test:
   jr nz, -
   nops 2
 
-  ; OAM is accessible at t=2
+  ; OAM is accessible at M=2
   push de
   nops 7
   pop hl
@@ -50,7 +50,7 @@ hiram_test:
   jr nz, -
   nops 1
 
-  ; OAM is accessible at t=3
+  ; OAM is accessible at M=3
   push de
   nops 7
   pop de

@@ -1,8 +1,8 @@
 ; RST is expected to have the following timing:
-; t = 0: instruction decoding
-; t = 1: internal delay
-; t = 2: PC push: memory access for high byte
-; t = 3: PC push: memory access for low byte
+; M = 0: instruction decoding
+; M = 1: internal delay
+; M = 2: PC push: memory access for high byte
+; M = 3: PC push: memory access for low byte
 
 .incdir "../common"
 .include "common.i"
@@ -39,7 +39,7 @@ hiram_test:
   nops 2
 
   rst $38
-  ; OAM is accessible at t=3, so we expect to see
+  ; OAM is accessible at M=3, so we expect to see
   ; incorrect (= $81 written by OAM DMA) high byte, but correct low byte
 
 finish_round1:
@@ -54,7 +54,7 @@ finish_round1:
   nops 3
 
   rst $38
-  ; OAM is accessible at t=2, so we expect to see
+  ; OAM is accessible at M=2, so we expect to see
   ; correct high byte and low byte
 
 finish_round2:

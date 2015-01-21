@@ -41,11 +41,11 @@ Most of these instructions involve writing a 16-bit register, which could explai
 
 ## Answered questions
 
-### Does BIT b, (HL) take 12 or 16 cycles?
+### Does BIT b, (HL) take 12 or 16 T-cycles?
 
-12 cycles.
+12 T-cycles.
 
-Blargg's instruction timing ROM confirms that BIT takes 12, and RES/SET take 16 cycles, which makes perfect sense.
+Blargg's instruction timing ROM confirms that BIT takes 12, and RES/SET take 16 T-cycles, which makes perfect sense.
 Some opcode listings in the internet (e.g. GBCPUman.pdf) are wrong.
 
 ### What is the exact behaviour of DI and EI?
@@ -106,17 +106,17 @@ This means all bits are high (= "unset").
 
 *Answer:* Yes
 
-DIV is incremented every 64 t-cycles, so there is an internal counter that counts to 64. If we write any value to the DIV register, it is reset to 0, but we don't know if the internal counter is also reset.
+DIV is incremented every 64 M-cycles, so there is an internal counter that counts to 64. If we write any value to the DIV register, it is reset to 0, but we don't know if the internal counter is also reset.
 
-Consider the case where at time t=0 we reset the counter, and at time t=1 the DIV register would have incremented if we didn't do the reset. Do we see the DIV increment at time t=1 or t=64?
+Consider the case where at time M=0 we reset the counter, and at time M=1 the DIV register would have incremented if we didn't do the reset. Do we see the DIV increment at time M=1 or M=64?
 
-A test ROM confirmed that increment happens at t=64, so the internal counter is also reset.
+A test ROM confirmed that increment happens at M=64, so the internal counter is also reset.
 
 *See: tests/div_timing*
 
 ### How many cycles does OAM DMA take?
 
-OAM DMA takes 162 t-cycles. The following test returns $15 in counter register C:
+OAM DMA takes 162 M-cycles. The following test returns $15 in counter register C:
 
       start_oam_dma
       nops 6
@@ -139,24 +139,24 @@ A new OAM DMA is started, so the entire process starts all over again.
 
 ### What is the exact timing of PUSH rr?
 
-PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles POP rr):
+PUSH has an extra internal delay, which causes it to use 4 M-cycles (vs 3 cycles POP rr):
 
-    t = 0: instruction decoding
-    t = 1: internal delay
-    t = 2: memory access for high byte
-    t = 3: memory access for low byte
+    M = 0: instruction decoding
+    M = 1: internal delay
+    M = 2: memory access for high byte
+    M = 3: memory access for low byte
 
 *See: tests/push_timing*
 
 ### What is the exact timing of CPU servicing an interrupt?
 
-5 cycles in total involving internal delays and a PC push:
+5 M-cycles in total involving internal delays and a PC push:
 
-    t = 0: internal delay
-    t = 1: internal delay
-    t = 2: internal delay
-    t = 3: PC push: memory access for high byte
-    t = 4: PC push: memory access for low byte
+    M = 0: internal delay
+    M = 1: internal delay
+    M = 2: internal delay
+    M = 3: PC push: memory access for high byte
+    M = 4: PC push: memory access for low byte
 
 *See: tests/intr_timing, tests/intr_timing2*
 
@@ -164,9 +164,9 @@ PUSH has an extra internal delay, which causes it to use 4 cycles (vs 3 cycles P
 
 LD HL, SP+e has an extra internal delay after decoding and reading of e:
 
-    t = 0: instruction decoding
-    t = 1: memory access for e
-    t = 2: internal delay
+    M = 0: instruction decoding
+    M = 1: memory access for e
+    M = 2: internal delay
 
 *See: tests/ld_hl_sp_e_timing*
 
@@ -174,10 +174,10 @@ LD HL, SP+e has an extra internal delay after decoding and reading of e:
 
 ADD SP, e has two extra internal delays after decoding and reading of e:
 
-    t = 0: instruction decoding
-    t = 1: memory access for e
-    t = 2: internal delay
-    t = 3: internal delay
+    M = 0: instruction decoding
+    M = 1: memory access for e
+    M = 2: internal delay
+    M = 3: internal delay
 
 *See: tests/add_sp_e_timing*
 
@@ -185,10 +185,10 @@ ADD SP, e has two extra internal delays after decoding and reading of e:
 
 RST has an extra internal delay before the PC push:
 
-    t = 0: instruction decoding
-    t = 1: internal delay
-    t = 2: PC push: memory access for high byte
-    t = 3: PC push: memory access for low byte
+    M = 0: instruction decoding
+    M = 1: internal delay
+    M = 2: PC push: memory access for high byte
+    M = 3: PC push: memory access for low byte
 
 *See: tests/rst_timing*
 
@@ -196,27 +196,27 @@ RST has an extra internal delay before the PC push:
 
 JP nn has an extra internal delay:
 
-    t = 0: instruction decoding
-    t = 1: nn read: memory access for low byte
-    t = 2: nn read: memory access for high byte
+    M = 0: instruction decoding
+    M = 1: nn read: memory access for low byte
+    M = 2: nn read: memory access for high byte
     ; cc matches or unconditional
-    t = 3: internal delay
+    M = 3: internal delay
 
 JR n has an extra internal delay:
 
-    t = 0: instruction decoding
-    t = 1: n read: memory access
+    M = 0: instruction decoding
+    M = 1: n read: memory access
     ; cc matches or unconditional
-    t = 2: internal delay
+    M = 2: internal delay
 
 CALL has an extra internal delay before the PC push:
 
-    t = 0: instruction decoding
-    t = 1: nn read: memory access for low byte
-    t = 2: nn read: memory access for high byte
+    M = 0: instruction decoding
+    M = 1: nn read: memory access for low byte
+    M = 2: nn read: memory access for high byte
     ; cc matches or unconditional
-    t = 3: internal delay
-    t = 4: PC push: memory access for high byte
-    t = 5: PC push: memory access for low byte
+    M = 3: internal delay
+    M = 4: PC push: memory access for high byte
+    M = 5: PC push: memory access for low byte
 
 *See: tests/call\_timing, tests/call\_timing2, tests/call\_cc\_timing, tests/jp\_timing, tests/jp\_cc\_timing*

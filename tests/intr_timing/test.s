@@ -1,4 +1,4 @@
-; Serving an interrupt is supposed to take 5 cycles.
+; Serving an interrupt is supposed to take 5 M-cycles.
 ; We know from div_timing that this code should not see a div increment:
 ;   reset_div
 ;     nops 61

@@ -1,10 +1,10 @@
 ; CALL cc, nn is expected to have the following timing:
-; t = 0: instruction decoding
-; t = 1: nn read: memory access for low byte
-; t = 2: nn read: memory access for high byte
-; t = 3: internal delay
-; t = 4: PC push: memory access for high byte
-; t = 5: PC push: memory access for low byte
+; M = 0: instruction decoding
+; M = 1: nn read: memory access for low byte
+; M = 2: nn read: memory access for high byte
+; M = 3: internal delay
+; M = 4: PC push: memory access for high byte
+; M = 5: PC push: memory access for low byte
 
 .incdir "../common"
 .include "common.i"
@@ -41,7 +41,7 @@ hiram_test:
   nops 1
   scf
   call c, $FF80 + (finish_round1 - hiram_test)
-  ; OAM is accessible at t=6, so we expect to see
+  ; OAM is accessible at M=6, so we expect to see
   ; incorrect low and high bytes (= $81 written by OAM DMA)
 
 finish_round1:
@@ -54,7 +54,7 @@ finish_round1:
   nops 2
   scf
   call c, $FF80 + (finish_round2 - hiram_test)
-  ; OAM is accessible at t=5, so we expect to see
+  ; OAM is accessible at M=5, so we expect to see
   ; incorrect (= $81 written by OAM DMA) high byte, but correct low byte
 
 finish_round2:
@@ -67,7 +67,7 @@ finish_round2:
   nops 3
   scf
   call c, $FF80 + (finish_round3 - hiram_test)
-  ; OAM is accessible at t=4, so we expect to see
+  ; OAM is accessible at M=4, so we expect to see
   ; correct high byte and low byte
 
 finish_round3:

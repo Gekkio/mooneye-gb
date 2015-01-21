@@ -1,10 +1,10 @@
 ; CALL nn is expected to have the following timing:
-; t = 0: instruction decoding
-; t = 1: nn read: memory access for low byte
-; t = 2: nn read: memory access for high byte
-; t = 3: internal delay
-; t = 4: PC push: memory access for high byte
-; t = 5: PC push: memory access for low byte
+; M = 0: instruction decoding
+; M = 1: nn read: memory access for low byte
+; M = 2: nn read: memory access for high byte
+; M = 3: internal delay
+; M = 4: PC push: memory access for high byte
+; M = 5: PC push: memory access for low byte
 
 .incdir "../common"
 .include "common.i"
