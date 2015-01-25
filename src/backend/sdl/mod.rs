@@ -11,6 +11,8 @@ use sdl2::video;
 use sdl2::video::{Window, WindowPos};
 use std::error::{Error, FromError};
 use std::iter;
+use std::fmt;
+use std::fmt::Display;
 use std::slice::bytes;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError};
@@ -67,9 +69,12 @@ impl Error for BackendError {
       BackendError::Sdl(..) => "SDL error"
     }
   }
-  fn detail(&self) -> Option<String> {
+}
+
+impl Display for BackendError {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
-      BackendError::Sdl(ref msg) => Some(msg.to_string())
+      BackendError::Sdl(ref msg) => f.write_str(msg.as_slice())
     }
   }
 }
