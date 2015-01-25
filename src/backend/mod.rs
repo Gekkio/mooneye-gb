@@ -6,9 +6,11 @@ use machine::MachineMessage;
 
 pub mod sdl;
 
-pub trait Backend<C: BackendSharedMemory> {
+pub trait Backend {
+  type SHM: BackendSharedMemory;
+  type Error;
   fn main_loop(self, SyncSender<BackendMessage>, Receiver<MachineMessage>);
-  fn shared_memory(&self) -> Arc<C>;
+  fn shared_memory(&self) -> Arc<Self::SHM>;
 }
 
 pub trait BackendSharedMemory {
@@ -24,11 +26,8 @@ pub enum GbKey {
   Right, Left, Up, Down, A, B, Select, Start
 }
 
-pub fn init() -> Result<sdl::SdlBackend, Box<Error>> {
-  match sdl::SdlBackend::init() {
-    Ok(backend) => Ok(backend),
-    Err(error) => Err(Box::new(error) as Box<Error>)
-  }
+pub fn init() -> Result<sdl::SdlBackend, sdl::BackendError> {
+  sdl::SdlBackend::init()
 }
 
 pub fn new_channel() -> (SyncSender<BackendMessage>, Receiver<BackendMessage>) {

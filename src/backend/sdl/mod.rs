@@ -242,7 +242,9 @@ fn controller_axis_to_message(axis: ControllerAxis, value: i16) -> Option<Backen
   }
 }
 
-impl Backend<SharedMemory> for SdlBackend {
+impl Backend for SdlBackend {
+  type SHM = SharedMemory;
+  type Error = BackendError;
   fn main_loop(mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) {
     loop {
       match from_machine.try_recv() {
