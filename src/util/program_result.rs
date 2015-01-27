@@ -4,7 +4,7 @@ use std::io::stdio;
 use std::io::IoError;
 use std::os;
 
-#[derive(Show)]
+#[derive(Debug)]
 pub enum ProgramResult {
   Exit,
   Error(String)

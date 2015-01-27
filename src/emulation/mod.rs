@@ -34,7 +34,7 @@ impl Sub<MachineCycles> for MachineCycles {
   }
 }
 
-impl fmt::Show for MachineCycles {
+impl fmt::Debug for MachineCycles {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", self.0)
   }

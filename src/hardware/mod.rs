@@ -247,7 +247,7 @@ impl<'a> Bus for Hardware<'a> {
   }
 }
 
-impl<'a> fmt::Show for Hardware<'a> {
+impl<'a> fmt::Debug for Hardware<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{:?}", self.gpu)
   }

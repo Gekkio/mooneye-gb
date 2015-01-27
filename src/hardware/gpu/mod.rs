@@ -418,7 +418,7 @@ impl<'a> Gpu<'a> {
   fn draw_line(&mut self) {
     let slice_start = gameboy::SCREEN_WIDTH * self.current_line as usize;
     let slice_end = gameboy::SCREEN_WIDTH + slice_start;
-    let pixels = self.back_buffer.slice_mut(slice_start, slice_end);
+    let pixels = &mut self.back_buffer[slice_start .. slice_end];
 
     if self.control.contains(CTRL_BG_ON) {
       let addr_select = self.control.contains(CTRL_BG_ADDR);
@@ -527,7 +527,7 @@ impl<'a> Gpu<'a> {
   }
 }
 
-impl<'a> fmt::Show for Gpu<'a> {
+impl<'a> fmt::Debug for Gpu<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "LCDC:{:08b} STAT:{:08b} LY:{:02x} ", self.get_control(), self.get_stat(), self.get_current_line())
   }

@@ -18,24 +18,24 @@ impl Flags {
   pub fn set(&mut self, value: u8) { *self = Flags::from_bits_truncate(value) }
 }
 
-impl fmt::String for Flags {
+impl fmt::Display for Flags {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{:04b}", self.bits >> 4)
   }
 }
 
-impl fmt::Show for Flags {
+impl fmt::Debug for Flags {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{:04b}", self.bits >> 4)
   }
 }
 
-#[derive(Copy, Show)]
+#[derive(Copy, Debug)]
 pub enum Reg8 {
   A, B, C, D, E, H, L
 }
 
-#[derive(Copy, Show)]
+#[derive(Copy, Debug)]
 pub enum Reg16 {
   AF, BC, DE, HL, SP
 }
@@ -91,7 +91,7 @@ impl Registers {
   }
 }
 
-impl fmt::Show for Registers {
+impl fmt::Debug for Registers {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "A:{:2x} B:{:2x} C:{:2x} D:{:2x} E:{:2x} \
                F:{} H:{:2x} L:{:2x} SP:{:4x} PC:{:4x}",

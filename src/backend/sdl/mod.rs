@@ -51,7 +51,7 @@ impl SharedMemory {
   }
 }
 
-enum BackendError {
+pub enum BackendError {
   Sdl(String)
 }
 
@@ -86,11 +86,11 @@ impl BackendSharedMemory for SharedMemory {
     for y in range(0, gameboy::SCREEN_HEIGHT) {
       let in_start = y * gameboy::SCREEN_WIDTH;
       let in_end = in_start + gameboy::SCREEN_WIDTH;
-      let in_slice = pixels.slice(in_start, in_end);
+      let in_slice = &pixels[in_start .. in_end];
 
       let out_start = y * PIXEL_BUFFER_STRIDE;
       let out_end = out_start + gameboy::SCREEN_WIDTH * 4;
-      let out_slice = data.slice_mut(out_start, out_end);
+      let out_slice = &mut data[out_start .. out_end];
 
       for (pixel, gb_color) in out_slice.chunks_mut(4).zip(in_slice.iter()) {
         bytes::copy_memory(pixel, palette.get_bytes(gb_color));

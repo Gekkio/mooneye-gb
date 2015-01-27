@@ -81,7 +81,7 @@ fn main() {
   println!("{:?}", hardware_config);
 
   let backend = match backend::init() {
-    Err(error) => panic!("{}", error.description()),
+    Err(error) => panic!("{}", error),
     Ok(backend) => backend
   };
 

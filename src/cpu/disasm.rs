@@ -1,5 +1,5 @@
 use std::borrow::IntoCow;
-use std::fmt::Show;
+use std::fmt::Debug;
 use std::string::CowString;
 
 use cpu::{
@@ -25,7 +25,7 @@ pub trait ToDisasmStr {
   fn to_disasm_str<'a>(&self, &mut Disasm<'a>) -> DisasmStr;
 }
 
-impl<T> ToDisasmStr for T where T: Show {
+impl<T> ToDisasmStr for T where T: Debug {
   fn to_disasm_str<'a>(&self, _: &mut Disasm<'a>) -> DisasmStr {
     (format!("{:?}", *self)).into_cow()
   }

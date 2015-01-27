@@ -41,7 +41,7 @@ impl Channels {
   }
 }
 
-impl<'a> fmt::Show for Machine<'a> {
+impl<'a> fmt::Debug for Machine<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{:?}", self.cpu)
   }

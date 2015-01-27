@@ -1,5 +1,4 @@
 use gameboy;
-use std::error::Error;
 use std::sync::Arc;
 use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 use machine::MachineMessage;
@@ -21,7 +20,7 @@ pub enum BackendMessage {
   KeyDown(GbKey), KeyUp(GbKey), Break, Step, Run, Turbo(bool)
 }
 
-#[derive(Show)]
+#[derive(Debug)]
 pub enum GbKey {
   Right, Left, Up, Down, A, B, Select, Start
 }

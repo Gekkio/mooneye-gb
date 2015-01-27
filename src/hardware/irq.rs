@@ -37,7 +37,7 @@ impl Irq {
   pub fn has_interrupt(&self) -> bool { (self.int_enable & self.int_flag) != InterruptType::empty() }
 }
 
-#[derive(FromPrimitive, Show)]
+#[derive(FromPrimitive, Debug)]
 pub enum Interrupt {
   VBlank = 1 << 0,
   LcdStat = 1 << 1,

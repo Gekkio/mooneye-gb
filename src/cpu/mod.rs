@@ -46,7 +46,7 @@ pub trait Out16: ToDisasmStr {
 }
 
 
-#[derive(Copy, Show)]
+#[derive(Copy, Debug)]
 pub enum Cond {
   NZ, Z,
   NC, C
@@ -62,7 +62,7 @@ impl Cond {
   }
 }
 
-#[derive(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Debug)]
 enum ImeChange {
   None, Soon(bool), Now(bool)
 }
@@ -170,7 +170,7 @@ impl Out8 for Reg8 {
 }
 
 
-impl<H> fmt::Show for Cpu<H> where H: Bus {
+impl<H> fmt::Debug for Cpu<H> where H: Bus {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{:?}", self.regs)
   }

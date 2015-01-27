@@ -1,5 +1,5 @@
 use std::fmt;
-use std::fmt::{Formatter, Show};
+use std::fmt::{Debug, Formatter};
 use std::io::fs::File;
 use std::num::FromPrimitive;
 use std::str;
@@ -16,7 +16,7 @@ pub struct HardwareConfig {
   pub cartridge: CartridgeConfig
 }
 
-impl Show for HardwareConfig {
+impl Debug for HardwareConfig {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     try!(writeln!(f, "Bootrom: {}", match self.bootrom {
       Some(_) => "yes",
@@ -34,7 +34,7 @@ pub struct CartridgeConfig {
   pub data: Vec<u8>
 }
 
-impl Show for CartridgeConfig {
+impl Debug for CartridgeConfig {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     try!(writeln!(f, "Title: {:?}", self.title));
     try!(writeln!(f, "Type: {:?}", self.cartridge_type));
@@ -51,7 +51,7 @@ pub enum CartridgeType {
   Mbc1RamBattery = 0x03
 }
 
-impl Show for CartridgeType {
+impl Debug for CartridgeType {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "{}", match *self {
       CartridgeType::RomOnly => "ROM ONLY",
@@ -89,7 +89,7 @@ pub enum CartridgeRomSize {
   RomBanks32 = 0x04
 }
 
-impl Show for CartridgeRomSize {
+impl Debug for CartridgeRomSize {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     use self::CartridgeRomSize::*;
     write!(f, "{}", match *self {
@@ -128,7 +128,7 @@ pub enum CartridgeRamSize {
   Ram8K = 0x02
 }
 
-impl Show for CartridgeRamSize {
+impl Debug for CartridgeRamSize {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "{}", match *self {
       CartridgeRamSize::NoRam => "-",
@@ -153,7 +153,7 @@ impl CartridgeConfig {
 
     let title = {
       let slice =
-        if new_cartridge { data.slice(0x134, 0x13f) } else { data.slice(0x134, 0x143) };
+        if new_cartridge { &data[0x134 .. 0x13f] } else { &data[0x134 .. 0x143] };
       let utf8 = try!(str::from_utf8(slice).map_err(|_|{
         ProgramResult::Error("Invalid ROM title".to_string())
       }));
