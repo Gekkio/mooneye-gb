@@ -3,7 +3,7 @@ use sdl2::controller::{ControllerAxis, ControllerButton};
 use sdl2::event;
 use sdl2::event::Event;
 use sdl2::keycode::KeyCode;
-use sdl2::pixels::{Color, PixelFormatFlag};
+use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect;
 use sdl2::render;
 use sdl2::render::{RenderDriverIndex, Renderer, Texture, TextureAccess};
@@ -161,7 +161,7 @@ impl SdlBackend {
     renderer.present();
 
     let texture =
-      try!(renderer.create_texture(PixelFormatFlag::RGBA8888, TextureAccess::Streaming, 256, 256));
+      try!(renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Streaming, 256, 256));
 
     let font = try!(Font::init(&renderer));
 

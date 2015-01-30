@@ -1,4 +1,4 @@
-use sdl2::pixels::PixelFormatFlag;
+use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::{BlendMode, Renderer, Texture, TextureAccess};
 use std::collections::VecMap;
@@ -28,7 +28,7 @@ pub struct Font {
 
 fn load_image(data: &[u8], renderer: &Renderer) -> BackendResult<Texture> {
   let texture =
-    try!(renderer.create_texture(PixelFormatFlag::RGBA8888, TextureAccess::Static, 256, 256));
+    try!(renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, 256, 256));
 
   try!(texture.update(None, data, 256 * 4));
   try!(texture.set_blend_mode(BlendMode::Blend));
