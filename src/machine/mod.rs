@@ -1,5 +1,5 @@
 use std::fmt;
-use std::io::timer::Timer;
+use std::old_io::timer::Timer;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
 use std::time::duration::Duration;
 

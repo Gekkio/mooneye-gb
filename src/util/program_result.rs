@@ -1,7 +1,7 @@
 use getopts::Fail;
 use std::error::FromError;
-use std::io::stdio;
-use std::io::IoError;
+use std::old_io::stdio;
+use std::old_io::IoError;
 use std::os;
 
 #[derive(Debug)]

@@ -1,6 +1,6 @@
 use std::fmt;
 use std::fmt::{Debug, Formatter};
-use std::io::fs::File;
+use std::old_io::fs::File;
 use std::num::FromPrimitive;
 use std::str;
 

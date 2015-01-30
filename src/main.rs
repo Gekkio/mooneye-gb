@@ -11,7 +11,7 @@ extern crate snooze;
 #[cfg(test)]
 extern crate test;
 
-use std::io::fs::{PathExtensions};
+use std::old_io::fs::{PathExtensions};
 use std::os;
 use std::thread::Thread;
 use std::time::duration::Duration;
