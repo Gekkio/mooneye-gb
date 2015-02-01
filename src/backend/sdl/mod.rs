@@ -1,5 +1,5 @@
 use sdl2;
-use sdl2::controller::{ControllerAxis, ControllerButton};
+use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event;
 use sdl2::event::Event;
 use sdl2::keycode::KeyCode;
@@ -29,9 +29,6 @@ mod font;
 mod fps;
 
 pub struct SdlBackend {
-  renderer: Renderer,
-  texture: Texture,
-  font: Font,
   fps_counter: FpsCounter,
   relative_speed_stat: f64,
   shared_memory: Arc<SharedMemory>
@@ -153,47 +150,34 @@ const SCREEN_RECT: rect::Rect = rect::Rect {
 impl SdlBackend {
   pub fn init() -> BackendResult<SdlBackend> {
     sdl2::init(sdl2::INIT_VIDEO | sdl2::INIT_GAME_CONTROLLER);
-    let window =
-      try!(Window::new("test", WindowPos::PosUndefined, WindowPos::PosUndefined, 640, 576, video::OPENGL));
-    let renderer =
-      try!(Renderer::from_window(window, RenderDriverIndex::Auto, render::ACCELERATED | render::PRESENTVSYNC));
-    try!(renderer.clear());
-    renderer.present();
-
-    let texture =
-      try!(renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Streaming, 256, 256));
-
-    let font = try!(Font::init(&renderer));
-
     Ok(SdlBackend {
-      renderer: renderer,
-      texture: texture,
-      font: font,
       fps_counter: FpsCounter::new(),
       relative_speed_stat: 0.0,
       shared_memory: Arc::new(SharedMemory::new())
     })
   }
-  fn refresh_gb_screen(&self) -> BackendResult<()> {
+  fn refresh_gb_screen(&self, renderer: &Renderer, texture: &mut Texture) -> BackendResult<()> {
     {
       let pixels = self.shared_memory.pixel_buffer_lock.lock().unwrap();
-      try!(self.texture.update(Some(SCREEN_RECT), pixels.as_slice(), PIXEL_BUFFER_STRIDE as isize));
+      try!(texture.update(Some(SCREEN_RECT), pixels.as_slice(), PIXEL_BUFFER_STRIDE as i32));
     }
-    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as isize, gameboy::SCREEN_HEIGHT as isize));
-    try!(self.renderer.copy(&self.texture, Some(SCREEN_RECT), Some(SCREEN_RECT)));
+    let mut drawer = renderer.drawer();
+    drawer.clear();
+    drawer.set_logical_size(gameboy::SCREEN_WIDTH as i32, gameboy::SCREEN_HEIGHT as i32);
+    drawer.copy(&texture, Some(SCREEN_RECT), Some(SCREEN_RECT));
     Ok(())
   }
-  fn present(&mut self) -> BackendResult<()> {
-    try!(self.renderer.clear());
-    try!(self.refresh_gb_screen());
-    try!(self.renderer.set_logical_size(gameboy::SCREEN_WIDTH as isize * 4, gameboy::SCREEN_HEIGHT as isize * 4));
+  fn present(&mut self, renderer: &Renderer, texture: &mut Texture, font: &Font) -> BackendResult<()> {
+    try!(self.refresh_gb_screen(renderer, texture));
+    let mut drawer = renderer.drawer();
+    drawer.set_logical_size(gameboy::SCREEN_WIDTH as i32 * 4, gameboy::SCREEN_HEIGHT as i32 * 4);
 
     let speed_text = format!("{:0.0} %", self.relative_speed_stat);
-    try!(self.font.draw_text(&self.renderer, 0, 0, TextAlign::Left, speed_text.as_slice()));
+    try!(font.draw_text(&mut drawer, 0, 0, TextAlign::Left, speed_text.as_slice()));
 
     let fps_text = format!("{:0.0} FPS", self.fps_counter.fps);
-    try!(self.font.draw_text(&self.renderer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, fps_text.as_slice()));
-    self.renderer.present();
+    try!(font.draw_text(&mut drawer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, fps_text.as_slice()));
+    drawer.present();
     self.fps_counter.update();
     Ok(())
   }
@@ -213,30 +197,30 @@ fn to_joypad_key(key: KeyCode) -> Option<GbKey> {
   }
 }
 
-fn controller_to_joypad_key(button: ControllerButton) -> Option<GbKey> {
+fn controller_to_joypad_key(button: Button) -> Option<GbKey> {
   match button {
-    ControllerButton::DPadRight => Some(GbKey::Right),
-    ControllerButton::DPadLeft => Some(GbKey::Left),
-    ControllerButton::DPadUp => Some(GbKey::Up),
-    ControllerButton::DPadDown => Some(GbKey::Down),
-    ControllerButton::A => Some(GbKey::B),
-    ControllerButton::B => Some(GbKey::A),
-    ControllerButton::Start => Some(GbKey::Start),
-    ControllerButton::Back => Some(GbKey::Select),
+    Button::DPadRight => Some(GbKey::Right),
+    Button::DPadLeft => Some(GbKey::Left),
+    Button::DPadUp => Some(GbKey::Up),
+    Button::DPadDown => Some(GbKey::Down),
+    Button::A => Some(GbKey::B),
+    Button::B => Some(GbKey::A),
+    Button::Start => Some(GbKey::Start),
+    Button::Back => Some(GbKey::Select),
     _ => None
   }
 }
 
-fn controller_axis_to_message(axis: ControllerAxis, value: i16) -> Option<BackendMessage> {
+fn controller_axis_to_message(axis: Axis, value: i16) -> Option<BackendMessage> {
   match axis {
-    ControllerAxis::LeftX => match value {
+    Axis::LeftX => match value {
       -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Left)),
       -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Left)),
       0...16383 => Some(BackendMessage::KeyUp(GbKey::Right)),
       16384...32767 => Some(BackendMessage::KeyDown(GbKey::Right)),
       _ => None
     },
-    ControllerAxis::LeftY => match value {
+    Axis::LeftY => match value {
       -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Up)),
       -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Up)),
       0...16383 => Some(BackendMessage::KeyUp(GbKey::Down)),
@@ -247,11 +231,33 @@ fn controller_axis_to_message(axis: ControllerAxis, value: i16) -> Option<Backen
   }
 }
 
+impl Drop for SdlBackend {
+  fn drop(&mut self) {
+    sdl2::quit();
+  }
+}
+
 impl Backend for SdlBackend {
   type SHM = SharedMemory;
   type Error = BackendError;
-  fn main_loop(mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) {
-    loop {
+  fn main_loop(mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) -> BackendResult<()> {
+    let window =
+      try!(Window::new("Mooneye GB", WindowPos::PosUndefined, WindowPos::PosUndefined, 640, 576, video::OPENGL));
+    let renderer =
+      try!(Renderer::from_window(window, RenderDriverIndex::Auto, render::ACCELERATED | render::PRESENTVSYNC));
+    {
+      let mut drawer = renderer.drawer();
+      drawer.clear();
+      drawer.present();
+    }
+
+    let mut controllers = vec!();
+
+    let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
+
+    let font = try!(Font::init(&renderer));
+
+    'main: loop {
       match from_machine.try_recv() {
         Err(TryRecvError::Disconnected) => break,
         Ok(MachineMessage::RelativeSpeedStat(value)) => self.relative_speed_stat = value,
@@ -260,14 +266,14 @@ impl Backend for SdlBackend {
 
       'event: loop {
         match event::poll_event() {
-          Event::Quit(_) => return,
-          Event::KeyDown(_, _, key, _, _, _) if key == KeyCode::Escape => return,
-          Event::KeyDown(_, _, key, _, _, _) => {
-            match to_joypad_key(key) {
+          Event::Quit{..} => break 'main,
+          Event::KeyDown{keycode, ..} if keycode == KeyCode::Escape => break 'main,
+          Event::KeyDown{keycode, ..} => {
+            match to_joypad_key(keycode) {
               Some(key) => to_machine.send(BackendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
-            match key {
+            match keycode {
               KeyCode::Home => to_machine.send(BackendMessage::Break).unwrap(),
               KeyCode::End => to_machine.send(BackendMessage::Run).unwrap(),
               KeyCode::PageDown => to_machine.send(BackendMessage::Step).unwrap(),
@@ -275,32 +281,32 @@ impl Backend for SdlBackend {
               _ => ()
             }
           },
-          Event::KeyUp(_, _, key, _, _, _) => {
-            match to_joypad_key(key) {
+          Event::KeyUp{keycode, ..} => {
+            match to_joypad_key(keycode) {
               Some(key) => to_machine.send(BackendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
-            match key {
+            match keycode {
               KeyCode::LShift => to_machine.send(BackendMessage::Turbo(false)).unwrap(),
               _ => ()
             }
           },
-          Event::ControllerDeviceAdded(_, id) => {
-            unsafe { sdl2::controller::ll::SDL_GameControllerOpen(id as i32); }
+          Event::ControllerDeviceAdded{which: id, ..} => {
+            controllers.push(try!(GameController::open(id)))
           },
-          Event::ControllerButtonDown(_, _, button) => {
+          Event::ControllerButtonDown{button, ..} => {
             match controller_to_joypad_key(button) {
               Some(key) => to_machine.send(BackendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
           },
-          Event::ControllerButtonUp(_, _, button) => {
+          Event::ControllerButtonUp{button, ..} => {
             match controller_to_joypad_key(button) {
               Some(key) => to_machine.send(BackendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
           },
-          Event::ControllerAxisMotion(_, _, axis, value) => {
+          Event::ControllerAxisMotion{axis, value, ..} => {
             match controller_axis_to_message(axis, value) {
               Some(message) => to_machine.send(message).unwrap(),
               None => ()
@@ -310,15 +316,12 @@ impl Backend for SdlBackend {
           _ => ()
         }
       }
-      match self.present() {
+      match self.present(&renderer, &mut texture, &font) {
         Err(error) => { println!("{}", error.description()); break },
         _ => ()
       }
     }
-    drop(self.font);
-    drop(self.texture);
-    drop(self.renderer);
-    sdl2::quit();
+    Ok(())
   }
   fn shared_memory(&self) -> Arc<SharedMemory> {
     self.shared_memory.clone()

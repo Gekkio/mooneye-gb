@@ -99,5 +99,7 @@ fn main() {
     }
   });
 
-  backend.main_loop(backend_tx, machine_rx);
+  if let Err(error) = backend.main_loop(backend_tx, machine_rx) {
+    panic!("{}", error);
+  }
 }

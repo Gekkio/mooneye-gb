@@ -8,7 +8,7 @@ pub mod sdl;
 pub trait Backend {
   type SHM: BackendSharedMemory;
   type Error;
-  fn main_loop(self, SyncSender<BackendMessage>, Receiver<MachineMessage>);
+  fn main_loop(self, SyncSender<BackendMessage>, Receiver<MachineMessage>) -> Result<(), sdl::BackendError>;
   fn shared_memory(&self) -> Arc<Self::SHM>;
 }
 

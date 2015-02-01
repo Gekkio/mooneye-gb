@@ -1,6 +1,6 @@
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
-use sdl2::render::{BlendMode, Renderer, Texture, TextureAccess};
+use sdl2::render::{BlendMode, Renderer, RenderDrawer, Texture, TextureAccess};
 use std::collections::VecMap;
 
 use super::BackendResult;
@@ -20,28 +20,28 @@ pub enum TextAlign {
   Right
 }
 
-pub struct Font {
-  pub outline: Texture,
-  pub glyph: Texture,
+pub struct Font<'a> {
+  outline: Texture<'a>,
+  glyph: Texture<'a>,
   offsets: VecMap<(i32, i32)>
 }
 
-fn load_image(data: &[u8], renderer: &Renderer) -> BackendResult<Texture> {
-  let texture =
-    try!(renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, 256, 256));
+fn load_image<'a>(data: &[u8], renderer: &'a Renderer) -> BackendResult<Texture<'a>> {
+  let mut texture =
+    try!(renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, (256, 256)));
 
   try!(texture.update(None, data, 256 * 4));
-  try!(texture.set_blend_mode(BlendMode::Blend));
+  texture.set_blend_mode(BlendMode::Blend);
   Ok(texture)
 }
 
-impl Font {
-  pub fn init(renderer: &Renderer) -> BackendResult<Font> {
-    let outline = try!(load_image(inconsolata_20::OUTLINE_BYTES, renderer));
-    try!(outline.set_color_mod(64, 0, 0));
+impl<'a> Font<'a> {
+  pub fn init(renderer: &'a Renderer) -> BackendResult<Font<'a>> {
+    let mut outline = try!(load_image(inconsolata_20::OUTLINE_BYTES, renderer));
+    outline.set_color_mod(64, 0, 0);
 
-    let glyph = try!(load_image(inconsolata_20::GLYPH_BYTES, renderer));
-    try!(glyph.set_color_mod(255, 127, 0));
+    let mut glyph = try!(load_image(inconsolata_20::GLYPH_BYTES, renderer));
+    glyph.set_color_mod(255, 127, 0);
 
     let offsets = inconsolata_20::offsets();
 
@@ -51,7 +51,7 @@ impl Font {
       offsets: offsets
     })
   }
-  pub fn draw_char(&self, renderer: &Renderer, ch: char, dst_x: i32, dst_y: i32) -> BackendResult<()> {
+  pub fn draw_char(&self, drawer: &mut RenderDrawer, ch: char, dst_x: i32, dst_y: i32) -> BackendResult<()> {
     let value = ch as usize;
     match self.offsets.get(&value) {
       Some(&(x, y)) => {
@@ -67,21 +67,21 @@ impl Font {
           w: CHAR_WIDTH,
           h: CHAR_HEIGHT
         };
-        try!(renderer.copy(&self.outline, Some(src_rect), Some(dst_rect)));
-        try!(renderer.copy(&self.glyph, Some(src_rect), Some(dst_rect)));
+        drawer.copy(&self.outline, Some(src_rect), Some(dst_rect));
+        drawer.copy(&self.glyph, Some(src_rect), Some(dst_rect));
       }
       _ => (),
     }
     Ok(())
   }
-  pub fn draw_text(&self, renderer: &Renderer, x: i32, y: i32, alignment: TextAlign, text: &str) -> BackendResult<()> {
+  pub fn draw_text(&self, drawer: &mut RenderDrawer, x: i32, y: i32, alignment: TextAlign, text: &str) -> BackendResult<()> {
     let final_x =
       match alignment {
         TextAlign::Left => x,
         TextAlign::Right => x - text.len() as i32 * CHAR_WIDTH
       };
     for (i, ch) in text.chars().enumerate() {
-      try!(self.draw_char(renderer, ch, (final_x + CHAR_WIDTH * i as i32), y));
+      try!(self.draw_char(drawer, ch, (final_x + CHAR_WIDTH * i as i32), y));
     }
     Ok(())
   }
