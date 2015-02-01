@@ -109,16 +109,17 @@ impl CartridgeRomSize {
       _ => Err(ProgramResult::Error(format!("Unsupported rom size {:02x}", value)))
     }
   }
-  pub fn as_usize(&self) -> usize {
+  pub fn banks(&self) -> usize {
     use self::CartridgeRomSize::*;
     match *self {
-      NoRomBanks => ROM_BANK_SIZE * 2,
-      RomBanks4  => ROM_BANK_SIZE * 4,
-      RomBanks8  => ROM_BANK_SIZE * 8,
-      RomBanks16 => ROM_BANK_SIZE * 16,
-      RomBanks32 => ROM_BANK_SIZE * 32,
+      NoRomBanks => 2,
+      RomBanks4  => 4,
+      RomBanks8  => 8,
+      RomBanks16 => 16,
+      RomBanks32 => 32,
     }
   }
+  pub fn as_usize(&self) -> usize { self.banks() * ROM_BANK_SIZE }
 }
 
 #[derive(PartialEq, Eq, FromPrimitive)]

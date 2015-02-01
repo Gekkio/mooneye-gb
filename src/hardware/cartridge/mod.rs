@@ -29,6 +29,7 @@ pub struct Cartridge {
   rom: Vec<u8>,
   rom_offset: usize,
   rom_bank: u8,
+  rom_banks: usize,
   ram: Vec<u8>,
   ram_offset: usize,
   ram_bank: u8,
@@ -44,11 +45,13 @@ impl Cartridge {
       CartridgeRamSize::Ram2K => 2048,
       CartridgeRamSize::Ram8K => 8192
     };
+    let rom_banks = config.rom_size.banks();
     Cartridge {
       mbc: mbc,
       rom: config.data,
       rom_bank: 0,
       rom_offset: 0x4000,
+      rom_banks: rom_banks,
       ram: iter::repeat(0).take(ram_size).collect(),
       ram_offset: 0x0000,
       ram_bank: 0,
@@ -111,7 +114,7 @@ impl Cartridge {
     match self.mbc {
       Mbc::Mbc1 => {
         let bank =
-          match self.rom_bank {
+          match self.rom_bank & (self.rom_banks as u8 - 1) { // ROM bank numbers wrap around
             0x00 => 0x01,
             bank => bank
           };

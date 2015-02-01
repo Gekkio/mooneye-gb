@@ -220,3 +220,14 @@ CALL has an extra internal delay before the PC push:
     M = 5: PC push: memory access for low byte
 
 *See: tests/call\_timing, tests/call\_timing2, tests/call\_cc\_timing, tests/jp\_timing, tests/jp\_cc\_timing*
+
+### What does MBC1 do if you request a ROM bank number higher than what the cartridge supports?
+
+The ROM bank numbers wrap around. Note that the bank 0 -> bank 1 quirk also appears with wrapped values! So, assuming a 32-bank cartridge:
+
+* Requesting bank 0 gets you bank 1
+* Requesting bank 1 gets you bank 1
+* Requesting bank 32 wraps around to 0, which gets you bank 1
+* Requesting bank 33 wraps around to 1, which gets you bank 1
+
+This was verified using Arduino Uno, insidegadgets.com Cart Reader v1.2, and Wario Land cartridge (MBC1, 4Mbit ROM, 64Kbit RAM).
