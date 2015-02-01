@@ -5,7 +5,6 @@ extern crate bitflags;
 extern crate clock_ticks;
 extern crate collections;
 extern crate getopts;
-extern crate libc;
 extern crate sdl2;
 extern crate snooze;
 #[cfg(test)]
