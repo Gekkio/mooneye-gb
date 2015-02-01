@@ -1,4 +1,4 @@
-#![allow(unstable)]
+#![feature(collections, core, hash, io, os, path, std_misc)]
 
 #[macro_use]
 extern crate bitflags;
