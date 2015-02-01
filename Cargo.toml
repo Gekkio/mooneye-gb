@@ -5,13 +5,9 @@ version = "0.0.0"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 
 [dependencies]
-bitflags = "0.1.0"
-
-[dependencies.clock_ticks]
-git = "https://github.com/tomaka/clock_ticks"
-
-[dependencies.sdl2]
-git = "https://github.com/AngryLawyer/rust-sdl2.git"
+bitflags = "*"
+clock_ticks = "*"
+sdl2 = "*"
 
 [dependencies.snooze-rs]
 git = "https://github.com/Gekkio/snooze-rs.git"
