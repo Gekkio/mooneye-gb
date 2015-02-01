@@ -7,6 +7,7 @@ authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 [dependencies]
 bitflags = "*"
 clock_ticks = "*"
+getopts = "*"
 sdl2 = "*"
 
 [dependencies.snooze-rs]

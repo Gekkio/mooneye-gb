@@ -1,4 +1,4 @@
-use getopts::{getopts, optflag, optopt, short_usage, usage};
+use getopts::Options;
 use std::os;
 
 use util::program_result::ProgramResult;
@@ -13,23 +13,24 @@ pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
   let args = os::args();
   let program = args[0].as_slice();
 
-  let opts = [
-    optopt("b", "bootrom", "use boot rom", "FILE"),
-    optopt("e", "benchmark", "run a benchmark", "seconds"),
-    optflag("h", "help", "print help")
-  ];
-  let matches = try!(getopts(args.tail(), &opts));
+  let mut opts = Options::new();
+
+  opts.optopt("b", "bootrom", "use boot rom", "FILE");
+  opts.optopt("e", "benchmark", "run a benchmark", "seconds");
+  opts.optflag("h", "help", "print help");
+
+  let matches = try!(opts.parse(args.tail()));
   if matches.opt_present("h") {
-    let short = short_usage(program, &opts);
+    let short = opts.short_usage(program);
     let brief = format!("{} CARTRIDGE_FILE", short);
-    let long = usage(brief.as_slice(), &opts);
+    let long = opts.usage(brief.as_slice());
     print!("{}", long);
     return Err(ProgramResult::Exit);
   }
   let cartridge = match matches.free.as_slice().first() {
     Some(arg) => arg.clone(),
     None => {
-      let short = short_usage(program, &opts);
+      let short = opts.short_usage(program);
       let message = format!("Missing cartridge file\n\
                             {} CARTRIDGE_FILE", short);
       return Err(ProgramResult::Error(message));
