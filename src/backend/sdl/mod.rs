@@ -6,7 +6,7 @@ use sdl2::keycode::KeyCode;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect;
 use sdl2::render;
-use sdl2::render::{RenderDriverIndex, Renderer, Texture, TextureAccess};
+use sdl2::render::{RenderDriverIndex, Renderer, Texture};
 use sdl2::video;
 use sdl2::video::{Window, WindowPos};
 use std::error::{Error, FromError};
