@@ -1,6 +1,6 @@
 use std::num::FromPrimitive;
 
-use util::int::IntOps;
+use util::int::IntExt;
 
 pub struct Irq {
   int_flag: InterruptType,

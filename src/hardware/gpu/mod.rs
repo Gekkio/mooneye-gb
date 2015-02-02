@@ -6,7 +6,7 @@ use backend::BackendSharedMemory;
 use gameboy;
 use gameboy::Color;
 use hardware::irq::{Irq, Interrupt};
-use util::int::IntOps;
+use util::int::IntExt;
 
 const CHARACTER_RAM_TILES: usize = 384;
 const TILE_MAP_SIZE: usize = 0x400;

@@ -1,10 +1,10 @@
-pub trait IntOps {
+pub trait IntExt {
   fn isolate_rightmost_one(self) -> Self;
   fn bit(self, usize) -> Self;
   fn bit_bool(self, usize) -> bool;
 }
 
-impl IntOps for u8 {
+impl IntExt for u8 {
   #[allow(unsigned_negation)]
   fn isolate_rightmost_one(self) -> u8 {
     // Hacker's Delight 2nd ed, 2-1 Manipulating Rightmost Bits
