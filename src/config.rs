@@ -53,11 +53,12 @@ pub enum CartridgeType {
 
 impl Debug for CartridgeType {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    use self::CartridgeType::*;
     write!(f, "{}", match *self {
-      CartridgeType::RomOnly => "ROM ONLY",
-      CartridgeType::Mbc1 => "MBC1",
-      CartridgeType::Mbc1Ram => "MBC1+RAM",
-      CartridgeType::Mbc1RamBattery => "MBC1+RAM+BATTERY"
+      RomOnly => "ROM ONLY",
+      Mbc1 => "MBC1",
+      Mbc1Ram => "MBC1+RAM",
+      Mbc1RamBattery => "MBC1+RAM+BATTERY"
     })
   }
 }
@@ -70,11 +71,12 @@ impl CartridgeType {
     }
   }
   fn should_have_ram(&self) -> bool {
+    use self::CartridgeType::*;
     match *self {
-      CartridgeType::RomOnly => false,
-      CartridgeType::Mbc1 => false,
-      CartridgeType::Mbc1Ram => true,
-      CartridgeType::Mbc1RamBattery => true
+      RomOnly => false,
+      Mbc1 => false,
+      Mbc1Ram => true,
+      Mbc1RamBattery => true
     }
   }
 
@@ -86,7 +88,11 @@ pub enum CartridgeRomSize {
   RomBanks4 = 0x01,
   RomBanks8 = 0x02,
   RomBanks16 = 0x03,
-  RomBanks32 = 0x04
+  RomBanks32 = 0x04,
+  RomBanks64 = 0x05,
+  RomBanks128 = 0x06,
+  RomBanks256 = 0x07,
+  RomBanks512 = 0x08
 }
 
 impl Debug for CartridgeRomSize {
@@ -97,7 +103,11 @@ impl Debug for CartridgeRomSize {
       RomBanks4 => "512 Kbit",
       RomBanks8 => "1 Mbit",
       RomBanks16 => "2 Mbit",
-      RomBanks32 => "4 Mbit"
+      RomBanks32 => "4 Mbit",
+      RomBanks64 => "8 Mbit",
+      RomBanks128 => "16 Mbit",
+      RomBanks256 => "32 Mbit",
+      RomBanks512 => "64 Mbit"
     })
   }
 }
@@ -117,6 +127,10 @@ impl CartridgeRomSize {
       RomBanks8  => 8,
       RomBanks16 => 16,
       RomBanks32 => 32,
+      RomBanks64 => 64,
+      RomBanks128 => 128,
+      RomBanks256 => 256,
+      RomBanks512 => 512
     }
   }
   pub fn as_usize(&self) -> usize { self.banks() * ROM_BANK_SIZE }
@@ -126,15 +140,22 @@ impl CartridgeRomSize {
 pub enum CartridgeRamSize {
   NoRam = 0x00,
   Ram2K = 0x01,
-  Ram8K = 0x02
+  Ram8K = 0x02,
+  Ram16K = 0x03,
+  Ram128K = 0x04,
+  Ram32K = 0x05
 }
 
 impl Debug for CartridgeRamSize {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    use self::CartridgeRamSize::*;
     write!(f, "{}", match *self {
-      CartridgeRamSize::NoRam => "-",
-      CartridgeRamSize::Ram2K => "16 Kbit",
-      CartridgeRamSize::Ram8K => "64 Kbit"
+      NoRam => "-",
+      Ram2K => "16 Kbit",
+      Ram8K => "64 Kbit",
+      Ram16K => "128 Kbit",
+      Ram128K => "1 Mbit",
+      Ram32K => "256 Kbit"
     })
   }
 }
@@ -144,6 +165,17 @@ impl CartridgeRamSize {
     match FromPrimitive::from_u8(value) {
       Some(result) => Ok(result),
       _ => Err(ProgramResult::Error(format!("Unsupported ram size {:02x}", value)))
+    }
+  }
+  pub fn as_usize(&self) -> usize {
+    use self::CartridgeRamSize::*;
+    match *self {
+      NoRam => 0,
+      Ram2K => 2048,
+      Ram8K => 8192,
+      Ram16K => 16384,
+      Ram128K => 131072,
+      Ram32K => 32768
     }
   }
 }

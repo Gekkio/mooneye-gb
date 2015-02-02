@@ -40,11 +40,7 @@ pub struct Cartridge {
 impl Cartridge {
   pub fn new(config: CartridgeConfig) -> Cartridge {
     let mbc = Mbc::from_cartridge_type(config.cartridge_type);
-    let ram_size = match config.ram_size {
-      CartridgeRamSize::NoRam => 0,
-      CartridgeRamSize::Ram2K => 2048,
-      CartridgeRamSize::Ram8K => 8192
-    };
+    let ram_size = config.ram_size.as_usize();
     let rom_banks = config.rom_size.banks();
     Cartridge {
       mbc: mbc,
