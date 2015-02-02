@@ -754,7 +754,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn di(&mut self) {
-    self.ime_change = ImeChange::Soon(false);
+    self.ime_change = ImeChange::Now(false);
   }
   /// EI
   ///
