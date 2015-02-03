@@ -184,7 +184,16 @@ print_results:
   wait_vblank
   wait_vblank
   ld a, e
-  debug
+  and a
+  jr nz, +
+  ; Magic numbers signal a successful test
+  ld b, 3
+  ld c, 5
+  ld d, 8
+  ld e, 13
+  ld h, 21
+  ld l, 34
++ debug
 - nop
   jr -
 
@@ -355,6 +364,7 @@ print_failure:
   ld a, c
   call print_a
   enable_lcd
+  debug
 - nop
   jr -
 

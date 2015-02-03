@@ -181,7 +181,7 @@ impl CartridgeRamSize {
 }
 
 impl CartridgeConfig {
-  fn read(data: Vec<u8>) -> Result<CartridgeConfig, ProgramResult> {
+  pub fn read(data: &[u8]) -> Result<CartridgeConfig, ProgramResult> {
     let new_cartridge = data[0x14b] == 0x33;
 
     let title = {
@@ -213,12 +213,12 @@ impl CartridgeConfig {
       cartridge_type: cartridge_type,
       rom_size: rom_size,
       ram_size: ram_size,
-      data: data,
+      data: data.to_vec(),
     })
   }
 }
 
-fn read_bootrom(path: &Path) -> Result<BootromData, ProgramResult> {
+pub fn read_bootrom(path: &Path) -> Result<BootromData, ProgramResult> {
   let mut file = File::open(path);
   let mut buf = BOOTROM_EMPTY;
 
@@ -237,7 +237,7 @@ pub fn create_hardware_config(bootrom_path: Option<&Path>, cartridge_path: &Path
 
   let mut cartridge_file = File::open(cartridge_path);
   let cartridge_data = try!(cartridge_file.read_to_end());
-  let cartridge = try!(CartridgeConfig::read(cartridge_data));
+  let cartridge = try!(CartridgeConfig::read(&*cartridge_data));
 
   Ok(HardwareConfig {
     bootrom: bootrom,

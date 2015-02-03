@@ -60,6 +60,9 @@ impl<'a> Machine<'a> {
       time: EmuTime::zero()
     }
   }
+  pub fn set_mode(&mut self, mode: EmulationMode) {
+    self.mode = mode;
+  }
   fn emulate(&mut self, to_backend: &SyncSender<MachineMessage>) -> bool {
     let end_time = self.time + PULSE_CYCLES;
 
@@ -129,6 +132,7 @@ impl<'a> Machine<'a> {
               backend_event = from_backend.recv() => {
                 match backend_event {
                   Err(_) => return,
+                  Ok(BackendMessage::Quit) => return,
                   Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
                   Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
                   Ok(BackendMessage::Turbo(true)) => { self.mode = EmulationMode::MaxSpeed; break },
@@ -152,6 +156,7 @@ impl<'a> Machine<'a> {
           loop {
             match from_backend.try_recv() {
               Err(TryRecvError::Disconnected) => return,
+              Ok(BackendMessage::Quit) => return,
               Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
               Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
               Ok(BackendMessage::Turbo(false)) => { self.mode = EmulationMode::Normal; break },
@@ -176,6 +181,7 @@ impl<'a> Machine<'a> {
           loop {
             match from_backend.recv() {
               Err(_) => return,
+              Ok(BackendMessage::Quit) => return,
               Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
               Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
               Ok(BackendMessage::Run) => { self.mode = EmulationMode::Normal; break },
@@ -192,7 +198,7 @@ impl<'a> Machine<'a> {
   }
 }
 
-enum EmulationMode {
+pub enum EmulationMode {
   Debug, Normal, MaxSpeed
 }
 

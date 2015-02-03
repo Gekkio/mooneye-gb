@@ -4,6 +4,9 @@ name = "mooneye-gb"
 version = "0.0.0"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 
+[features]
+acceptance_tests = []
+
 [dependencies]
 bitflags = "*"
 clock_ticks = "*"

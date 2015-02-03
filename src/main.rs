@@ -30,6 +30,9 @@ mod hardware;
 mod machine;
 mod util;
 
+#[cfg(feature = "acceptance_tests")]
+mod acceptance_tests;
+
 fn parse_seconds(text: &str) -> Result<Duration, ProgramResult> {
   let seconds = try!(text.parse().map_err(
       |_| ProgramResult::Error(format!("Invalid duration {}", text))

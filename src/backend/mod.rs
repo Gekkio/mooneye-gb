@@ -17,7 +17,7 @@ pub trait BackendSharedMemory {
 }
 
 pub enum BackendMessage {
-  KeyDown(GbKey), KeyUp(GbKey), Break, Step, Run, Turbo(bool)
+  KeyDown(GbKey), KeyUp(GbKey), Break, Step, Run, Turbo(bool), Quit
 }
 
 #[derive(Debug)]

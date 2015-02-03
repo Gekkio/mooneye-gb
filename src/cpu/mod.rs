@@ -16,7 +16,7 @@ mod disasm;
 mod ops;
 pub mod registers;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
 
 pub struct Cpu<H: Bus> {
