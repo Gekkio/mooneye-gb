@@ -8,6 +8,7 @@ use backend::{
 };
 use config::HardwareConfig;
 use cpu::Cpu;
+use cpu::registers::Registers;
 use emulation::{EmuTime, MachineCycles};
 use hardware::Hardware;
 use self::perf_counter::PerfCounter;
@@ -28,7 +29,7 @@ pub struct Channels {
 }
 
 pub enum MachineMessage {
-  RelativeSpeedStat(f64)
+  RelativeSpeedStat(f64), Debug(Registers)
 }
 
 impl Channels {
@@ -59,7 +60,7 @@ impl<'a> Machine<'a> {
       time: EmuTime::zero()
     }
   }
-  fn emulate(&mut self) -> bool {
+  fn emulate(&mut self, to_backend: &SyncSender<MachineMessage>) -> bool {
     let end_time = self.time + PULSE_CYCLES;
 
     self.cpu.execute_until(end_time);
@@ -70,6 +71,9 @@ impl<'a> Machine<'a> {
     if self.time.needs_rewind() {
       self.time.rewind();
       self.cpu.rewind_time();
+    }
+    if let Some(regs) = self.cpu.ack_debug() {
+      to_backend.send(MachineMessage::Debug(regs)).unwrap();
     }
     true
   }
@@ -84,6 +88,7 @@ impl<'a> Machine<'a> {
   }
   pub fn main_benchmark(&mut self, channels: Channels, duration: Duration) {
     let from_backend = channels.from_backend;
+    let to_backend = channels.to_backend;
     self.reset();
 
     let mut timer = Timer::new().unwrap();
@@ -101,7 +106,7 @@ impl<'a> Machine<'a> {
         Err(TryRecvError::Disconnected) => break,
         _ => ()
       }
-      self.emulate();
+      self.emulate(&to_backend);
     }
   }
   pub fn main_loop(&mut self, channels: Channels) {
@@ -136,7 +141,7 @@ impl<'a> Machine<'a> {
                 to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
               },
               _ = pulse.recv() => {
-                if !self.emulate() {
+                if !self.emulate(&to_backend) {
                   break;
                 }
               }
@@ -161,7 +166,7 @@ impl<'a> Machine<'a> {
               },
               _ => ()
             }
-            if !self.emulate() {
+            if !self.emulate(&to_backend) {
               break;
             }
           }

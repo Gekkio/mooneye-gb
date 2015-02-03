@@ -40,6 +40,7 @@ pub enum Reg16 {
   AF, BC, DE, HL, SP
 }
 
+#[derive(Clone)]
 pub struct Registers {
   pub a: u8,
   pub b: u8,

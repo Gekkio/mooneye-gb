@@ -14,7 +14,7 @@ pub use cpu::ops::CpuOps;
 
 mod disasm;
 mod ops;
-mod registers;
+pub mod registers;
 
 #[cfg(test)]
 mod test;
@@ -26,7 +26,8 @@ pub struct Cpu<H: Bus> {
   halt: bool,
   hiram: HiramData,
   hardware: H,
-  time: EmuTime
+  time: EmuTime,
+  hit_debug: bool
 }
 
 
@@ -184,7 +185,8 @@ impl<H> Cpu<H> where H: Bus {
       halt: false,
       hiram: HIRAM_EMPTY,
       hardware: hardware,
-      time: EmuTime::zero()
+      time: EmuTime::zero(),
+      hit_debug: false
     }
   }
   pub fn hardware(&mut self) -> &mut H {
@@ -207,6 +209,14 @@ impl<H> Cpu<H> where H: Bus {
   }
   pub fn write_hiram(&mut self, reladdr: u16, value: u8) {
     self.hiram[reladdr as usize] = value;
+  }
+
+  pub fn ack_debug(&mut self) -> Option<Registers> {
+    if !self.hit_debug { None }
+    else {
+      self.hit_debug = false;
+      Some(self.regs.clone())
+    }
   }
 
   fn read_u8(&mut self, addr: u16) -> u8 {
@@ -934,5 +944,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn undefined(&mut self, op: u8) {
     panic!("Undefined opcode {}", op)
   }
-  fn undefined_debug(&mut self) {}
+  fn undefined_debug(&mut self) {
+    self.hit_debug = true;
+  }
 }
