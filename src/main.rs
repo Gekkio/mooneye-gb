@@ -31,10 +31,10 @@ mod machine;
 mod util;
 
 fn parse_seconds(text: &str) -> Result<Duration, ProgramResult> {
-  match text.parse() {
-    None => return Err(ProgramResult::Error(format!("Invalid duration {}", text))),
-    Some(seconds) => return Ok(Duration::seconds(seconds))
-  }
+  let seconds = try!(text.parse().map_err(
+      |_| ProgramResult::Error(format!("Invalid duration {}", text))
+  ));
+  Ok(Duration::seconds(seconds))
 }
 
 struct MiscConfig {
