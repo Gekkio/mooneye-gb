@@ -18,7 +18,7 @@ impl Mbc {
   fn from_cartridge_type(t: CartridgeType) -> Mbc {
     use config::CartridgeType::*;
     match t {
-      RomOnly => Mbc::None,
+       Rom |  RomRam |  RomRamBattery => Mbc::None,
       Mbc1 | Mbc1Ram | Mbc1RamBattery => Mbc::Mbc1,
       Mbc2           | Mbc2RamBattery => Mbc::Mbc2
     }

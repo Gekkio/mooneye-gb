@@ -45,24 +45,18 @@ impl Debug for CartridgeConfig {
 
 #[derive(PartialEq, Eq, FromPrimitive)]
 pub enum CartridgeType {
-  RomOnly = 0x00,
-  Mbc1 = 0x01,
-  Mbc1Ram = 0x02,
-  Mbc1RamBattery = 0x03,
-  Mbc2 = 0x05,
-  Mbc2RamBattery = 0x06
+  Rom  = 0x00,  RomRam = 0x08,  RomRamBattery = 0x09,
+  Mbc1 = 0x01, Mbc1Ram = 0x02, Mbc1RamBattery = 0x03,
+  Mbc2 = 0x05,                 Mbc2RamBattery = 0x06
 }
 
 impl Debug for CartridgeType {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     use self::CartridgeType::*;
     write!(f, "{}", match *self {
-      RomOnly => "ROM ONLY",
-      Mbc1 => "MBC1",
-      Mbc1Ram => "MBC1+RAM",
-      Mbc1RamBattery => "MBC1+RAM+BATTERY",
-      Mbc2 => "MBC2",
-      Mbc2RamBattery => "MBC2+RAM+BATTERY"
+      Rom => "ROM ONLY", RomRam => "ROM+RAM",   RomRamBattery => "ROM+RAM+BATTERY",
+      Mbc1 => "MBC1",   Mbc1Ram => "MBC1+RAM", Mbc1RamBattery => "MBC1+RAM+BATTERY",
+      Mbc2 => "MBC2",                          Mbc2RamBattery => "MBC2+RAM+BATTERY"
     })
   }
 }
@@ -77,6 +71,8 @@ impl CartridgeType {
   fn should_have_ram(&self) -> bool {
     use self::CartridgeType::*;
     match *self {
+      RomRam => true,
+      RomRamBattery => true,
       Mbc1Ram => true,
       Mbc1RamBattery => true,
       _ => false
