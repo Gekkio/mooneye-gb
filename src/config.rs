@@ -48,7 +48,9 @@ pub enum CartridgeType {
   RomOnly = 0x00,
   Mbc1 = 0x01,
   Mbc1Ram = 0x02,
-  Mbc1RamBattery = 0x03
+  Mbc1RamBattery = 0x03,
+  Mbc2 = 0x05,
+  Mbc2RamBattery = 0x06
 }
 
 impl Debug for CartridgeType {
@@ -58,7 +60,9 @@ impl Debug for CartridgeType {
       RomOnly => "ROM ONLY",
       Mbc1 => "MBC1",
       Mbc1Ram => "MBC1+RAM",
-      Mbc1RamBattery => "MBC1+RAM+BATTERY"
+      Mbc1RamBattery => "MBC1+RAM+BATTERY",
+      Mbc2 => "MBC2",
+      Mbc2RamBattery => "MBC2+RAM+BATTERY"
     })
   }
 }
@@ -73,10 +77,9 @@ impl CartridgeType {
   fn should_have_ram(&self) -> bool {
     use self::CartridgeType::*;
     match *self {
-      RomOnly => false,
-      Mbc1 => false,
       Mbc1Ram => true,
-      Mbc1RamBattery => true
+      Mbc1RamBattery => true,
+      _ => false
     }
   }
 

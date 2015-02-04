@@ -8,10 +8,10 @@ use config::{
 use gameboy::{
   RAM_BANK_SIZE, ROM_BANK_SIZE
 };
+use util::int::IntExt;
 
 enum Mbc {
-  None,
-  Mbc1
+  None, Mbc1, Mbc2
 }
 
 impl Mbc {
@@ -19,7 +19,8 @@ impl Mbc {
     use config::CartridgeType::*;
     match t {
       RomOnly => Mbc::None,
-      Mbc1 | Mbc1Ram | Mbc1RamBattery => Mbc::Mbc1
+      Mbc1 | Mbc1Ram | Mbc1RamBattery => Mbc::Mbc1,
+      Mbc2           | Mbc2RamBattery => Mbc::Mbc2
     }
   }
 }
@@ -40,7 +41,10 @@ pub struct Cartridge {
 impl Cartridge {
   pub fn new(config: CartridgeConfig) -> Cartridge {
     let mbc = Mbc::from_cartridge_type(config.cartridge_type);
-    let ram_size = config.ram_size.as_usize();
+    let ram_size = match mbc {
+      Mbc::Mbc2 => 512,
+      _ => config.ram_size.as_usize()
+    };
     let rom_banks = config.rom_size.banks();
     Cartridge {
       mbc: mbc,
@@ -86,7 +90,23 @@ impl Cartridge {
           0x60 ... 0x7f => {
             self.mbc1_ram_banking = (value & 0x01) == 0x01;
           },
-          _ => panic!("Unsupported MBC control {:04x} = {:02x}", reladdr, value)
+          _ => ()
+        }
+      },
+      Mbc::Mbc2 => {
+        match reladdr >> 8 {
+          0x00 ... 0x1f => {
+            if !reladdr.bit_bool(8) {
+              self.ram_accessible = (value & 0x0f) == 0x0a;
+            }
+          },
+          0x20 ... 0x3f => {
+            if reladdr.bit_bool(8) {
+              self.rom_bank = value & 0x0f;
+              self.update_rom_offset();
+            }
+          },
+          _ => ()
         }
       }
     }
@@ -100,7 +120,14 @@ impl Cartridge {
   pub fn write_ram(&mut self, reladdr: u16, value: u8) {
     if self.ram_accessible && self.ram.len() > 0 {
       let addr = self.ram_addr(reladdr);
-      self.ram[addr] = value
+      match self.mbc {
+        Mbc::Mbc2 => {
+          self.ram[addr] = value & 0x0f;
+        },
+        _ => {
+          self.ram[addr] = value;
+        }
+      }
     }
   }
   fn ram_addr(&self, reladdr: u16) -> usize {
@@ -108,7 +135,7 @@ impl Cartridge {
   }
   fn update_rom_offset(&mut self) {
     match self.mbc {
-      Mbc::Mbc1 => {
+      Mbc::Mbc1 | Mbc::Mbc2 => {
         let bank =
           match self.rom_bank & (self.rom_banks as u8 - 1) { // ROM bank numbers wrap around
             0x00 => 0x01,
