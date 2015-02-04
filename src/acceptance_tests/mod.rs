@@ -24,6 +24,9 @@ fn div_timing() { run_acceptance_test("div_timing") }
 fn ei_timing() { run_acceptance_test("ei_timing") }
 
 #[test]
+fn halt_ime1() { run_acceptance_test("halt_ime1") }
+
+#[test]
 fn if_ie_registers() { run_acceptance_test("if_ie_registers") }
 
 #[test]

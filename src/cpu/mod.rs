@@ -280,8 +280,6 @@ impl<H> Cpu<H> where H: Bus {
         self.hardware.emulate(self.time);
       }
     } else {
-      self.decode();
-
       match self.ime_change {
         ImeChange::None => (),
         ImeChange::Soon(value) => {
@@ -308,10 +306,11 @@ impl<H> Cpu<H> where H: Bus {
             let pc = self.regs.pc;
             self.push_u16(pc);
             self.regs.pc = interrupt.get_addr();
-            return;
           }
         }
       }
+
+      self.decode();
     }
   }
 
