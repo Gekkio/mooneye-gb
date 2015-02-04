@@ -11,7 +11,7 @@ use gameboy::{
 use util::int::IntExt;
 
 enum Mbc {
-  None, Mbc1, Mbc2
+  None, Mbc1, Mbc2, Mbc3
 }
 
 impl Mbc {
@@ -20,7 +20,8 @@ impl Mbc {
     match t {
        Rom |  RomRam |  RomRamBattery => Mbc::None,
       Mbc1 | Mbc1Ram | Mbc1RamBattery => Mbc::Mbc1,
-      Mbc2           | Mbc2RamBattery => Mbc::Mbc2
+      Mbc2           | Mbc2RamBattery => Mbc::Mbc2,
+      Mbc3 | Mbc3Ram | Mbc3RamBattery => Mbc::Mbc3
     }
   }
 }
@@ -108,6 +109,22 @@ impl Cartridge {
           },
           _ => ()
         }
+      },
+      Mbc::Mbc3 => {
+        match reladdr >> 8 {
+          0x00 ... 0x1f => {
+            self.ram_accessible = (value & 0x0f) == 0x0a;
+          },
+          0x20 ... 0x3f => {
+            self.rom_bank = value & 0x7f;
+            self.update_rom_offset();
+          },
+          0x40 ... 0x5f => {
+            self.ram_bank = value & 0x07;
+            self.update_ram_offset();
+          },
+          _ => ()
+        }
       }
     }
   }
@@ -135,7 +152,7 @@ impl Cartridge {
   }
   fn update_rom_offset(&mut self) {
     match self.mbc {
-      Mbc::Mbc1 | Mbc::Mbc2 => {
+      Mbc::Mbc1 | Mbc::Mbc2 | Mbc::Mbc3 => {
         let bank =
           match self.rom_bank & (self.rom_banks as u8 - 1) { // ROM bank numbers wrap around
             0x00 => 0x01,
@@ -148,7 +165,7 @@ impl Cartridge {
   }
   fn update_ram_offset(&mut self) {
     match self.mbc {
-      Mbc::Mbc1 => {
+      Mbc::Mbc1 | Mbc::Mbc3 => {
         self.ram_offset = RAM_BANK_SIZE * self.ram_bank as usize;
       },
       _ => ()

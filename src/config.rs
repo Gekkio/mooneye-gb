@@ -47,7 +47,8 @@ impl Debug for CartridgeConfig {
 pub enum CartridgeType {
   Rom  = 0x00,  RomRam = 0x08,  RomRamBattery = 0x09,
   Mbc1 = 0x01, Mbc1Ram = 0x02, Mbc1RamBattery = 0x03,
-  Mbc2 = 0x05,                 Mbc2RamBattery = 0x06
+  Mbc2 = 0x05,                 Mbc2RamBattery = 0x06,
+  Mbc3 = 0x11, Mbc3Ram = 0x12, Mbc3RamBattery = 0x13
 }
 
 impl Debug for CartridgeType {
@@ -56,7 +57,8 @@ impl Debug for CartridgeType {
     write!(f, "{}", match *self {
       Rom => "ROM ONLY", RomRam => "ROM+RAM",   RomRamBattery => "ROM+RAM+BATTERY",
       Mbc1 => "MBC1",   Mbc1Ram => "MBC1+RAM", Mbc1RamBattery => "MBC1+RAM+BATTERY",
-      Mbc2 => "MBC2",                          Mbc2RamBattery => "MBC2+RAM+BATTERY"
+      Mbc2 => "MBC2",                          Mbc2RamBattery => "MBC2+RAM+BATTERY",
+      Mbc3 => "MBC3",   Mbc3Ram => "MBC3+RAM", Mbc3RamBattery => "MBC3+RAM+BATTERY"
     })
   }
 }
@@ -71,10 +73,9 @@ impl CartridgeType {
   fn should_have_ram(&self) -> bool {
     use self::CartridgeType::*;
     match *self {
-      RomRam => true,
-      RomRamBattery => true,
-      Mbc1Ram => true,
-      Mbc1RamBattery => true,
+       RomRam => true,  RomRamBattery => true,
+      Mbc1Ram => true, Mbc1RamBattery => true,
+      Mbc3Ram => true, Mbc3RamBattery => true,
       _ => false
     }
   }
