@@ -1,5 +1,5 @@
+use std::env;
 use std::old_io::timer::Timer;
-use std::os;
 use std::thread::Thread;
 use std::time::duration::Duration;
 
@@ -18,7 +18,7 @@ impl BackendSharedMemory for AcceptanceSharedMemory {
 }
 
 pub fn run_acceptance_test(name: &str) {
-  let bootrom_path = os::homedir().unwrap().join(".mooneye-gb").join("boot.bin");
+  let bootrom_path = env::home_dir().unwrap().join(".mooneye-gb").join("boot.bin");
   let cartridge_path = Path::new(format!("tests/{}/test.gb", name));
   let hardware_config = config::create_hardware_config(Some(&bootrom_path), &cartridge_path).unwrap();
 

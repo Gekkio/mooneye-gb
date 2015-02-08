@@ -1,4 +1,4 @@
-#![feature(collections, core, hash, io, os, path, std_misc)]
+#![feature(collections, core, env, hash, io, os, path, std_misc)]
 
 #[macro_use]
 extern crate bitflags;
@@ -10,8 +10,8 @@ extern crate snooze;
 #[cfg(test)]
 extern crate test;
 
+use std::env;
 use std::old_io::fs::{PathExtensions};
-use std::os;
 use std::thread::Thread;
 use std::time::duration::Duration;
 
@@ -47,7 +47,7 @@ struct MiscConfig {
 fn prepare_emulator() -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
   let cmdline = try!(cmdline::parse_cmdline());
 
-  let home_dir = os::homedir().map(|home| {
+  let home_dir = env::home_dir().map(|home| {
     home.join(".mooneye-gb")
   });
 

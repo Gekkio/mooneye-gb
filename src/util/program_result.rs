@@ -1,8 +1,8 @@
 use getopts::Fail;
+use std::env;
 use std::error::FromError;
 use std::old_io::stdio;
 use std::old_io::IoError;
-use std::os;
 
 #[derive(Debug)]
 pub enum ProgramResult {
@@ -26,10 +26,10 @@ impl ProgramResult {
   pub fn apply(&self) {
     match *self {
       ProgramResult::Exit => {
-        os::set_exit_status(0)
+        env::set_exit_status(0)
       },
       ProgramResult::Error(ref message) => {
-        os::set_exit_status(1);
+        env::set_exit_status(1);
 
         let mut stderr = stdio::stderr();
         stderr.write_line(message.as_slice()).unwrap();

@@ -1,5 +1,6 @@
 use getopts::Options;
-use std::os;
+use std::env;
+use std::ffi::OsString;
 
 use util::program_result::ProgramResult;
 
@@ -10,8 +11,8 @@ pub struct CmdLine {
 }
 
 pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
-  let args = os::args();
-  let program = args[0].as_slice();
+  let args: Vec<OsString> = env::args().collect();
+  let program = args[0].to_str().unwrap_or("");
 
   let mut opts = Options::new();
 
@@ -21,7 +22,7 @@ pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
 
   let matches = try!(opts.parse(args.tail()));
   if matches.opt_present("h") {
-    let short = opts.short_usage(program);
+    let short = opts.short_usage(program.as_slice());
     let brief = format!("{} CARTRIDGE_FILE", short);
     let long = opts.usage(brief.as_slice());
     print!("{}", long);
@@ -30,7 +31,7 @@ pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
   let cartridge = match matches.free.as_slice().first() {
     Some(arg) => arg.clone(),
     None => {
-      let short = opts.short_usage(program);
+      let short = opts.short_usage(program.as_slice());
       let message = format!("Missing cartridge file\n\
                             {} CARTRIDGE_FILE", short);
       return Err(ProgramResult::Error(message));
