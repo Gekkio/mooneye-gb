@@ -1,4 +1,4 @@
-#![feature(collections, core, env, hash, io, os, path, std_misc)]
+#![feature(collections, core, env, hash, io, path, std_misc)]
 
 #[macro_use]
 extern crate bitflags;

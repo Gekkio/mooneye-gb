@@ -1,6 +1,5 @@
 use getopts::Options;
 use std::env;
-use std::ffi::OsString;
 
 use util::program_result::ProgramResult;
 
@@ -11,8 +10,8 @@ pub struct CmdLine {
 }
 
 pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
-  let args: Vec<OsString> = env::args().collect();
-  let program = args[0].to_str().unwrap_or("");
+  let args: Vec<String> = env::args().collect();
+  let program = args[0].as_slice();
 
   let mut opts = Options::new();
 
