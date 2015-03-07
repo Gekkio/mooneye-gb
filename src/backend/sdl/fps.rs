@@ -1,12 +1,12 @@
 use clock_ticks::precise_time_s;
-use std::collections::RingBuf;
+use std::collections::VecDeque;
 
 const HISTORY_SIZE: usize = 64;
 const RECALC_INTERVAL_SECONDS: f64 = 0.200;
 
 pub struct FpsCounter {
   pub fps: f64,
-  history: RingBuf<f64>,
+  history: VecDeque<f64>,
   last_time: f64,
   last_recalc: f64
 }
@@ -15,7 +15,7 @@ impl FpsCounter {
   pub fn new() -> FpsCounter {
     FpsCounter {
       fps: 0.0,
-      history: RingBuf::with_capacity(HISTORY_SIZE),
+      history: VecDeque::with_capacity(HISTORY_SIZE),
       last_time: precise_time_s(),
       last_recalc: 0.0
     }

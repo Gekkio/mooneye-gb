@@ -1,5 +1,5 @@
 use clock_ticks::precise_time_s;
-use std::collections::RingBuf;
+use std::collections::VecDeque;
 
 use emulation::MachineCycles;
 
@@ -8,14 +8,14 @@ const EXPECTED_CYCLES_PER_SECOND: f64 = 4194304.0;
 
 /// A cycles-per-second counter
 pub struct PerfCounter {
-  history: RingBuf<f64>,
+  history: VecDeque<f64>,
   last_time: f64
 }
 
 impl PerfCounter {
   pub fn new() -> PerfCounter {
     PerfCounter {
-      history: RingBuf::with_capacity(HISTORY_SIZE),
+      history: VecDeque::with_capacity(HISTORY_SIZE),
       last_time: precise_time_s()
     }
   }
