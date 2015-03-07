@@ -11,7 +11,8 @@ extern crate snooze;
 extern crate test;
 
 use std::env;
-use std::old_io::fs::{PathExtensions};
+use std::fs::PathExt;
+use std::path::AsPath;
 use std::thread::Thread;
 use std::time::duration::Duration;
 
@@ -65,7 +66,7 @@ fn prepare_emulator() -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
   let cartridge_path = cmdline.cartridge_path;
 
   let hw_config = try!(
-    config::create_hardware_config(bootrom_path.as_ref(), &cartridge_path));
+    config::create_hardware_config(bootrom_path.as_ref().map(|x| x.as_path()), &cartridge_path));
 
   Ok((hw_config,
     MiscConfig { benchmark_duration: benchmark_duration }))

@@ -1,11 +1,12 @@
 use getopts::Options;
 use std::env;
+use std::path::PathBuf;
 
 use util::program_result::ProgramResult;
 
 pub struct CmdLine {
-  pub bootrom_path: Option<Path>,
-  pub cartridge_path: Path,
+  pub bootrom_path: Option<PathBuf>,
+  pub cartridge_path: PathBuf,
   pub benchmark: Option<String>
 }
 
@@ -38,8 +39,8 @@ pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
   };
 
   Ok(CmdLine {
-    bootrom_path: matches.opt_str("b").map(Path::new),
-    cartridge_path: Path::new(cartridge),
+    bootrom_path: matches.opt_str("b").as_ref().map(PathBuf::new),
+    cartridge_path: PathBuf::new(&cartridge),
     benchmark: matches.opt_str("e")
   })
 }

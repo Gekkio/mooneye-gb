@@ -1,8 +1,8 @@
 use getopts::Fail;
 use std::env;
 use std::error::FromError;
-use std::old_io::stdio;
-use std::old_io::IoError;
+use std::io;
+use std::io::Write;
 
 #[derive(Debug)]
 pub enum ProgramResult {
@@ -10,9 +10,9 @@ pub enum ProgramResult {
   Error(String)
 }
 
-impl FromError<IoError> for ProgramResult {
-  fn from_error(err: IoError) -> ProgramResult {
-    ProgramResult::Error(format!("IoError: {}", err))
+impl FromError<io::Error> for ProgramResult {
+  fn from_error(err: io::Error) -> ProgramResult {
+    ProgramResult::Error(format!("IO error: {}", err))
   }
 }
 
@@ -31,8 +31,9 @@ impl ProgramResult {
       ProgramResult::Error(ref message) => {
         env::set_exit_status(1);
 
-        let mut stderr = stdio::stderr();
-        stderr.write_line(message.as_slice()).unwrap();
+        let mut stderr = io::stderr();
+        stderr.write(message.as_bytes()).unwrap();
+        stderr.write(b"\n").unwrap();
       }
     }
   }

@@ -1,7 +1,9 @@
 use std::fmt;
 use std::fmt::{Debug, Formatter};
-use std::old_io::fs::File;
+use std::fs::File;
+use std::io::Read;
 use std::num::FromPrimitive;
+use std::path::Path;
 use std::str;
 
 use gameboy::{
@@ -219,14 +221,16 @@ impl CartridgeConfig {
 }
 
 pub fn read_bootrom(path: &Path) -> Result<BootromData, ProgramResult> {
-  let mut file = File::open(path);
-  let mut buf = BOOTROM_EMPTY;
+  let mut file = try!(File::open(path));
+  let mut bootrom_data = BOOTROM_EMPTY;
 
-  let data = try!(file.read_exact(BOOTROM_SIZE));
+  let mut buffer = vec!();
 
-  buf.move_from(data, 0, BOOTROM_SIZE);
+  try!(file.read_to_end(&mut buffer));
 
-  return Ok(buf);
+  bootrom_data.move_from(buffer, 0, BOOTROM_SIZE);
+
+  return Ok(bootrom_data);
 }
 
 pub fn create_hardware_config(bootrom_path: Option<&Path>, cartridge_path: &Path) -> Result<HardwareConfig, ProgramResult> {
@@ -235,8 +239,9 @@ pub fn create_hardware_config(bootrom_path: Option<&Path>, cartridge_path: &Path
     bootrom = Some(try!(read_bootrom(*path)))
   }
 
-  let mut cartridge_file = File::open(cartridge_path);
-  let cartridge_data = try!(cartridge_file.read_to_end());
+  let mut cartridge_file = try!(File::open(cartridge_path));
+  let mut cartridge_data = vec!();
+  try!(cartridge_file.read_to_end(&mut cartridge_data));
   let cartridge = try!(CartridgeConfig::read(&*cartridge_data));
 
   Ok(HardwareConfig {
