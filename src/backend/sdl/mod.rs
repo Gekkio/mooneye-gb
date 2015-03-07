@@ -1,4 +1,5 @@
 use sdl2;
+use sdl2::Sdl;
 use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event;
 use sdl2::event::Event;
@@ -29,6 +30,7 @@ mod font;
 mod fps;
 
 pub struct SdlBackend {
+  sdl: Sdl,
   fps_counter: FpsCounter,
   relative_speed_stat: f64,
   shared_memory: Arc<SharedMemory>
@@ -149,8 +151,9 @@ const SCREEN_RECT: rect::Rect = rect::Rect {
 
 impl SdlBackend {
   pub fn init() -> BackendResult<SdlBackend> {
-    sdl2::init(sdl2::INIT_VIDEO | sdl2::INIT_GAME_CONTROLLER);
+    let sdl = try!(sdl2::init(sdl2::INIT_VIDEO | sdl2::INIT_GAME_CONTROLLER));
     Ok(SdlBackend {
+      sdl: sdl,
       fps_counter: FpsCounter::new(),
       relative_speed_stat: 0.0,
       shared_memory: Arc::new(SharedMemory::new())
@@ -231,12 +234,6 @@ fn controller_axis_to_message(axis: Axis, value: i16) -> Option<BackendMessage> 
   }
 }
 
-impl Drop for SdlBackend {
-  fn drop(&mut self) {
-    sdl2::quit();
-  }
-}
-
 impl Backend for SdlBackend {
   type SHM = SharedMemory;
   type Error = BackendError;
@@ -264,8 +261,8 @@ impl Backend for SdlBackend {
         _ => ()
       }
 
-      'event: loop {
-        match event::poll_event() {
+      for event in self.sdl.event_pump().poll_iter() {
+        match event {
           Event::Quit{..} => break 'main,
           Event::KeyDown{keycode, ..} if keycode == KeyCode::Escape => break 'main,
           Event::KeyDown{keycode, ..} => {
@@ -312,7 +309,6 @@ impl Backend for SdlBackend {
               None => ()
             }
           },
-          Event::None => break 'event,
           _ => ()
         }
       }
