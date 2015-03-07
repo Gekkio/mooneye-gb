@@ -1,7 +1,6 @@
 use sdl2;
 use sdl2::Sdl;
 use sdl2::controller::{Axis, Button, GameController};
-use sdl2::event;
 use sdl2::event::Event;
 use sdl2::keycode::KeyCode;
 use sdl2::pixels::{Color, PixelFormatEnum};

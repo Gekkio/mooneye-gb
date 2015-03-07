@@ -1,4 +1,4 @@
-#![feature(collections, core, env, hash, io, path, std_misc)]
+#![feature(collections, core, exit_status, fs, io, path, std_misc)]
 
 #[macro_use]
 extern crate bitflags;
@@ -13,7 +13,7 @@ extern crate test;
 use std::env;
 use std::fs::PathExt;
 use std::path::AsPath;
-use std::thread::Thread;
+use std::thread;
 use std::time::duration::Duration;
 
 use backend::Backend;
@@ -92,7 +92,7 @@ fn main() {
   let (backend_tx, backend_rx) = backend::new_channel();
   let (machine_tx, machine_rx) = machine::new_channel();
 
-  Thread::spawn(move || {
+  thread::spawn(move || {
     let mut mach = Machine::new(&*shared_memory, hardware_config);
     let channels = machine::Channels::new(machine_tx, backend_rx);
 

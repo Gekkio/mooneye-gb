@@ -1,6 +1,5 @@
-use std::borrow::IntoCow;
+use std::borrow::{Cow, IntoCow};
 use std::fmt::Debug;
-use std::string::CowString;
 
 use cpu::{
   CpuOps, Cond,
@@ -13,7 +12,7 @@ use cpu::registers::Reg16;
 use emulation::EmuTime;
 use hardware::Bus;
 
-pub type DisasmStr = CowString<'static>;
+pub type DisasmStr = Cow<'static, str>;
 
 struct Disasm<'a> {
   pc: u16,
