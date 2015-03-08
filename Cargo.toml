@@ -15,6 +15,3 @@ sdl2 = "*"
 
 [dependencies.snooze-rs]
 git = "https://github.com/Gekkio/snooze-rs.git"
-
-[profile.dev]
-debug = false
