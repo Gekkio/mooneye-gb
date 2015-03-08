@@ -1,6 +1,8 @@
+use clock_ticks::precise_time_ns;
 use std::env;
 use std::old_io::timer::Timer;
-use std::thread::Thread;
+use std::thread;
+use std::path::PathBuf;
 use std::time::duration::Duration;
 
 use backend;
@@ -19,13 +21,14 @@ impl BackendSharedMemory for AcceptanceSharedMemory {
 
 pub fn run_acceptance_test(name: &str) {
   let bootrom_path = env::home_dir().unwrap().join(".mooneye-gb").join("boot.bin");
-  let cartridge_path = Path::new(format!("tests/{}/test.gb", name));
+  let test_name = format!("tests/{}/test.gb", name);
+  let cartridge_path = PathBuf::new(&test_name);
   let hardware_config = config::create_hardware_config(Some(&bootrom_path), &cartridge_path).unwrap();
 
   let (backend_tx, backend_rx) = backend::new_channel();
   let (machine_tx, machine_rx) = machine::new_channel();
 
-  let emulation_thread = Thread::scoped(move || {
+  let emulation_thread = thread::scoped(move || {
     let shared_memory = AcceptanceSharedMemory;
     let mut mach = Machine::new(&shared_memory, hardware_config);
     let channels = machine::Channels::new(machine_tx, backend_rx);
@@ -36,11 +39,14 @@ pub fn run_acceptance_test(name: &str) {
   });
 
   let max_duration = Duration::seconds(30);
-  let mut max_timer = Timer::new().unwrap();
-  let deadline = max_timer.oneshot(max_duration);
+  let start_time = precise_time_ns();
 
   let mut registers = None;
   loop {
+    let time = precise_time_ns();
+    if Duration::nanoseconds((time - start_time) as i64) > max_duration {
+      break;
+    }
     select!(
       machine_event = machine_rx.recv() => {
         match machine_event {
@@ -51,8 +57,7 @@ pub fn run_acceptance_test(name: &str) {
           },
           _ => ()
         }
-      },
-      _ = deadline.recv() => break
+      }
     )
   }
   backend_tx.send(BackendMessage::Quit).unwrap();
