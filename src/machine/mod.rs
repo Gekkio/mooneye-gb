@@ -1,5 +1,5 @@
+use clock_ticks::precise_time_ns;
 use std::fmt;
-use std::old_io::timer::Timer;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
 use std::time::duration::Duration;
 
@@ -94,16 +94,13 @@ impl<'a> Machine<'a> {
     let to_backend = channels.to_backend;
     self.reset();
 
-    let mut timer = Timer::new().unwrap();
-    let limit = timer.oneshot(duration);
+    let start_time = precise_time_ns();
 
     loop {
-      match limit.try_recv() {
-        Ok(_) => {
+      let time = precise_time_ns();
+      if Duration::nanoseconds((time - start_time) as i64) > duration {
           println!("{}", self.time.cycles().as_clock_cycles());
-          break;
-        },
-        _ => ()
+        break;
       }
       match from_backend.try_recv() {
         Err(TryRecvError::Disconnected) => break,
@@ -119,8 +116,8 @@ impl<'a> Machine<'a> {
 
     let pulse_duration = PULSE_CYCLES.as_duration();
 
-    let mut perf_timer = Timer::new().unwrap();
-    let perf_update = perf_timer.periodic(Duration::milliseconds(100));
+    let mut last_perf_update = precise_time_ns();
+    let perf_update_freq = Duration::milliseconds(100);
 
     loop {
       match self.mode {
@@ -128,6 +125,12 @@ impl<'a> Machine<'a> {
           let pulse = pulse::start(pulse_duration);
 
           loop {
+            let time = precise_time_ns();
+            if Duration::nanoseconds((time - last_perf_update) as i64) > perf_update_freq {
+              last_perf_update = time;
+              let value = self.perf_counter.get_relative_speed();
+              to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
+            }
             select!(
               backend_event = from_backend.recv() => {
                 match backend_event {
@@ -140,10 +143,6 @@ impl<'a> Machine<'a> {
                   _ => ()
                 }
               },
-              _ = perf_update.recv() => {
-                let value = self.perf_counter.get_relative_speed();
-                to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
-              },
               _ = pulse.recv() => {
                 if !self.emulate(&to_backend) {
                   break;
@@ -154,6 +153,12 @@ impl<'a> Machine<'a> {
         },
         EmulationMode::MaxSpeed => {
           loop {
+            let time = precise_time_ns();
+            if Duration::nanoseconds((time - last_perf_update) as i64) > perf_update_freq {
+              last_perf_update = time;
+              let value = self.perf_counter.get_relative_speed();
+              to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
+            }
             match from_backend.try_recv() {
               Err(TryRecvError::Disconnected) => return,
               Ok(BackendMessage::Quit) => return,
@@ -161,14 +166,6 @@ impl<'a> Machine<'a> {
               Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
               Ok(BackendMessage::Turbo(false)) => { self.mode = EmulationMode::Normal; break },
               Ok(BackendMessage::Break) => { self.mode = EmulationMode::Debug; break },
-              _ => ()
-            }
-            match perf_update.try_recv() {
-              Err(TryRecvError::Disconnected) => return,
-              Ok(_) => {
-                let value = self.perf_counter.get_relative_speed();
-                to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
-              },
               _ => ()
             }
             if !self.emulate(&to_backend) {
