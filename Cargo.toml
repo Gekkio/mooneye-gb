@@ -11,7 +11,12 @@ acceptance_tests = []
 bitflags = "*"
 clock_ticks = "*"
 getopts = "*"
+num = "*"
 sdl2 = "*"
 
 [dependencies.snooze-rs]
 git = "https://github.com/Gekkio/snooze-rs.git"
+
+[dev-dependencies]
+quickcheck = "*"
+quickcheck_macros = "*"
