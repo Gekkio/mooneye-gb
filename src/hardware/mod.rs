@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use std::fmt;
-use std::iter::range_step;
 
 use backend::{
   BackendSharedMemory,
@@ -96,13 +95,15 @@ impl<'a> Hardware<'a> {
     self.oam_dma.active = true;
     self.oam_dma.end_time = time + MachineCycles(162);
     let addr = (value as u16) << 8;
-    for i in range(0, 0xa0) {
+    for i in (0..0xa0) {
       let value = self.read_internal(time, addr + i);
       self.gpu.write_oam(i, value);
     }
   }
   pub fn dump_mem(&self, time: EmuTime, addr: u16, chunks: usize) {
-    for i in range_step(addr, addr + (chunks as u16 * 8), 8) {
+    let start = addr;
+    let end = addr + (chunks as u16 * 8);
+    for i in (start..end).step_by(8) {
       println!("${:04x}: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}", i,
                self.read(time, i + 0), self.read(time, i + 1), self.read(time, i + 2), self.read(time, i + 3),
                self.read(time, i + 4), self.read(time, i + 5), self.read(time, i + 6), self.read(time, i + 7));

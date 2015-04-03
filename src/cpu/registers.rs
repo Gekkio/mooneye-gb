@@ -30,12 +30,12 @@ impl fmt::Debug for Flags {
   }
 }
 
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Reg8 {
   A, B, C, D, E, H, L
 }
 
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Reg16 {
   AF, BC, DE, HL, SP
 }

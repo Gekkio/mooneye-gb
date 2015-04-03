@@ -71,7 +71,7 @@ fn turbo(b: &mut Bencher) {
   cpu.regs.a = 0x01;
   b.iter(|| {
     cpu.regs.pc = 0x01;
-    for _ in range(0, 8191) {
+    for _ in (0..8191) {
       cpu.execute();
     }
   })
@@ -82,13 +82,13 @@ fn test_disasm_all_opcodes() {
   let bus = TestHardware::from_memory(vec![0x00, 0x00, 0x00]);
   let mut cpu = Cpu::new(bus);
 
-  for op in range(0, 0xff) {
+  for op in (0..0xff) {
     cpu.hardware.memory[0] = op as u8;
     if op != 0xcb {
       cpu.regs.pc = 0x00;
       cpu.disasm_op();
     } else {
-      for cb_op in range(0, 0xff) {
+      for cb_op in (0..0xff) {
         cpu.hardware.memory[1] = cb_op as u8;
         cpu.regs.pc = 0x00;
         cpu.disasm_op();

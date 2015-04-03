@@ -1,6 +1,6 @@
 use std::num::FromPrimitive;
 
-#[derive(Copy, FromPrimitive)]
+#[derive(Clone, Copy, FromPrimitive)]
 enum Volume {
   None = 0,
   Full = 1,

@@ -2,7 +2,7 @@ use std::ops::{Add, Sub};
 
 use super::MachineCycles;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct EmuTime {
   cycles: MachineCycles
 }

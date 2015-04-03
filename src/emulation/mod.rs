@@ -8,7 +8,7 @@ pub use self::time::EmuTime;
 
 mod time;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct MachineCycles(pub u32);
 
 impl MachineCycles {

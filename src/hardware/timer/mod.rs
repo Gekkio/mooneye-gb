@@ -14,7 +14,7 @@ pub struct Timer {
   divider_time: EmuTime,
 }
 
-#[derive(FromPrimitive, Copy)]
+#[derive(FromPrimitive, Clone, Copy)]
 enum InputClock {
   Hz4096 = 0,
   Hz262144 = 1,

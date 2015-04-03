@@ -9,7 +9,8 @@ use sdl2::render;
 use sdl2::render::{RenderDriverIndex, Renderer, Texture};
 use sdl2::video;
 use sdl2::video::{Window, WindowPos};
-use std::error::{Error, FromError};
+use std::convert::From;
+use std::error::Error;
 use std::iter;
 use std::fmt;
 use std::fmt::Display;
@@ -49,14 +50,15 @@ impl SharedMemory {
   }
 }
 
+#[derive(Clone, Debug)]
 pub enum BackendError {
   Sdl(String)
 }
 
 pub type BackendResult<T> = Result<T, BackendError>;
 
-impl FromError<String> for BackendError {
-  fn from_error(e: String) -> BackendError {
+impl From<String> for BackendError {
+  fn from(e: String) -> BackendError {
     BackendError::Sdl(e)
   }
 }
@@ -81,7 +83,7 @@ impl BackendSharedMemory for SharedMemory {
   fn draw_screen(&self, pixels: &gameboy::ScreenBuffer) {
     let mut data = self.pixel_buffer_lock.lock().unwrap();
     let ref palette = self.palette;
-    for y in range(0, gameboy::SCREEN_HEIGHT) {
+    for y in (0..gameboy::SCREEN_HEIGHT) {
       let in_start = y * gameboy::SCREEN_WIDTH;
       let in_end = in_start + gameboy::SCREEN_WIDTH;
       let in_slice = &pixels[in_start .. in_end];
@@ -91,7 +93,7 @@ impl BackendSharedMemory for SharedMemory {
       let out_slice = &mut data[out_start .. out_end];
 
       for (pixel, gb_color) in out_slice.chunks_mut(4).zip(in_slice.iter()) {
-        bytes::copy_memory(pixel, palette.get_bytes(gb_color));
+        bytes::copy_memory(palette.get_bytes(gb_color), pixel);
       }
     }
   }

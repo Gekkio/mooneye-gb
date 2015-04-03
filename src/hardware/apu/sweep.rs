@@ -1,6 +1,6 @@
 use std::num::FromPrimitive;
 
-#[derive(Copy, FromPrimitive)]
+#[derive(Clone, Copy, FromPrimitive)]
 enum Time {
   None = 0,
   Div1 = 1,

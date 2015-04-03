@@ -1,6 +1,6 @@
 use getopts::Fail;
+use std::convert::From;
 use std::env;
-use std::error::FromError;
 use std::io;
 use std::io::Write;
 
@@ -10,14 +10,14 @@ pub enum ProgramResult {
   Error(String)
 }
 
-impl FromError<io::Error> for ProgramResult {
-  fn from_error(err: io::Error) -> ProgramResult {
+impl From<io::Error> for ProgramResult {
+  fn from(err: io::Error) -> ProgramResult {
     ProgramResult::Error(format!("IO error: {}", err))
   }
 }
 
-impl FromError<Fail> for ProgramResult {
-  fn from_error(err: Fail) -> ProgramResult {
+impl From<Fail> for ProgramResult {
+  fn from(err: Fail) -> ProgramResult {
     ProgramResult::Error(format!("Fail: {}", err))
   }
 }

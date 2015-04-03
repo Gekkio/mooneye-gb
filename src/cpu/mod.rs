@@ -47,7 +47,7 @@ pub trait Out16: ToDisasmStr {
 }
 
 
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Cond {
   NZ, Z,
   NC, C
@@ -105,7 +105,7 @@ impl Out16 for Reg16 {
 }
 
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 pub enum Addr {
   BC, DE, HL, HLD, HLI,
   Direct, ZeroPage, ZeroPageC

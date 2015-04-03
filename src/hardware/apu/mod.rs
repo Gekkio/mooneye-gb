@@ -28,7 +28,7 @@ pub struct Apu {
   cycles: usize
 }
 
-#[derive(Copy, FromPrimitive)]
+#[derive(Clone, Copy, FromPrimitive)]
 enum Volume {
   Vol0 = 0x00,
   Vol1 = 0x01,

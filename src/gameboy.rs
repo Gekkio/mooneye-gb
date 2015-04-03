@@ -5,7 +5,7 @@ pub type HiramData = [u8; HIRAM_SIZE];
 pub type ScreenBuffer = [Color; SCREEN_PIXELS];
 pub type WramBank = [u8; WRAM_BANK_SIZE];
 
-#[derive(PartialEq, FromPrimitive, Copy)]
+#[derive(PartialEq, FromPrimitive, Clone, Copy)]
 pub enum Color {
   Off = 0,
   Light = 1,

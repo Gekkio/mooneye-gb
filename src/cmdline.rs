@@ -39,8 +39,8 @@ pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
   };
 
   Ok(CmdLine {
-    bootrom_path: matches.opt_str("b").as_ref().map(PathBuf::new),
-    cartridge_path: PathBuf::new(&cartridge),
+    bootrom_path: matches.opt_str("b").as_ref().map(PathBuf::from),
+    cartridge_path: PathBuf::from(&cartridge),
     benchmark: matches.opt_str("e")
   })
 }

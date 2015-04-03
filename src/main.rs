@@ -1,4 +1,4 @@
-#![feature(collections, core, exit_status, io, path, path_ext, std_misc)]
+#![feature(collections, convert, core, exit_status, into_cow, io, negate_unsigned, path, path_ext, std_misc, step_by)]
 
 #[macro_use]
 extern crate bitflags;

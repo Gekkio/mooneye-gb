@@ -40,7 +40,7 @@ pub struct Gpu<'a> {
   backend: &'a (BackendSharedMemory + 'a)
 }
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 struct Tile {
   data: [u8; 16]
 }
@@ -53,7 +53,7 @@ impl Tile {
   }
 }
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 struct Sprite {
   x: u8,
   y: u8,
@@ -428,7 +428,7 @@ impl<'a> Gpu<'a> {
 
       let y = self.current_line + self.scroll_y;
       let row = (y / 8) as usize;
-      for i in range(0, gameboy::SCREEN_WIDTH) {
+      for i in (0..gameboy::SCREEN_WIDTH) {
         let x = i as u8 + self.scroll_x;
         let col = (x / 8) as usize;
         let raw_tile_num = tile_map[row * 32 + col];
@@ -457,7 +457,7 @@ impl<'a> Gpu<'a> {
 
       let y = self.current_line - self.window_y;
       let row = (y / 8) as usize;
-      for i in range(window_x as usize, gameboy::SCREEN_WIDTH) {
+      for i in ((window_x as usize)..gameboy::SCREEN_WIDTH) {
         let mut x = i as u8 + self.scroll_x;
         if x >= window_x {
           x = i as u8 - window_x;
@@ -483,7 +483,7 @@ impl<'a> Gpu<'a> {
     if self.control.contains(CTRL_OBJ_ON) {
       let size =
         if self.control.contains(CTRL_OBJ_SIZE) { 16 } else { 8 };
-      for i in range(0, 40) {
+      for i in (0..40) {
         let sprite = self.oam[i];
         let ypos = sprite.y;
         let xpos = sprite.x;
@@ -507,7 +507,7 @@ impl<'a> Gpu<'a> {
           let data1 = tile.data[(line as u16) as usize];
           let data2 = tile.data[(line as u16 + 1) as usize];
 
-          for x in range(0, 8u8).rev() {
+          for x in (0..8).rev() {
             let bit =
               if sprite.flags.contains(SPRITE_FLIPX) {
                 7 - x
