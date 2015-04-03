@@ -74,7 +74,7 @@ impl Error for BackendError {
 impl Display for BackendError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
-      BackendError::Sdl(ref msg) => f.write_str(msg.as_slice())
+      BackendError::Sdl(ref msg) => f.write_str(msg)
     }
   }
 }
@@ -163,7 +163,7 @@ impl SdlBackend {
   fn refresh_gb_screen(&self, renderer: &Renderer, texture: &mut Texture) -> BackendResult<()> {
     {
       let pixels = self.shared_memory.pixel_buffer_lock.lock().unwrap();
-      try!(texture.update(Some(SCREEN_RECT), pixels.as_slice(), PIXEL_BUFFER_STRIDE as i32));
+      try!(texture.update(Some(SCREEN_RECT), &pixels, PIXEL_BUFFER_STRIDE as i32));
     }
     let mut drawer = renderer.drawer();
     drawer.clear();
@@ -177,10 +177,10 @@ impl SdlBackend {
     drawer.set_logical_size(gameboy::SCREEN_WIDTH as i32 * 4, gameboy::SCREEN_HEIGHT as i32 * 4);
 
     let speed_text = format!("{:0.0} %", self.relative_speed_stat);
-    try!(font.draw_text(&mut drawer, 0, 0, TextAlign::Left, speed_text.as_slice()));
+    try!(font.draw_text(&mut drawer, 0, 0, TextAlign::Left, &speed_text));
 
     let fps_text = format!("{:0.0} FPS", self.fps_counter.fps);
-    try!(font.draw_text(&mut drawer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, fps_text.as_slice()));
+    try!(font.draw_text(&mut drawer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, &fps_text));
     drawer.present();
     self.fps_counter.update();
     Ok(())

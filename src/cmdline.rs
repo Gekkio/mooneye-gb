@@ -12,7 +12,7 @@ pub struct CmdLine {
 
 pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
   let args: Vec<String> = env::args().collect();
-  let program = args[0].as_slice();
+  let program = &args[0];
 
   let mut opts = Options::new();
 
@@ -22,16 +22,16 @@ pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
 
   let matches = try!(opts.parse(args.tail()));
   if matches.opt_present("h") {
-    let short = opts.short_usage(program.as_slice());
+    let short = opts.short_usage(&program);
     let brief = format!("{} CARTRIDGE_FILE", short);
-    let long = opts.usage(brief.as_slice());
+    let long = opts.usage(&brief);
     print!("{}", long);
     return Err(ProgramResult::Exit);
   }
-  let cartridge = match matches.free.as_slice().first() {
+  let cartridge = match matches.free.first() {
     Some(arg) => arg.clone(),
     None => {
-      let short = opts.short_usage(program.as_slice());
+      let short = opts.short_usage(&program);
       let message = format!("Missing cartridge file\n\
                             {} CARTRIDGE_FILE", short);
       return Err(ProgramResult::Error(message));

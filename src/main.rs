@@ -1,4 +1,6 @@
-#![feature(collections, convert, core, exit_status, into_cow, io, negate_unsigned, path, path_ext, std_misc, step_by)]
+#![feature(collections, core, exit_status, into_cow, negate_unsigned, path_ext, std_misc, step_by)]
+
+#![cfg_attr(test, feature(test))]
 
 #[macro_use]
 extern crate bitflags;
@@ -12,7 +14,6 @@ extern crate test;
 
 use std::env;
 use std::fs::PathExt;
-use std::path::AsPath;
 use std::thread;
 use std::time::duration::Duration;
 
@@ -59,7 +60,7 @@ fn prepare_emulator() -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
 
   let mut benchmark_duration = None;
   if let Some(text) = cmdline.benchmark {
-    benchmark_duration = Some(try!(parse_seconds(text.as_slice())))
+    benchmark_duration = Some(try!(parse_seconds(&text)))
   }
 
   let bootrom_path = cmdline.bootrom_path.or(bootrom_default);

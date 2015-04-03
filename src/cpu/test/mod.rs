@@ -24,7 +24,7 @@ mod test_dx;
 mod test_ex;
 mod test_fx;
 
-struct TestHardware {
+pub struct TestHardware {
   memory: Vec<u8>
 }
 

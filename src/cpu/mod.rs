@@ -1,5 +1,4 @@
 use std::fmt;
-use std::num::Int;
 
 use emulation::EmuTime;
 use gameboy::{HiramData, HIRAM_EMPTY};
