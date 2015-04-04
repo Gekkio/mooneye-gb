@@ -2,7 +2,7 @@ use getopts::Fail;
 use std::convert::From;
 use std::env;
 use std::io;
-use std::io::Write;
+use std::io::{Write, stderr};
 
 #[derive(Debug)]
 pub enum ProgramResult {
@@ -31,9 +31,8 @@ impl ProgramResult {
       ProgramResult::Error(ref message) => {
         env::set_exit_status(1);
 
-        let mut stderr = io::stderr();
-        stderr.write(message.as_bytes()).unwrap();
-        stderr.write(b"\n").unwrap();
+        let mut stderr = stderr();
+        writeln!(&mut stderr, "{}", message).unwrap();
       }
     }
   }
