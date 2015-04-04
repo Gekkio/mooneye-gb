@@ -1,4 +1,5 @@
 use std::fmt;
+use std::num::Wrapping;
 
 use emulation::EmuTime;
 use gameboy::{HiramData, HIRAM_EMPTY};
@@ -321,7 +322,7 @@ impl<H> Cpu<H> where H: Bus {
 
   fn alu_add(&mut self, value: u8, use_carry: bool) {
     let cy = if use_carry && self.regs.f.contains(CARRY) { 1 } else { 0 };
-    let result = self.regs.a + value + cy;
+    let result = (Wrapping(self.regs.a) + Wrapping(value) + Wrapping(cy)).0;
     self.regs.f = ZERO.test(result == 0) |
                   CARRY.test(self.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
                   HALF_CARRY.test((self.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
@@ -329,7 +330,7 @@ impl<H> Cpu<H> where H: Bus {
   }
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
     let cy = if use_carry && self.regs.f.contains(CARRY) { 1 } else { 0 };
-    let result = self.regs.a - value - cy;
+    let result = (Wrapping(self.regs.a) - Wrapping(value) - Wrapping(cy)).0;
     self.regs.f = ZERO.test(result == 0) |
                   ADD_SUBTRACT |
                   CARRY.test((self.regs.a as u16) < (value as u16) + (cy as u16)) |
@@ -482,7 +483,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///        * 0 * -
   fn inc<IO: In8+Out8>(&mut self, io: IO) {
     let value = io.read(self);
-    let new_value = value + 1;
+    let new_value = (Wrapping(value) + Wrapping(1)).0;
     self.regs.f = ZERO.test(new_value == 0) |
                   HALF_CARRY.test(value & 0xf == 0xf) |
                   (CARRY & self.regs.f);
@@ -494,7 +495,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///        * 0 * -
   fn dec<IO: In8+Out8>(&mut self, io: IO) {
     let value = io.read(self);
-    let new_value = value - 1;
+    let new_value = (Wrapping(value) - Wrapping(1)).0;
     self.regs.f = ZERO.test(new_value == 0) |
                   ADD_SUBTRACT |
                   HALF_CARRY.test(value & 0xf == 0) |
@@ -895,7 +896,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn add16(&mut self, reg: Reg16) {
     let hl = self.regs.read16(Reg16::HL);
     let value = self.regs.read16(reg);
-    let result = hl + value;
+    let result = (Wrapping(hl) + Wrapping(value)).0;
     self.regs.f = (ZERO & self.regs.f) |
                   HALF_CARRY.test((hl & 0x07FF) + (value & 0x07FF) > 0x07FF) |
                   CARRY.test(hl > 0xffff - value);

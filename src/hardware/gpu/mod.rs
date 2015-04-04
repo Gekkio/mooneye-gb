@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use std::fmt;
+use std::num::Wrapping;
 
 use backend::BackendSharedMemory;
 use gameboy;
@@ -307,8 +308,8 @@ impl<'a> Gpu<'a> {
         sprite.flags_bits = value;
       },
       2 => sprite.tile_num = value,
-      1 => sprite.x = value - 8,
-      _ => sprite.y = value - 16
+      1 => sprite.x = (Wrapping(value) - Wrapping(8)).0,
+      _ => sprite.y = (Wrapping(value) - Wrapping(16)).0
     }
   }
   pub fn read_character_ram(&self, reladdr: u16) -> u8 {
@@ -426,10 +427,10 @@ impl<'a> Gpu<'a> {
         if self.control.contains(CTRL_BG_MAP) { &self.tile_map2 }
         else { &self.tile_map1 };
 
-      let y = self.current_line + self.scroll_y;
+      let y = (Wrapping(self.current_line) + Wrapping(self.scroll_y)).0;
       let row = (y / 8) as usize;
       for i in (0..gameboy::SCREEN_WIDTH) {
-        let x = i as u8 + self.scroll_x;
+        let x = (Wrapping(i as u8) + Wrapping(self.scroll_x)).0;
         let col = (x / 8) as usize;
         let raw_tile_num = tile_map[row * 32 + col];
 
@@ -442,7 +443,7 @@ impl<'a> Gpu<'a> {
         let data1 = tile.data[(line as u16) as usize];
         let data2 = tile.data[(line as u16 + 1) as usize];
 
-        let bit = (((x % 8) - 7) * -1) as usize;
+        let bit = ((Wrapping(x % 8) - Wrapping(7)) * Wrapping(-1)).0 as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
         let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
