@@ -1,3 +1,4 @@
+use num::traits::Float;
 use sdl2;
 use sdl2::Sdl;
 use sdl2::controller::{Axis, Button, GameController};
@@ -176,10 +177,10 @@ impl SdlBackend {
     let mut drawer = renderer.drawer();
     drawer.set_logical_size(gameboy::SCREEN_WIDTH as i32 * 4, gameboy::SCREEN_HEIGHT as i32 * 4);
 
-    let speed_text = format!("{:0.0} %", self.relative_speed_stat);
+    let speed_text = format!("{} %", self.relative_speed_stat.round());
     try!(font.draw_text(&mut drawer, 0, 0, TextAlign::Left, &speed_text));
 
-    let fps_text = format!("{:0.0} FPS", self.fps_counter.fps);
+    let fps_text = format!("{} FPS", self.fps_counter.fps.round());
     try!(font.draw_text(&mut drawer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, &fps_text));
     drawer.present();
     self.fps_counter.update();
