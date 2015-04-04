@@ -23,6 +23,7 @@ use std::thread;
 use std::time::duration::Duration;
 
 use backend::Backend;
+use cmdline::CmdLine;
 use config::HardwareConfig;
 use machine::Machine;
 use util::program_result::ProgramResult;
@@ -52,7 +53,7 @@ struct MiscConfig {
 }
 
 fn prepare_emulator() -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
-  let cmdline = try!(cmdline::parse_cmdline());
+  let cmdline = try!(CmdLine::parse_env_args());
 
   let home_dir = env::home_dir().map(|home| {
     home.join(".mooneye-gb")

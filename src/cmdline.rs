@@ -10,37 +10,36 @@ pub struct CmdLine {
   pub benchmark: Option<String>
 }
 
-pub fn parse_cmdline() -> Result<CmdLine, ProgramResult> {
-  let args: Vec<String> = env::args().collect();
-  let program = &args[0];
+impl CmdLine {
+  pub fn parse_env_args() -> Result<CmdLine, ProgramResult> {
+    let args: Vec<String> = env::args().collect();
+    let program = &args[0];
 
-  let mut opts = Options::new();
+    let mut opts = Options::new();
 
-  opts.optopt("b", "bootrom", "use boot rom", "FILE");
-  opts.optopt("e", "benchmark", "run a benchmark", "seconds");
-  opts.optflag("h", "help", "print help");
+    opts.optopt("b", "bootrom", "use boot rom", "FILE");
+    opts.optopt("e", "benchmark", "run a benchmark", "seconds");
+    opts.optflag("h", "help", "print help");
 
-  let matches = try!(opts.parse(args.tail()));
-  if matches.opt_present("h") {
-    let short = opts.short_usage(&program);
-    let brief = format!("{} CARTRIDGE_FILE", short);
-    let long = opts.usage(&brief);
-    print!("{}", long);
-    return Err(ProgramResult::Exit);
-  }
-  let cartridge = match matches.free.first() {
-    Some(arg) => arg.clone(),
-    None => {
+    let matches = try!(opts.parse(args.tail()));
+    if matches.opt_present("h") {
       let short = opts.short_usage(&program);
-      let message = format!("Missing cartridge file\n\
-                            {} CARTRIDGE_FILE", short);
-      return Err(ProgramResult::Error(message));
+      let brief = format!("{} CARTRIDGE_FILE", short);
+      let long = opts.usage(&brief);
+      print!("{}", long);
+      return Err(ProgramResult::Exit);
     }
-  };
 
-  Ok(CmdLine {
-    bootrom_path: matches.opt_str("b").as_ref().map(PathBuf::from),
-    cartridge_path: PathBuf::from(&cartridge),
-    benchmark: matches.opt_str("e")
-  })
+    if let Some(ref cartridge) = matches.free.first() {
+      Ok(CmdLine {
+        bootrom_path: matches.opt_str("b").as_ref().map(PathBuf::from),
+        cartridge_path: PathBuf::from(cartridge),
+        benchmark: matches.opt_str("e")
+      })
+    } else {
+      let message = format!("Missing cartridge file\n\
+                            Try '{} --help' for more information", program);
+      Err(ProgramResult::Error(message))
+    }
+  }
 }
