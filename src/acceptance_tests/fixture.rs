@@ -1,6 +1,5 @@
 use clock_ticks::precise_time_ns;
 use std::env;
-use std::old_io::timer::Timer;
 use std::thread;
 use std::path::PathBuf;
 use std::time::duration::Duration;
@@ -22,7 +21,7 @@ impl BackendSharedMemory for AcceptanceSharedMemory {
 pub fn run_acceptance_test(name: &str) {
   let bootrom_path = env::home_dir().unwrap().join(".mooneye-gb").join("boot.bin");
   let test_name = format!("tests/{}/test.gb", name);
-  let cartridge_path = PathBuf::new(&test_name);
+  let cartridge_path = PathBuf::from(&test_name);
   let hardware_config = config::create_hardware_config(Some(&bootrom_path), &cartridge_path).unwrap();
 
   let (backend_tx, backend_rx) = backend::new_channel();
