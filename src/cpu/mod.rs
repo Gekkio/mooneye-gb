@@ -119,17 +119,17 @@ impl Addr {
       HL => cpu.regs.read16(Reg16::HL),
       HLD => {
         let addr = cpu.regs.read16(Reg16::HL);
-        cpu.regs.write16(Reg16::HL, addr - 1);
+        cpu.regs.write16(Reg16::HL, (Wrapping(addr) - Wrapping(1)).0);
         addr
       },
       HLI => {
         let addr = cpu.regs.read16(Reg16::HL);
-        cpu.regs.write16(Reg16::HL, addr + 1);
+        cpu.regs.write16(Reg16::HL, (Wrapping(addr) + Wrapping(1)).0);
         addr
       },
       Direct => cpu.next_u16(),
-      ZeroPage => 0xff00 as u16 + cpu.next_u8() as u16,
-      ZeroPageC => 0xff00 as u16 + cpu.regs.c as u16,
+      ZeroPage => 0xff00 as u16 | cpu.next_u8() as u16,
+      ZeroPageC => 0xff00 as u16 | cpu.regs.c as u16,
     }
   }
 }
@@ -242,21 +242,21 @@ impl<H> Cpu<H> where H: Bus {
 
   fn read_u16(&mut self, addr: u16) -> u16 {
     (self.read_u8(addr) as u16) |
-    ((self.read_u8(addr + 1) as u16) << 8)
+    ((self.read_u8((Wrapping(addr) + Wrapping(1)).0) as u16) << 8)
   }
   fn write_u16(&mut self, addr: u16, value: u16) {
     self.write_u8(addr, value as u8);
-    self.write_u8(addr + 1, (value >> 8) as u8);
+    self.write_u8((Wrapping(addr) + Wrapping(1)).0, (value >> 8) as u8);
   }
 
   fn pop_u8(&mut self) -> u8 {
     let sp = self.regs.sp;
     let value = self.read_u8(sp);
-    self.regs.sp += 1;
+    self.regs.sp = (Wrapping(self.regs.sp) + Wrapping(1)).0;
     value
   }
   fn push_u8(&mut self, value: u8) {
-    self.regs.sp -= 1;
+    self.regs.sp = (Wrapping(self.regs.sp) - Wrapping(1)).0;
     let sp = self.regs.sp;
     self.write_u8(sp, value);
   }
@@ -264,7 +264,7 @@ impl<H> Cpu<H> where H: Bus {
   fn pop_u16(&mut self) -> u16 {
     let l = self.pop_u8();
     let h = self.pop_u8();
-    ((h as u16) << 8) + (l as u16)
+    ((h as u16) << 8) | (l as u16)
   }
   fn push_u16(&mut self, value: u16) {
     self.push_u8((value >> 8) as u8);
@@ -803,20 +803,21 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     let mut carry = false;
     if !self.regs.f.contains(ADD_SUBTRACT) {
       if self.regs.f.contains(CARRY) || self.regs.a > 0x99 {
-        self.regs.a += 0x60;
+        self.regs.a = (Wrapping(self.regs.a) + Wrapping(0x60)).0;
         carry = true;
       }
       if self.regs.f.contains(HALF_CARRY) || self.regs.a & 0x0f > 0x09 {
-        self.regs.a += 0x06;
+        self.regs.a = (Wrapping(self.regs.a) + Wrapping(0x06)).0;
       }
     } else {
       if self.regs.f.contains(CARRY) {
         carry = true;
-        self.regs.a +=
+        self.regs.a = (Wrapping(self.regs.a) + Wrapping(
           if self.regs.f.contains(HALF_CARRY) { 0x9a }
           else { 0xa0 }
+        )).0;
       } else if self.regs.f.contains(HALF_CARRY) {
-        self.regs.a += 0xfa;
+        self.regs.a = (Wrapping(self.regs.a) + Wrapping(0xfa)).0;
       }
     }
 
@@ -862,7 +863,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn load16_hl_sp_e(&mut self) {
     let offset = self.next_u8() as i8 as i16;
     let sp = self.regs.sp as i16;
-    let value = (sp + offset) as u16;
+    let value = (Wrapping(sp) + Wrapping(offset)).0 as u16;
     self.regs.write16(Reg16::HL, value);
     self.regs.f = HALF_CARRY.test((sp & 0x000f) + (offset & 0x000f) > 0x000f) |
                   CARRY.test((sp & 0x00ff) + (offset & 0x00ff) > 0x00ff);
@@ -911,7 +912,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn add16_sp_e(&mut self) {
     let val = self.next_u8() as i8 as i16 as u16;
     let sp = self.regs.sp;
-    self.regs.sp = sp + val;
+    self.regs.sp = (Wrapping(sp) + Wrapping(val)).0;
     self.regs.f = HALF_CARRY.test((sp & 0x000f) + (val & 0x000f) > 0x000f) |
                   CARRY.test((sp & 0x00ff) + (val & 0x00ff) > 0x00ff);
     self.time.tick();
@@ -924,7 +925,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn inc16(&mut self, reg: Reg16) {
-    let value = self.regs.read16(reg) + 1;
+    let value = (Wrapping(self.regs.read16(reg)) + Wrapping(1)).0;
     self.regs.write16(reg, value);
     self.time.tick();
     self.hardware.emulate(self.time);
@@ -934,7 +935,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn dec16(&mut self, reg: Reg16) {
-    let value = self.regs.read16(reg) - 1;
+    let value = (Wrapping(self.regs.read16(reg)) - Wrapping(1)).0;
     self.regs.write16(reg, value);
     self.time.tick();
     self.hardware.emulate(self.time);

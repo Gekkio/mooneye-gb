@@ -339,8 +339,8 @@ impl<'a> Gpu<'a> {
     match reladdr as usize % 4 {
       3 => sprite.flags_bits,
       2 => sprite.tile_num,
-      1 => sprite.x + 8,
-      _ => sprite.y + 16
+      1 => (Wrapping(sprite.x) + Wrapping(8)).0,
+      _ => (Wrapping(sprite.y) + Wrapping(16)).0
     }
   }
   fn switch_mode(&mut self, mode: Mode, irq: &mut Irq) {
@@ -450,7 +450,7 @@ impl<'a> Gpu<'a> {
       }
     }
     if self.control.contains(CTRL_WINDOW_ON) && self.window_y <= self.current_line {
-      let window_x = self.window_x - 7;
+      let window_x = (Wrapping(self.window_x) - Wrapping(7)).0;
       let addr_select = self.control.contains(CTRL_BG_ADDR);
       let tile_map =
         if self.control.contains(CTRL_WINDOW_MAP) { &self.tile_map2 }
@@ -459,7 +459,7 @@ impl<'a> Gpu<'a> {
       let y = self.current_line - self.window_y;
       let row = (y / 8) as usize;
       for i in ((window_x as usize)..gameboy::SCREEN_WIDTH) {
-        let mut x = i as u8 + self.scroll_x;
+        let mut x = (Wrapping(i as u8) + Wrapping(self.scroll_x)).0;
         if x >= window_x {
           x = i as u8 - window_x;
         }
@@ -475,7 +475,7 @@ impl<'a> Gpu<'a> {
         let data1 = tile.data[(line as u16) as usize];
         let data2 = tile.data[(line as u16 + 1) as usize];
 
-        let bit = (((x % 8) - 7) * -1) as usize;
+        let bit = ((Wrapping(x % 8) - Wrapping(7)) * Wrapping(-1)).0 as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
         let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
@@ -515,7 +515,7 @@ impl<'a> Gpu<'a> {
               } else { x } as usize;
             let raw_color = Color::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
             let color = palette.get(&raw_color);
-            let target_x = xpos + (7 - x);
+            let target_x = (Wrapping(xpos) + Wrapping(7 - x)).0;
             if target_x < 159 && raw_color != Color::Off {
               if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as usize] == Color::Off {
                 pixels[target_x as usize] = color;
