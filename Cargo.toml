@@ -13,9 +13,7 @@ clock_ticks = "*"
 getopts = "*"
 num = "*"
 sdl2 = "*"
-
-[dependencies.snooze-rs]
-git = "https://github.com/Gekkio/snooze-rs.git"
+snooze-rs = "*"
 
 [dev-dependencies]
 quickcheck = "*"
