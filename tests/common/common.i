@@ -69,6 +69,14 @@
   .dsb count, $00
 .endm
 
+.macro halt_execution
+  .ifdef ACCEPTANCE_TEST
+    debug
+  .endif
+- nop
+  jr -
+.endm
+
 ; BC = BC - DE
 .macro sub16
   ld a, c
@@ -193,9 +201,8 @@ print_results:
   ld e, 13
   ld h, 21
   ld l, 34
-+ debug
-- nop
-  jr -
++ nop
+  halt_execution
 
 print_digit:
   ld a, $0F
@@ -364,9 +371,7 @@ print_failure:
   ld a, c
   call print_a
   enable_lcd
-  debug
-- nop
-  jr -
+  halt_execution
 
 .define NUM_CHARS 128
 .define CHAR_BYTES 16
