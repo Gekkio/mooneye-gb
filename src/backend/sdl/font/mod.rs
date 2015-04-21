@@ -20,13 +20,13 @@ pub enum TextAlign {
   Right
 }
 
-pub struct Font<'a> {
-  outline: Texture<'a>,
-  glyph: Texture<'a>,
+pub struct Font {
+  outline: Texture,
+  glyph: Texture,
   offsets: VecMap<(i32, i32)>
 }
 
-fn load_image<'a>(data: &[u8], renderer: &'a Renderer) -> BackendResult<Texture<'a>> {
+fn load_image(data: &[u8], renderer: &Renderer) -> BackendResult<Texture> {
   let mut texture =
     try!(renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, (256, 256)));
 
@@ -35,8 +35,8 @@ fn load_image<'a>(data: &[u8], renderer: &'a Renderer) -> BackendResult<Texture<
   Ok(texture)
 }
 
-impl<'a> Font<'a> {
-  pub fn init(renderer: &'a Renderer) -> BackendResult<Font<'a>> {
+impl Font {
+  pub fn init(renderer: &Renderer) -> BackendResult<Font> {
     let mut outline = try!(load_image(inconsolata_20::OUTLINE_BYTES, renderer));
     outline.set_color_mod(64, 0, 0);
 

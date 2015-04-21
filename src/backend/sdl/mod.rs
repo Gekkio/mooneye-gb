@@ -161,7 +161,7 @@ impl SdlBackend {
       shared_memory: Arc::new(SharedMemory::new())
     })
   }
-  fn refresh_gb_screen(&self, renderer: &Renderer, texture: &mut Texture) -> BackendResult<()> {
+  fn refresh_gb_screen(&self, renderer: &mut Renderer, texture: &mut Texture) -> BackendResult<()> {
     {
       let pixels = self.shared_memory.pixel_buffer_lock.lock().unwrap();
       try!(texture.update(Some(SCREEN_RECT), &pixels, PIXEL_BUFFER_STRIDE as i32));
@@ -172,7 +172,7 @@ impl SdlBackend {
     drawer.copy(&texture, Some(SCREEN_RECT), Some(SCREEN_RECT));
     Ok(())
   }
-  fn present(&mut self, renderer: &Renderer, texture: &mut Texture, font: &Font) -> BackendResult<()> {
+  fn present(&mut self, renderer: &mut Renderer, texture: &mut Texture, font: &Font) -> BackendResult<()> {
     try!(self.refresh_gb_screen(renderer, texture));
     let mut drawer = renderer.drawer();
     drawer.set_logical_size(gameboy::SCREEN_WIDTH as i32 * 4, gameboy::SCREEN_HEIGHT as i32 * 4);
@@ -241,8 +241,8 @@ impl Backend for SdlBackend {
   type Error = BackendError;
   fn main_loop(mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) -> BackendResult<()> {
     let window =
-      try!(Window::new("Mooneye GB", WindowPos::PosUndefined, WindowPos::PosUndefined, 640, 576, video::OPENGL));
-    let renderer =
+      try!(Window::new(&self.sdl, "Mooneye GB", WindowPos::PosUndefined, WindowPos::PosUndefined, 640, 576, video::OPENGL));
+    let mut renderer =
       try!(Renderer::from_window(window, RenderDriverIndex::Auto, render::ACCELERATED | render::PRESENTVSYNC));
     {
       let mut drawer = renderer.drawer();
@@ -314,7 +314,7 @@ impl Backend for SdlBackend {
           _ => ()
         }
       }
-      match self.present(&renderer, &mut texture, &font) {
+      match self.present(&mut renderer, &mut texture, &font) {
         Err(error) => { println!("{}", error.description()); break },
         _ => ()
       }
