@@ -27,7 +27,7 @@ pub fn run_acceptance_test(name: &str) {
   let (backend_tx, backend_rx) = backend::new_channel();
   let (machine_tx, machine_rx) = machine::new_channel();
 
-  let emulation_thread = thread::scoped(move || {
+  let emulation_thread = thread::spawn(move || {
     let shared_memory = AcceptanceSharedMemory;
     let mut mach = Machine::new(&shared_memory, hardware_config);
     let channels = machine::Channels::new(machine_tx, backend_rx);
