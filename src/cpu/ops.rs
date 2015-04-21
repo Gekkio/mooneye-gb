@@ -364,13 +364,13 @@ pub trait CpuOps<R> {
           0x96 => self.res(2, Addr::HL), 0x9e => self.res(3, Addr::HL),
           0xa6 => self.res(4, Addr::HL), 0xae => self.res(5, Addr::HL),
           0xb6 => self.res(6, Addr::HL), 0xbe => self.res(7, Addr::HL),
-          _ => panic!("Unknown opcode 0xcb 0x{:0x}", op)
+          _ => unreachable!("Unknown opcode 0xcb 0x{:0x}", op)
         }
       },
       0xed => self.undefined_debug(),
       0xd3 | 0xdb | 0xdd | 0xe3 | 0xe4 |
       0xeb | 0xec | 0xf4 | 0xfc | 0xfd => self.undefined(op),
-      _ => panic!("Unknown opcode 0x{:0x}", op)
+      _ => unreachable!("Unknown opcode 0x{:0x}", op)
     }
   }
 }
