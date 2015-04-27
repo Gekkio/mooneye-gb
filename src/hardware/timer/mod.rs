@@ -1,5 +1,3 @@
-use std::num::FromPrimitive;
-
 use emulation::EmuTime;
 use hardware::irq::{Irq, Interrupt};
 
@@ -14,7 +12,7 @@ pub struct Timer {
   divider_time: EmuTime,
 }
 
-#[derive(FromPrimitive, Clone, Copy)]
+#[derive(Clone, Copy)]
 enum InputClock {
   Hz4096 = 0,
   Hz262144 = 1,
@@ -23,6 +21,16 @@ enum InputClock {
 }
 
 impl InputClock {
+  pub fn from_u8(value: u8) -> Option<InputClock> {
+    use self::InputClock::*;
+    match value {
+      0 => Some(Hz4096),
+      1 => Some(Hz262144),
+      2 => Some(Hz65536),
+      3 => Some(Hz16384),
+      _ => None
+    }
+  }
   fn cycles(&self) -> i32 {
     match *self {
       InputClock::Hz4096 => 1024 / 4,
@@ -70,7 +78,7 @@ impl Timer {
   pub fn set_control(&mut self, value: u8) {
     println!("TIMER CONTROL {:08b}", value);
     self.enabled = (value & (1 << 2)) != 0;
-    self.input_clock = FromPrimitive::from_u8(value & 0x3).unwrap();
+    self.input_clock = InputClock::from_u8(value & 0x3).unwrap();
     self.timer_cycles = self.input_clock.cycles();
   }
   pub fn rewind_time(&mut self) {

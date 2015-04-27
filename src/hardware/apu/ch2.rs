@@ -1,5 +1,3 @@
-use std::num::FromPrimitive;
-
 use super::envelope::Envelope;
 use super::wave_duty::WaveDuty;
 
@@ -33,7 +31,7 @@ impl Ch2 {
     ((self.wave_duty as u8) << 6)
   }
   pub fn write_reg1(&mut self, value: u8) {
-    self.wave_duty = FromPrimitive::from_u8((value >> 6) & 0x03).unwrap();
+    self.wave_duty = WaveDuty::from_u8((value >> 6) & 0x03).unwrap();
     self.counter = 64 - (value & 0x3f) as usize;
   }
   pub fn write_reg3(&mut self, value: u8) {

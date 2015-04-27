@@ -1,6 +1,4 @@
-use std::num::FromPrimitive;
-
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Clone, Copy)]
 enum Time {
   None = 0,
   Div1 = 1,
@@ -10,6 +8,23 @@ enum Time {
   Div5 = 5,
   Div6 = 6,
   Div7 = 7
+}
+
+impl Time {
+  pub fn from_u8(value: u8) -> Option<Time> {
+    use self::Time::*;
+    match value {
+      0 => Some(None),
+      1 => Some(Div1),
+      2 => Some(Div2),
+      3 => Some(Div3),
+      4 => Some(Div4),
+      5 => Some(Div5),
+      6 => Some(Div6),
+      7 => Some(Div7),
+      _ => Option::None
+    }
+  }
 }
 
 pub struct Sweep {
@@ -35,7 +50,7 @@ impl Sweep {
     (self.shift)
   }
   pub fn write_reg(&mut self, value: u8) {
-    self.time = FromPrimitive::from_u8((value >> 4) & 0x07).unwrap();
+    self.time = Time::from_u8((value >> 4) & 0x07).unwrap();
     self.increasing = value & (1 << 3) != 0;
     self.shift = value & 0x07;
   }

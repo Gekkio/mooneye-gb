@@ -2,7 +2,6 @@ use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::fs::File;
 use std::io::Read;
-use std::num::FromPrimitive;
 use std::path::Path;
 use std::str;
 
@@ -45,7 +44,7 @@ impl Debug for CartridgeConfig {
   }
 }
 
-#[derive(PartialEq, Eq, FromPrimitive)]
+#[derive(PartialEq, Eq)]
 pub enum CartridgeType {
   Rom  = 0x00,  RomRam = 0x08,  RomRamBattery = 0x09,
   Mbc1 = 0x01, Mbc1Ram = 0x02, Mbc1RamBattery = 0x03,
@@ -66,10 +65,21 @@ impl Debug for CartridgeType {
 }
 
 impl CartridgeType {
-  fn from_u8(value: u8) -> Result<CartridgeType, ProgramResult> {
-    match FromPrimitive::from_u8(value) {
-      Some(result) => Ok(result),
-      _ => Err(ProgramResult::Error(format!("Unsupported cartridge type {:02x}", value)))
+  fn from_u8(value: u8) -> Option<CartridgeType> {
+    use self::CartridgeType::*;
+    match value {
+      0x00 => Some(Rom),
+      0x08 => Some(RomRam),
+      0x09 => Some(RomRamBattery),
+      0x01 => Some(Mbc1),
+      0x02 => Some(Mbc1Ram),
+      0x03 => Some(Mbc1RamBattery),
+      0x05 => Some(Mbc2),
+      0x06 => Some(Mbc2RamBattery),
+      0x11 => Some(Mbc3),
+      0x12 => Some(Mbc3Ram),
+      0x13 => Some(Mbc3RamBattery),
+      _ => None
     }
   }
   fn should_have_ram(&self) -> bool {
@@ -84,7 +94,7 @@ impl CartridgeType {
 
 }
 
-#[derive(PartialEq, Eq, FromPrimitive)]
+#[derive(PartialEq, Eq)]
 pub enum CartridgeRomSize {
   NoRomBanks = 0x00,
   RomBanks4 = 0x01,
@@ -115,10 +125,19 @@ impl Debug for CartridgeRomSize {
 }
 
 impl CartridgeRomSize {
-  fn from_u8(value: u8) -> Result<CartridgeRomSize, ProgramResult> {
-    match FromPrimitive::from_u8(value) {
-      Some(result) => Ok(result),
-      _ => Err(ProgramResult::Error(format!("Unsupported rom size {:02x}", value)))
+  fn from_u8(value: u8) -> Option<CartridgeRomSize> {
+    use self::CartridgeRomSize::*;
+    match value {
+      0x00 => Some(NoRomBanks),
+      0x01 => Some(RomBanks4),
+      0x02 => Some(RomBanks8),
+      0x03 => Some(RomBanks16),
+      0x04 => Some(RomBanks32),
+      0x05 => Some(RomBanks64),
+      0x06 => Some(RomBanks128),
+      0x07 => Some(RomBanks256),
+      0x08 => Some(RomBanks512),
+      _ => None
     }
   }
   pub fn banks(&self) -> usize {
@@ -138,7 +157,7 @@ impl CartridgeRomSize {
   pub fn as_usize(&self) -> usize { self.banks() * ROM_BANK_SIZE }
 }
 
-#[derive(PartialEq, Eq, FromPrimitive)]
+#[derive(PartialEq, Eq)]
 pub enum CartridgeRamSize {
   NoRam = 0x00,
   Ram2K = 0x01,
@@ -163,10 +182,16 @@ impl Debug for CartridgeRamSize {
 }
 
 impl CartridgeRamSize {
-  fn from_u8(value: u8) -> Result<CartridgeRamSize, ProgramResult> {
-    match FromPrimitive::from_u8(value) {
-      Some(result) => Ok(result),
-      _ => Err(ProgramResult::Error(format!("Unsupported ram size {:02x}", value)))
+  fn from_u8(value: u8) -> Option<CartridgeRamSize> {
+    use self::CartridgeRamSize::*;
+    match value {
+      0x00 => Some(NoRam),
+      0x01 => Some(Ram2K),
+      0x02 => Some(Ram8K),
+      0x03 => Some(Ram16K),
+      0x04 => Some(Ram128K),
+      0x05 => Some(Ram32K),
+      _ => None
     }
   }
   pub fn as_usize(&self) -> usize {
@@ -196,9 +221,15 @@ impl CartridgeConfig {
       utf8.trim_right_matches('\0').to_string()
     };
 
-    let cartridge_type = try!(CartridgeType::from_u8(data[0x147]));
-    let rom_size = try!(CartridgeRomSize::from_u8(data[0x148]));
-    let ram_size = try!(CartridgeRamSize::from_u8(data[0x149]));
+    let cartridge_type = try!(CartridgeType::from_u8(data[0x147]).ok_or_else(||{
+      ProgramResult::Error(format!("Unsupported cartridge type {:02x}", data[0x147]))
+    }));
+    let rom_size = try!(CartridgeRomSize::from_u8(data[0x148]).ok_or_else(||{
+      ProgramResult::Error(format!("Unsupported rom size {:02x}", data[0x148]))
+    }));
+    let ram_size = try!(CartridgeRamSize::from_u8(data[0x149]).ok_or_else(||{
+      ProgramResult::Error(format!("Unsupported ram size {:02x}", data[0x149]))
+    }));
 
     if cartridge_type.should_have_ram() && ram_size == CartridgeRamSize::NoRam {
       return Err(ProgramResult::Error(format!("{:?} cartridge without ram", cartridge_type)))

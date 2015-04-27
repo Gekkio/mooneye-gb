@@ -1,5 +1,3 @@
-use std::num::FromPrimitive;
-
 use self::ch1::Ch1;
 use self::ch2::Ch2;
 use self::ch3::Ch3;
@@ -28,7 +26,7 @@ pub struct Apu {
   cycles: usize
 }
 
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Clone, Copy)]
 enum Volume {
   Vol0 = 0x00,
   Vol1 = 0x01,
@@ -38,6 +36,23 @@ enum Volume {
   Vol5 = 0x05,
   Vol6 = 0x06,
   Vol7 = 0x07
+}
+
+impl Volume {
+  pub fn from_u8(value: u8) -> Option<Volume> {
+    use self::Volume::*;
+    match value {
+      0x00 => Some(Vol0),
+      0x01 => Some(Vol1),
+      0x02 => Some(Vol2),
+      0x03 => Some(Vol3),
+      0x04 => Some(Vol4),
+      0x05 => Some(Vol5),
+      0x06 => Some(Vol6),
+      0x07 => Some(Vol7),
+      _ => None
+    }
+  }
 }
 
 impl Apu {
@@ -153,9 +168,9 @@ impl Apu {
     if self.term2_vin { 1 << 7 } else { 0 }
   }
   pub fn set_ctrl_volume(&mut self, value: u8) {
-    self.term1_volume = FromPrimitive::from_u8(value & 0x07).unwrap();
+    self.term1_volume = Volume::from_u8(value & 0x07).unwrap();
     self.term1_vin = value & (1 << 3) != 0;
-    self.term2_volume = FromPrimitive::from_u8((value >> 4) & 0x07).unwrap();
+    self.term2_volume = Volume::from_u8((value >> 4) & 0x07).unwrap();
     self.term2_vin = value & (1 << 7) != 0;
   }
   pub fn emulate(&mut self) {

@@ -1,11 +1,22 @@
-use std::num::FromPrimitive;
-
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Clone, Copy)]
 enum Volume {
   None = 0,
   Full = 1,
   Half = 2,
   Quarter = 3
+}
+
+impl Volume {
+  pub fn from_u8(value: u8) -> Option<Volume> {
+    use self::Volume::*;
+    match value {
+      0 => Some(None),
+      1 => Some(Full),
+      2 => Some(Half),
+      3 => Some(Quarter),
+      _ => Option::None
+    }
+  }
 }
 
 pub struct Ch3 {
@@ -62,7 +73,7 @@ impl Ch3 {
     ((self.volume as u8) << 5)
   }
   pub fn write_reg2(&mut self, value: u8) {
-    self.volume = FromPrimitive::from_u8((value >> 5) & 0x03).unwrap();
+    self.volume = Volume::from_u8((value >> 5) & 0x03).unwrap();
   }
   pub fn write_reg3(&mut self, value: u8) {
     self.freq_bits = (self.freq_bits & 0x700) | value as u16;

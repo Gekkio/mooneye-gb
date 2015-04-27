@@ -1,5 +1,3 @@
-use std::num::FromPrimitive;
-
 use util::int::IntExt;
 
 pub struct Irq {
@@ -32,12 +30,12 @@ impl Irq {
   pub fn ack_interrupt(&mut self) -> Option<Interrupt> {
     let highest_priority = (self.int_enable & self.int_flag).isolate_highest_priority();
     self.int_flag = self.int_flag - highest_priority;
-    FromPrimitive::from_u8(highest_priority.bits)
+    Interrupt::from_u8(highest_priority.bits)
   }
   pub fn has_interrupt(&self) -> bool { (self.int_enable & self.int_flag) != InterruptType::empty() }
 }
 
-#[derive(FromPrimitive, Debug)]
+#[derive(Debug)]
 pub enum Interrupt {
   VBlank = 1 << 0,
   LcdStat = 1 << 1,
@@ -47,6 +45,17 @@ pub enum Interrupt {
 }
 
 impl Interrupt {
+  pub fn from_u8(value: u8) -> Option<Interrupt> {
+    use self::Interrupt::*;
+    match value {
+      1 => Some(VBlank),
+      2 => Some(LcdStat),
+      4 => Some(TimerOverflow),
+      8 => Some(SerialIoDone),
+      16 => Some(Joypad),
+      _ => None
+    }
+  }
   pub fn get_addr(&self) -> u16 {
     match *self {
       Interrupt::VBlank => 0x40,

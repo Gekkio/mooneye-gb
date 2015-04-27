@@ -1,11 +1,9 @@
-use std::num::FromPrimitive;
-
 pub type BootromData = [u8; BOOTROM_SIZE];
 pub type HiramData = [u8; HIRAM_SIZE];
 pub type ScreenBuffer = [Color; SCREEN_PIXELS];
 pub type WramBank = [u8; WRAM_BANK_SIZE];
 
-#[derive(PartialEq, FromPrimitive, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Color {
   Off = 0,
   Light = 1,
@@ -15,7 +13,13 @@ pub enum Color {
 
 impl Color {
   pub fn from_u8(value: u8) -> Color {
-    FromPrimitive::from_u8(value).unwrap_or(Color::Off)
+    use self::Color::*;
+    match value {
+      1 => Light,
+      2 => Dark,
+      3 => On,
+      _ => Off
+    }
   }
 }
 
