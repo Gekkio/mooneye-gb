@@ -14,17 +14,6 @@ fn test_00() {
 }
 
 #[test]
-fn test_01() {
-  let cpu = run_test(
-    &[0x01, 0x42, 0x80], // LD BC, nn
-    |_| {}
-  );
-  assert_eq!(cpu.clock_cycles(), 12);
-  assert_eq!(cpu.regs.b, 0x80);
-  assert_eq!(cpu.regs.c, 0x42);
-}
-
-#[test]
 fn test_02() {
   let cpu = run_test(
     &[0x02, 0xed, 0x00], // LD (BC), A
@@ -36,20 +25,6 @@ fn test_02() {
   );
   assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.hardware.memory[0x02], 0x42);
-}
-
-#[test]
-fn test_03() {
-  let cpu = run_test(
-    &[0x03], // INC BC
-    |cpu| {
-      cpu.regs.b = 0x7f;
-      cpu.regs.c = 0xff;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.b, 0x80);
-  assert_eq!(cpu.regs.c, 0x00);
 }
 
 #[test]
@@ -241,20 +216,6 @@ fn test_0a() {
   );
   assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.regs.a, 0x42);
-}
-
-#[test]
-fn test_0b() {
-  let cpu = run_test(
-    &[0x0b], // DEC BC
-    |cpu| {
-      cpu.regs.b = 0x80;
-      cpu.regs.c = 0x00;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.b, 0x7f);
-  assert_eq!(cpu.regs.c, 0xff);
 }
 
 #[test]
