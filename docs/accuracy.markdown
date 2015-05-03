@@ -237,3 +237,13 @@ This was verified using Arduino Uno, insidegadgets.com Cart Reader v1.2, and War
 They are unused but writable and readable normally.
 
 *See: tests/oam\_bits*
+
+### How does sprite priority work?
+
+In my opinion it's easiest to think about two order: sprite priority order and drawing order.
+
+Sprite priority order is based on the sprite position in the OAM. Sprites with lower position have higher priority.
+Gameboy has a limit of 10 sprites per scanline, so when drawing a scanline, you simply select the first 10 visible sprites from the OAM data.
+
+Drawing order depends on both OAM position and X coordinate. Sprites with small X coordinates have priority over sprites with large X coordinates.
+So, in practice you draw the sprites in descending X order. If the X coordinate is the same for some sprites, you use the OAM position order (low position is drawn last).
