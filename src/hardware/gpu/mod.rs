@@ -484,7 +484,12 @@ impl<'a> Gpu<'a> {
     if self.control.contains(CTRL_OBJ_ON) {
       let size =
         if self.control.contains(CTRL_OBJ_SIZE) { 16 } else { 8 };
+
+      let mut sprite_count = 0u8;
       for i in (0..40) {
+        if sprite_count == 10 {
+          break;
+        }
         let sprite = self.oam[i];
         let ypos = sprite.y;
         let xpos = sprite.x;
@@ -492,6 +497,7 @@ impl<'a> Gpu<'a> {
           if sprite.flags.contains(SPRITE_PALETTE) { &self.obj_palette1 }
           else { &self.obj_palette0 };
         if self.current_line >= ypos && (self.current_line as usize) < (ypos + size) as usize {
+          sprite_count += 1;
           let mut tile_num = sprite.tile_num as usize;
           let mut line =
             if sprite.flags.contains(SPRITE_FLIPY) {
