@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use std::fmt;
+use std::cmp::Ordering;
 use std::num::Wrapping;
 
 use backend::BackendSharedMemory;
@@ -485,47 +486,56 @@ impl<'a> Gpu<'a> {
       let size =
         if self.control.contains(CTRL_OBJ_SIZE) { 16 } else { 8 };
 
-      let mut sprite_count = 0u8;
-      for i in (0..40) {
-        if sprite_count == 10 {
-          break;
+      let current_line = self.current_line;
+
+      let mut sprites_to_draw: Vec<(&Sprite, usize)> = self.oam
+        .into_iter()
+        .by_ref()
+        .filter(|sprite| current_line >= sprite.y && (current_line as usize) < (sprite.y + size) as usize)
+        .take(10)
+        .zip(0..10)
+        .collect();
+
+      sprites_to_draw.sort_by(|&(a, a_index), &(b, b_index)| {
+        match a.x.cmp(&b.x) {
+          // If X coordinates are the same, use OAM index as priority (low index => draw last)
+          Ordering::Equal => a_index.cmp(&b_index).reverse(),
+          // Use X coordinate as priority (low X => draw last)
+          other => other.reverse()
         }
-        let sprite = self.oam[i];
-        let ypos = sprite.y;
-        let xpos = sprite.x;
+      });
+
+      for (sprite, _) in sprites_to_draw {
         let palette =
           if sprite.flags.contains(SPRITE_PALETTE) { &self.obj_palette1 }
           else { &self.obj_palette0 };
-        if self.current_line >= ypos && (self.current_line as usize) < (ypos + size) as usize {
-          sprite_count += 1;
-          let mut tile_num = sprite.tile_num as usize;
-          let mut line =
-            if sprite.flags.contains(SPRITE_FLIPY) {
-              size - (self.current_line - ypos) - 1
-            } else {
-              self.current_line - ypos
-            };
-          if line >= 8 {
-            tile_num += 1;
-            line -= 8;
-          }
-          line *= 2;
-          let tile = &self.character_ram[tile_num];
-          let data1 = tile.data[(line as u16) as usize];
-          let data2 = tile.data[(line as u16 + 1) as usize];
+        let mut tile_num = sprite.tile_num as usize;
+        let mut line =
+          if sprite.flags.contains(SPRITE_FLIPY) {
+            size - (self.current_line - sprite.y) - 1
+          } else {
+            self.current_line - sprite.y
+          };
+        if line >= 8 {
+          tile_num += 1;
+          line -= 8;
+        }
+        line *= 2;
+        let tile = &self.character_ram[tile_num];
+        let data1 = tile.data[(line as u16) as usize];
+        let data2 = tile.data[(line as u16 + 1) as usize];
 
-          for x in (0..8).rev() {
-            let bit =
-              if sprite.flags.contains(SPRITE_FLIPX) {
-                7 - x
-              } else { x } as usize;
-            let raw_color = Color::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
-            let color = palette.get(&raw_color);
-            let target_x = (Wrapping(xpos) + Wrapping(7 - x)).0;
-            if target_x < 159 && raw_color != Color::Off {
-              if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as usize] == Color::Off {
-                pixels[target_x as usize] = color;
-              }
+        for x in (0..8).rev() {
+          let bit =
+            if sprite.flags.contains(SPRITE_FLIPX) {
+              7 - x
+            } else { x } as usize;
+          let raw_color = Color::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
+          let color = palette.get(&raw_color);
+          let target_x = (Wrapping(sprite.x) + Wrapping(7 - x)).0;
+          if target_x < 159 && raw_color != Color::Off {
+            if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as usize] == Color::Off {
+              pixels[target_x as usize] = color;
             }
           }
         }
