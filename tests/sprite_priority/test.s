@@ -1,4 +1,5 @@
 ; *Manual test* for sprite priority
+; See expected.png for a reference image
 .incdir "../common"
 .include "common.i"
 
