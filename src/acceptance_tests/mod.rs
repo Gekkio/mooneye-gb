@@ -45,6 +45,9 @@ fn jp_timing() { run_acceptance_test("jp_timing") }
 fn ld_hl_sp_e_timing() { run_acceptance_test("ld_hl_sp_e_timing") }
 
 #[test]
+fn oam_bits() { run_acceptance_test("oam_bits") }
+
+#[test]
 fn oam_dma_restart() { run_acceptance_test("oam_dma_restart") }
 
 #[test]

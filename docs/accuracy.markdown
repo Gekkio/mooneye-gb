@@ -231,3 +231,9 @@ The ROM bank numbers wrap around. Note that the bank 0 -> bank 1 quirk also appe
 * Requesting bank 33 wraps around to 1, which gets you bank 1
 
 This was verified using Arduino Uno, insidegadgets.com Cart Reader v1.2, and Wario Land cartridge (MBC1, 4Mbit ROM, 64Kbit RAM).
+
+### On DMG, sprite flags in the OAM area have unused bits. Are they usable or do they always return 0 or 1?
+
+They are unused but writable and readable normally.
+
+*See: tests/oam\_bits*
