@@ -1,46 +1,79 @@
-use num::traits::{Num, One, Zero};
-use std::num::Wrapping;
-use std::ops::{BitAnd, Shl, Shr};
+use num::traits::PrimInt;
 
 #[cfg(test)]
 use quickcheck::quickcheck;
 
-pub trait IntExt where Self: Num + BitAnd<Output=Self> + Shl<usize, Output=Self> + Shr<usize, Output=Self> + Sized {
-  fn isolate_rightmost_one(self) -> Self;
-  fn bit(self, bit: usize) -> Self {
-    (self >> bit) & One::one()
+pub trait IntExt where Self: PrimInt {
+  /// Isolates the rightmost 1-bit leaving all other bits as 0
+  /// e.g. 1010 1000 -> 0000 1000
+  #[inline]
+  fn isolate_rightmost_one(self) -> Self {
+    let x = self;
+    // Unsigned negation: -x == !x + 1
+    let minus_x = (!x).plus_one();
+    // Hacker's Delight 2nd ed, 2-1 Manipulating Rightmost Bits
+    x & minus_x
   }
+
+  /// Returns the specified bit as 0 or 1
+  #[inline]
+  fn bit(self, bit: usize) -> Self {
+    (self >> bit) & Self::one()
+  }
+
+  /// Returns the specified bit as boolean
+  #[inline]
   fn bit_bool(self, bit: usize) -> bool {
     !self.bit(bit).is_zero()
   }
+
+  /// Sets all rightmost 0-bits to 1
+  /// e.g. 1010 1000 -> 1010 1111
+  #[inline]
+  fn activate_rightmost_zeros(self) -> Self {
+    let x = self;
+    // Hacker's Delight 2nd ed, 2-1 Manipulating Rightmost Bits
+    x | x.minus_one()
+  }
+
+  /// Tests if addition results in a carry from the specified bit.
+  /// Does not support overflow, so cannot be used to check carry from the leftmost bit
+  #[inline]
+  fn test_add_carry_bit(bit: usize, a: Self, b: Self) -> bool {
+    // Create a mask that includes the specified bit and 1-bits on the right side
+    // e.g. for u8:
+    //   bit=0 -> 0000 0001
+    //   bit=3 -> 0000 1111
+    //   bit=6 -> 0111 1111
+    let mask = (Self::one() << bit).activate_rightmost_zeros();
+    (a & mask) + (b & mask) > mask
+  }
+
+  #[inline]
+  fn plus_one(self) -> Self;
+
+  #[inline]
+  fn minus_one(self) -> Self;
 }
 
 impl IntExt for u8 {
-  fn isolate_rightmost_one(self) -> u8 {
-    let x = Wrapping(self);
-    let one = Wrapping(1);
-    // Hacker's Delight 2nd ed, 2-1 Manipulating Rightmost Bits
-    (x & (!x + one)).0
-  }
+  fn plus_one(self) -> u8 { self.wrapping_add(1) }
+  fn minus_one(self) -> u8 { self.wrapping_sub(1) }
 }
 
 impl IntExt for u16 {
-  fn isolate_rightmost_one(self) -> u16 {
-    let x = Wrapping(self);
-    let one = Wrapping(1);
-    // Hacker's Delight 2nd ed, 2-1 Manipulating Rightmost Bits
-    (x & (!x + one)).0
-  }
+  fn plus_one(self) -> u16 { self.wrapping_add(1) }
+  fn minus_one(self) -> u16 { self.wrapping_sub(1) }
 }
 
 #[cfg(test)]
-fn test_isolate_rightmost_one<T: IntExt + Copy>(x: T) -> bool {
+fn test_isolate_rightmost_one<T: IntExt>(x: T) -> bool {
   let y = x.isolate_rightmost_one();
-  if (x.is_zero()) { y.is_zero() }
+  if x.is_zero() { y.is_zero() }
   else {
     let mut value = x;
-    let mut expected = One::one();
-    while (!value.bit_bool(0)) {
+    let mut expected = T::one();
+    while !value.bit_bool(0) {
       value = value >> 1;
       expected = expected << 1;
     }
