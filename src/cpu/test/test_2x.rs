@@ -178,51 +178,6 @@ fn test_28_nojump() {
 }
 
 #[test]
-fn test_29() {
-  let cpu = run_test(
-    &[0x29], // ADD HL, HL
-    |cpu| {
-      cpu.regs.h = 0x02;
-      cpu.regs.l = 0xaa;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.h, 0x05);
-  assert_eq!(cpu.regs.l, 0x54);
-  assert_eq!(cpu.regs.f, Flags::empty());
-}
-
-#[test]
-fn test_29_half_carry() {
-  let cpu = run_test(
-    &[0x29], // ADD HL, HL
-    |cpu| {
-      cpu.regs.h = 0x0f;
-      cpu.regs.l = 0xff;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.h, 0x1f);
-  assert_eq!(cpu.regs.l, 0xfe);
-  assert_eq!(cpu.regs.f, HALF_CARRY);
-}
-
-#[test]
-fn test_29_carry() {
-  let cpu = run_test(
-    &[0x29], // ADD HL, HL
-    |cpu| {
-      cpu.regs.h = 0x80;
-      cpu.regs.l = 0x01;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.h, 0x00);
-  assert_eq!(cpu.regs.l, 0x02);
-  assert_eq!(cpu.regs.f, CARRY);
-}
-
-#[test]
 fn test_2a() {
   let cpu = run_test(
     &[0x2a, 0xed, 0x42], // LD A, (HL+)

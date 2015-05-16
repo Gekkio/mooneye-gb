@@ -134,57 +134,6 @@ fn test_17_carry() {
 }
 
 #[test]
-fn test_19() {
-  let cpu = run_test(
-    &[0x19], // ADD HL, DE
-    |cpu| {
-      cpu.regs.d = 0x0f;
-      cpu.regs.e = 0xfc;
-      cpu.regs.h = 0x00;
-      cpu.regs.l = 0x03;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.h, 0x0f);
-  assert_eq!(cpu.regs.l, 0xff);
-  assert_eq!(cpu.regs.f, Flags::empty());
-}
-
-#[test]
-fn test_19_half_carry() {
-  let cpu = run_test(
-    &[0x19], // ADD HL, DE
-    |cpu| {
-      cpu.regs.d = 0x06;
-      cpu.regs.e = 0x05;
-      cpu.regs.h = 0x8a;
-      cpu.regs.l = 0x23;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.h, 0x90);
-  assert_eq!(cpu.regs.l, 0x28);
-  assert_eq!(cpu.regs.f, HALF_CARRY);
-}
-
-#[test]
-fn test_19_carry() {
-  let cpu = run_test(
-    &[0x19], // ADD HL, DE
-    |cpu| {
-      cpu.regs.d = 0xb7;
-      cpu.regs.e = 0xfd;
-      cpu.regs.h = 0x50;
-      cpu.regs.l = 0x02;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.regs.h, 0x07);
-  assert_eq!(cpu.regs.l, 0xff);
-  assert_eq!(cpu.regs.f, CARRY);
-}
-
-#[test]
 fn test_1a() {
   let cpu = run_test(
     &[0x1a, 0xed, 0x42], // LD A, (DE)

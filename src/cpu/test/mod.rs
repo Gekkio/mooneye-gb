@@ -25,6 +25,7 @@ mod test_ex;
 mod test_fx;
 
 mod test_load16;
+mod test_add16;
 mod test_add16_sp_e;
 mod test_inc16;
 mod test_dec16;
