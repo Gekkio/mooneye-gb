@@ -9,6 +9,7 @@ use cpu::registers::{
   Registers, Reg8, Reg16, Flags,
   ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
 };
+use util::int::IntExt;
 
 pub use cpu::ops::CpuOps;
 
@@ -861,12 +862,12 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        0 0 * *
   fn load16_hl_sp_e(&mut self) {
-    let offset = self.next_u8() as i8 as i16;
-    let sp = self.regs.sp as i16;
+    let offset = self.next_u8() as i8 as u16;
+    let sp = self.regs.sp as u16;
     let value = (Wrapping(sp) + Wrapping(offset)).0 as u16;
     self.regs.write16(Reg16::HL, value);
-    self.regs.f = HALF_CARRY.test((sp & 0x000f) + (offset & 0x000f) > 0x000f) |
-                  CARRY.test((sp & 0x00ff) + (offset & 0x00ff) > 0x00ff);
+    self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
+                  CARRY.test(u16::test_add_carry_bit(7, sp, offset));
     self.time.tick();
     self.hardware.emulate(self.time);
   }
@@ -899,7 +900,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     let value = self.regs.read16(reg);
     let result = (Wrapping(hl) + Wrapping(value)).0;
     self.regs.f = (ZERO & self.regs.f) |
-                  HALF_CARRY.test((hl & 0x0FFF) + (value & 0x0FFF) > 0x0FFF) |
+                  HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
                   CARRY.test(hl > 0xffff - value);
     self.regs.write16(Reg16::HL, result);
     self.time.tick();
@@ -913,8 +914,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     let val = self.next_u8() as i8 as i16 as u16;
     let sp = self.regs.sp;
     self.regs.sp = (Wrapping(sp) + Wrapping(val)).0;
-    self.regs.f = HALF_CARRY.test((sp & 0x000f) + (val & 0x000f) > 0x000f) |
-                  CARRY.test((sp & 0x00ff) + (val & 0x00ff) > 0x00ff);
+    self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
+                  CARRY.test(u16::test_add_carry_bit(7, sp, val));
     self.time.tick();
     self.hardware.emulate(self.time);
     self.time.tick();
