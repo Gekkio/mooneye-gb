@@ -1,5 +1,4 @@
 use std::fmt;
-use std::num::Wrapping;
 
 use emulation::EmuTime;
 use gameboy::{HiramData, HIRAM_EMPTY};
@@ -120,12 +119,12 @@ impl Addr {
       HL => cpu.regs.read16(Reg16::HL),
       HLD => {
         let addr = cpu.regs.read16(Reg16::HL);
-        cpu.regs.write16(Reg16::HL, (Wrapping(addr) - Wrapping(1)).0);
+        cpu.regs.write16(Reg16::HL, addr.wrapping_sub_one());
         addr
       },
       HLI => {
         let addr = cpu.regs.read16(Reg16::HL);
-        cpu.regs.write16(Reg16::HL, (Wrapping(addr) + Wrapping(1)).0);
+        cpu.regs.write16(Reg16::HL, addr.wrapping_add_one());
         addr
       },
       Direct => cpu.next_u16(),
@@ -243,21 +242,21 @@ impl<H> Cpu<H> where H: Bus {
 
   fn read_u16(&mut self, addr: u16) -> u16 {
     (self.read_u8(addr) as u16) |
-    ((self.read_u8((Wrapping(addr) + Wrapping(1)).0) as u16) << 8)
+    ((self.read_u8(addr.wrapping_add_one()) as u16) << 8)
   }
   fn write_u16(&mut self, addr: u16, value: u16) {
     self.write_u8(addr, value as u8);
-    self.write_u8((Wrapping(addr) + Wrapping(1)).0, (value >> 8) as u8);
+    self.write_u8((addr.wrapping_add_one()), (value >> 8) as u8);
   }
 
   fn pop_u8(&mut self) -> u8 {
     let sp = self.regs.sp;
     let value = self.read_u8(sp);
-    self.regs.sp = (Wrapping(self.regs.sp) + Wrapping(1)).0;
+    self.regs.sp = self.regs.sp.wrapping_add_one();
     value
   }
   fn push_u8(&mut self, value: u8) {
-    self.regs.sp = (Wrapping(self.regs.sp) - Wrapping(1)).0;
+    self.regs.sp = self.regs.sp.wrapping_sub_one();
     let sp = self.regs.sp;
     self.write_u8(sp, value);
   }
@@ -323,7 +322,7 @@ impl<H> Cpu<H> where H: Bus {
 
   fn alu_add(&mut self, value: u8, use_carry: bool) {
     let cy = if use_carry && self.regs.f.contains(CARRY) { 1 } else { 0 };
-    let result = (Wrapping(self.regs.a) + Wrapping(value) + Wrapping(cy)).0;
+    let result = self.regs.a.wrapping_add(value).wrapping_add(cy);
     self.regs.f = ZERO.test(result == 0) |
                   CARRY.test(self.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
                   HALF_CARRY.test((self.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
@@ -331,7 +330,7 @@ impl<H> Cpu<H> where H: Bus {
   }
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
     let cy = if use_carry && self.regs.f.contains(CARRY) { 1 } else { 0 };
-    let result = (Wrapping(self.regs.a) - Wrapping(value) - Wrapping(cy)).0;
+    let result = self.regs.a.wrapping_sub(value).wrapping_sub(cy);
     self.regs.f = ZERO.test(result == 0) |
                   ADD_SUBTRACT |
                   CARRY.test((self.regs.a as u16) < (value as u16) + (cy as u16)) |
@@ -484,7 +483,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///        * 0 * -
   fn inc<IO: In8+Out8>(&mut self, io: IO) {
     let value = io.read(self);
-    let new_value = (Wrapping(value) + Wrapping(1)).0;
+    let new_value = value.wrapping_add_one();
     self.regs.f = ZERO.test(new_value == 0) |
                   HALF_CARRY.test(value & 0xf == 0xf) |
                   (CARRY & self.regs.f);
@@ -496,7 +495,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   ///        * 0 * -
   fn dec<IO: In8+Out8>(&mut self, io: IO) {
     let value = io.read(self);
-    let new_value = (Wrapping(value) - Wrapping(1)).0;
+    let new_value = value.wrapping_sub_one();
     self.regs.f = ZERO.test(new_value == 0) |
                   ADD_SUBTRACT |
                   HALF_CARRY.test(value & 0xf == 0) |
@@ -804,21 +803,21 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     let mut carry = false;
     if !self.regs.f.contains(ADD_SUBTRACT) {
       if self.regs.f.contains(CARRY) || self.regs.a > 0x99 {
-        self.regs.a = (Wrapping(self.regs.a) + Wrapping(0x60)).0;
+        self.regs.a = self.regs.a.wrapping_add(0x60);
         carry = true;
       }
       if self.regs.f.contains(HALF_CARRY) || self.regs.a & 0x0f > 0x09 {
-        self.regs.a = (Wrapping(self.regs.a) + Wrapping(0x06)).0;
+        self.regs.a = self.regs.a.wrapping_add(0x06);
       }
     } else {
       if self.regs.f.contains(CARRY) {
         carry = true;
-        self.regs.a = (Wrapping(self.regs.a) + Wrapping(
+        self.regs.a = self.regs.a.wrapping_add(
           if self.regs.f.contains(HALF_CARRY) { 0x9a }
           else { 0xa0 }
-        )).0;
+        );
       } else if self.regs.f.contains(HALF_CARRY) {
-        self.regs.a = (Wrapping(self.regs.a) + Wrapping(0xfa)).0;
+        self.regs.a = self.regs.a.wrapping_add(0xfa);
       }
     }
 
@@ -864,7 +863,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn load16_hl_sp_e(&mut self) {
     let offset = self.next_u8() as i8 as u16;
     let sp = self.regs.sp as u16;
-    let value = (Wrapping(sp) + Wrapping(offset)).0 as u16;
+    let value = sp.wrapping_add(offset);
     self.regs.write16(Reg16::HL, value);
     self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, offset));
@@ -898,7 +897,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn add16(&mut self, reg: Reg16) {
     let hl = self.regs.read16(Reg16::HL);
     let value = self.regs.read16(reg);
-    let result = (Wrapping(hl) + Wrapping(value)).0;
+    let result = hl.wrapping_add(value);
     self.regs.f = (ZERO & self.regs.f) |
                   HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
                   CARRY.test(hl > 0xffff - value);
@@ -913,7 +912,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   fn add16_sp_e(&mut self) {
     let val = self.next_u8() as i8 as i16 as u16;
     let sp = self.regs.sp;
-    self.regs.sp = (Wrapping(sp) + Wrapping(val)).0;
+    self.regs.sp = sp.wrapping_add(val);
     self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, val));
     self.time.tick();
@@ -926,7 +925,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn inc16(&mut self, reg: Reg16) {
-    let value = (Wrapping(self.regs.read16(reg)) + Wrapping(1)).0;
+    let value = self.regs.read16(reg).wrapping_add_one();
     self.regs.write16(reg, value);
     self.time.tick();
     self.hardware.emulate(self.time);
@@ -936,7 +935,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn dec16(&mut self, reg: Reg16) {
-    let value = (Wrapping(self.regs.read16(reg)) - Wrapping(1)).0;
+    let value = self.regs.read16(reg).wrapping_sub_one();
     self.regs.write16(reg, value);
     self.time.tick();
     self.hardware.emulate(self.time);

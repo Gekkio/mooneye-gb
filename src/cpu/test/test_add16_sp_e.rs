@@ -3,7 +3,6 @@ use cpu::registers::{
   ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
 };
 use cpu::test::run_test;
-use std::num::Wrapping;
 
 fn test_add16_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool {
   let cpu = run_test(
@@ -12,7 +11,7 @@ fn test_add16_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool
       cpu.regs.write16(Reg16::SP, sp);
     }
   );
-  let expected = (Wrapping(sp) + Wrapping(e as i16 as u16)).0;
+  let expected = sp.wrapping_add(e as i16 as u16);
   cpu.clock_cycles() == 16 &&
     cpu.regs.read16(Reg16::SP) == expected &&
     check_flags(cpu.regs.f)

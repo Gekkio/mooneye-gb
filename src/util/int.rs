@@ -10,7 +10,7 @@ pub trait IntExt where Self: PrimInt {
   fn isolate_rightmost_one(self) -> Self {
     let x = self;
     // Unsigned negation: -x == !x + 1
-    let minus_x = (!x).plus_one();
+    let minus_x = (!x).wrapping_add_one();
     // Hacker's Delight 2nd ed, 2-1 Manipulating Rightmost Bits
     x & minus_x
   }
@@ -33,7 +33,7 @@ pub trait IntExt where Self: PrimInt {
   fn activate_rightmost_zeros(self) -> Self {
     let x = self;
     // Hacker's Delight 2nd ed, 2-1 Manipulating Rightmost Bits
-    x | x.minus_one()
+    x | x.wrapping_sub_one()
   }
 
   /// Tests if addition results in a carry from the specified bit.
@@ -50,20 +50,20 @@ pub trait IntExt where Self: PrimInt {
   }
 
   #[inline]
-  fn plus_one(self) -> Self;
+  fn wrapping_add_one(self) -> Self;
 
   #[inline]
-  fn minus_one(self) -> Self;
+  fn wrapping_sub_one(self) -> Self;
 }
 
 impl IntExt for u8 {
-  fn plus_one(self) -> u8 { self.wrapping_add(1) }
-  fn minus_one(self) -> u8 { self.wrapping_sub(1) }
+  fn wrapping_add_one(self) -> u8 { self.wrapping_add(1) }
+  fn wrapping_sub_one(self) -> u8 { self.wrapping_sub(1) }
 }
 
 impl IntExt for u16 {
-  fn plus_one(self) -> u16 { self.wrapping_add(1) }
-  fn minus_one(self) -> u16 { self.wrapping_sub(1) }
+  fn wrapping_add_one(self) -> u16 { self.wrapping_add(1) }
+  fn wrapping_sub_one(self) -> u16 { self.wrapping_sub(1) }
 }
 
 #[cfg(test)]

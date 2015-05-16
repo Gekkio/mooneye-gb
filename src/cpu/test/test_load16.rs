@@ -1,6 +1,5 @@
 use cpu::registers::Reg16;
 use cpu::test::run_test;
-use std::num::Wrapping;
 
 fn test_load16(opcode: u8, x: u16, reg: Reg16) -> bool {
   let h = (x >> 8) as u8;
