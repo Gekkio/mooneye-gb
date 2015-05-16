@@ -65,7 +65,7 @@ impl Cond {
 
 #[derive(PartialEq, Eq, Debug)]
 enum ImeChange {
-  None, Soon(bool), Now(bool)
+  None, Soon, Now
 }
 
 pub struct Immediate8;
@@ -282,11 +282,11 @@ impl<H> Cpu<H> where H: Bus {
     } else {
       match self.ime_change {
         ImeChange::None => (),
-        ImeChange::Soon(value) => {
-          self.ime_change = ImeChange::Now(value);
+        ImeChange::Soon => {
+          self.ime_change = ImeChange::Now;
         },
-        ImeChange::Now(value) => {
-          self.ime = value;
+        ImeChange::Now => {
+          self.ime = true;
           self.ime_change = ImeChange::None;
         }
       }
@@ -687,7 +687,8 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn reti(&mut self) {
-    self.ime_change = ImeChange::Now(true);
+    self.ime = true;
+    self.ime_change = ImeChange::None;
     self.ctrl_ret();
   }
   /// JP cc, nn
@@ -763,14 +764,15 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn di(&mut self) {
-    self.ime_change = ImeChange::Now(false);
+    self.ime = false;
+    self.ime_change = ImeChange::None;
   }
   /// EI
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn ei(&mut self) {
-    self.ime_change = ImeChange::Soon(true);
+    self.ime_change = ImeChange::Soon;
   }
   /// CCF
   ///
