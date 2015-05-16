@@ -6,6 +6,8 @@ use quickcheck::quickcheck;
 pub trait IntExt where Self: PrimInt {
   /// Isolates the rightmost 1-bit leaving all other bits as 0
   /// e.g. 1010 1000 -> 0000 1000
+  ///
+  /// Equivalent to Intel BMI1 instruction BLSI
   #[inline]
   fn isolate_rightmost_one(self) -> Self {
     let x = self;
@@ -29,6 +31,8 @@ pub trait IntExt where Self: PrimInt {
 
   /// Sets all rightmost 0-bits to 1
   /// e.g. 1010 1000 -> 1010 1111
+  ///
+  /// Equivalent to Intel BMI1 instruction BLSMSK
   #[inline]
   fn activate_rightmost_zeros(self) -> Self {
     let x = self;
