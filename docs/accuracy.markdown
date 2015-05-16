@@ -50,7 +50,7 @@ Some opcode listings in the internet (e.g. GBCPUman.pdf) are wrong.
 
 ### What is the exact behaviour of DI and EI?
 
-These instructions don't change interrupts immediately, but instead have a delay before they take effect. Both instructions simply set an internal flag, which will have take effect after the next instruction is executed. If you rapidly switch between DI/EI right after another, the internal flag has no effect during the switching, and the last instruction wins.
+DI has an immediate effect, but EI has a delay of one machine cycle. EI simply sets an internal flag, which will have an effect after the next instruction is executed. If you rapidly switch between DI/EI right after another, the internal flag has no effect during the switching, and the last instruction wins.
 
 So, assuming interrupts are disabled, and an interrupt has already been requested, this code will cause only one interrupt:
 

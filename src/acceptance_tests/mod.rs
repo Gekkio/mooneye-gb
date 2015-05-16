@@ -18,6 +18,9 @@ fn call_timing() { run_acceptance_test("call_timing") }
 fn call_timing2() { run_acceptance_test("call_timing2") }
 
 #[test]
+fn di_timing() { run_acceptance_test("di_timing") }
+
+#[test]
 fn div_timing() { run_acceptance_test("div_timing") }
 
 #[test]
