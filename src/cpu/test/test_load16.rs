@@ -31,3 +31,16 @@ fn test_21(x: u16) -> bool {
 fn test_31(x: u16) -> bool {
   test_load16(0x31, x, Reg16::SP)
 }
+
+#[test]
+fn test_08() {
+  let cpu = run_test(
+    &[0x08, 0x04, 0x00, 0xed, 0x00, 0x00], // LD (nn), SP
+    |cpu| {
+      cpu.regs.sp = 0x8042;
+    }
+  );
+  assert_eq!(cpu.clock_cycles(), 20);
+  assert_eq!(cpu.hardware.memory[0x04], 0x42);
+  assert_eq!(cpu.hardware.memory[0x05], 0x80);
+}

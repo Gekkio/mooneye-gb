@@ -1,6 +1,5 @@
 use cpu::registers::{
-  Flags, Reg16,
-  ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
+  Flags, Reg16, HALF_CARRY, CARRY
 };
 use cpu::test::run_test;
 
@@ -24,10 +23,10 @@ fn test_e8(sp: u16, e: i8) -> bool {
 
 #[test]
 fn test_e8_overflow_inc() {
-  assert!(test_add16_sp_e(0xffff, 1, |_| true))
+  assert!(test_add16_sp_e(0xffff, 1, |f| f == HALF_CARRY | CARRY));
 }
 
 #[test]
 fn test_e8_overflow_dec() {
-  assert!(test_add16_sp_e(0x0000, -1, |_| true))
+  assert!(test_add16_sp_e(0x0000, -1, |f| f == Flags::empty()));
 }

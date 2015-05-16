@@ -16,19 +16,6 @@ fn test_e0() {
 }
 
 #[test]
-fn test_e1() {
-  let cpu = run_test(
-    &[0xe1, 0xed, 0x80, 0x42], // POP HL
-    |cpu| {
-      cpu.regs.sp = 0x02;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 12);
-  assert_eq!(cpu.regs.h, 0x42);
-  assert_eq!(cpu.regs.l, 0x80);
-}
-
-#[test]
 fn test_e2() {
   let cpu = run_test(
     &[0xe2], // LD (C), A
@@ -39,22 +26,6 @@ fn test_e2() {
   );
   assert_eq!(cpu.clock_cycles(), 8);
   assert_eq!(cpu.read_hiram(0x00), 0x42);
-}
-
-#[test]
-fn test_e5() {
-  let cpu = run_test(
-    &[0xe5, 0xed, 0x00, 0x00], // PUSH HL
-    |cpu| {
-      cpu.regs.h = 0x42;
-      cpu.regs.l = 0x80;
-      cpu.regs.sp = 0x04;
-    }
-  );
-  assert_eq!(cpu.clock_cycles(), 16);
-  assert_eq!(cpu.regs.sp, 0x02);
-  assert_eq!(cpu.hardware.memory[0x03], 0x42);
-  assert_eq!(cpu.hardware.memory[0x02], 0x80);
 }
 
 #[test]
