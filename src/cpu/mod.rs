@@ -899,7 +899,7 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
     let value = self.regs.read16(reg);
     let result = (Wrapping(hl) + Wrapping(value)).0;
     self.regs.f = (ZERO & self.regs.f) |
-                  HALF_CARRY.test((hl & 0x07FF) + (value & 0x07FF) > 0x07FF) |
+                  HALF_CARRY.test((hl & 0x0FFF) + (value & 0x0FFF) > 0x0FFF) |
                   CARRY.test(hl > 0xffff - value);
     self.regs.write16(Reg16::HL, result);
     self.time.tick();
