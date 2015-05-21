@@ -1,7 +1,7 @@
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::{BlendMode, Renderer, RenderDrawer, Texture, TextureAccess};
-use std::collections::VecMap;
+use std::collections::BTreeMap;
 
 use super::BackendResult;
 
@@ -23,7 +23,7 @@ pub enum TextAlign {
 pub struct Font {
   outline: Texture,
   glyph: Texture,
-  offsets: VecMap<(i32, i32)>
+  offsets: BTreeMap<u32, (i32, i32)>
 }
 
 fn load_image(data: &[u8], renderer: &Renderer) -> BackendResult<Texture> {
@@ -52,7 +52,7 @@ impl Font {
     })
   }
   pub fn draw_char(&self, drawer: &mut RenderDrawer, ch: char, dst_x: i32, dst_y: i32) -> BackendResult<()> {
-    let value = ch as usize;
+    let value = ch as u32;
     match self.offsets.get(&value) {
       Some(&(x, y)) => {
         let src_rect = Rect {

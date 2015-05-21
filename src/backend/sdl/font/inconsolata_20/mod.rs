@@ -1,10 +1,10 @@
-use std::collections::VecMap;
+use std::collections::BTreeMap;
 
 pub const GLYPH_BYTES: &'static [u8] = include_bytes!("glyph.rgba");
 pub const OUTLINE_BYTES: &'static [u8] = include_bytes!("outline.rgba");
 
-pub fn offsets() -> VecMap<(i32, i32)> {
-  let mut map = VecMap::new();
+pub fn offsets() -> BTreeMap<u32, (i32, i32)> {
+  let mut map = BTreeMap::new();
 
   map.insert(32 , (0  , 0  ));
   map.insert(33 , (13 , 0  ));
