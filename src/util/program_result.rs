@@ -3,6 +3,7 @@ use std::convert::From;
 use std::env;
 use std::io;
 use std::io::{Write, stderr};
+use std::process;
 
 #[derive(Debug)]
 pub enum ProgramResult {
@@ -26,13 +27,13 @@ impl ProgramResult {
   pub fn apply(&self) {
     match *self {
       ProgramResult::Exit => {
-        env::set_exit_status(0)
+        process::exit(0);
       },
       ProgramResult::Error(ref message) => {
-        env::set_exit_status(1);
-
         let mut stderr = stderr();
         writeln!(&mut stderr, "{}", message).unwrap();
+
+        process::exit(1);
       }
     }
   }
