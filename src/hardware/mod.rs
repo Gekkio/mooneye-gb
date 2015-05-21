@@ -103,10 +103,13 @@ impl<'a> Hardware<'a> {
   pub fn dump_mem(&self, time: EmuTime, addr: u16, chunks: usize) {
     let start = addr;
     let end = addr + (chunks as u16 * 8);
-    for i in (start..end).step_by(8) {
+    
+    let mut i = start;
+    while i < end {
       println!("${:04x}: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}", i,
                self.read(time, i + 0), self.read(time, i + 1), self.read(time, i + 2), self.read(time, i + 3),
                self.read(time, i + 4), self.read(time, i + 5), self.read(time, i + 6), self.read(time, i + 7));
+      i += 8;
     }
   }
   fn write_internal(&mut self, time: EmuTime, addr: u16, value: u8) {
