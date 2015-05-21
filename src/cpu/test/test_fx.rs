@@ -35,7 +35,7 @@ fn test_f3() {
     }
   );
   assert_eq!(cpu.clock_cycles(), 4);
-  assert_eq!(cpu.ime_change, ImeChange::Now(false));
+  assert_eq!(cpu.ime, false);
 }
 
 #[test]
@@ -47,5 +47,5 @@ fn test_fb() {
     }
   );
   assert_eq!(cpu.clock_cycles(), 4);
-  assert_eq!(cpu.ime_change, ImeChange::Soon(true));
+  assert_eq!(cpu.ime_change, ImeChange::Soon);
 }
