@@ -1,6 +1,3 @@
-#![cfg_attr(test, feature(test))]
-#![cfg_attr(test, plugin(quickcheck_macros))]
-
 #[macro_use]
 extern crate bitflags;
 extern crate clock_ticks;
@@ -11,8 +8,6 @@ extern crate sdl2;
 extern crate snooze;
 extern crate time;
 
-#[cfg(test)]
-extern crate test;
 #[cfg(test)]
 extern crate quickcheck;
 

@@ -1,5 +1,4 @@
 use std::iter;
-use test::Bencher;
 
 use cpu::Cpu;
 use emulation::EmuTime;
@@ -66,21 +65,6 @@ pub fn run_test<I: Fn(&mut Cpu<TestHardware>) -> ()>(instructions: &[u8], cpu_in
     cpu.execute();
   }
   cpu
-}
-
-#[bench]
-fn turbo(b: &mut Bencher) {
-  let bus = TestHardware::from_memory(iter::repeat(0x0A).take(8192).collect());
-  let mut cpu = Cpu::new(bus);
-  cpu.regs.h = 0x00;
-  cpu.regs.l = 0x00;
-  cpu.regs.a = 0x01;
-  b.iter(|| {
-    cpu.regs.pc = 0x01;
-    for _ in (0..8191) {
-      cpu.execute();
-    }
-  })
 }
 
 #[test]
