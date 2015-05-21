@@ -26,37 +26,37 @@ pub trait ToDisasmStr {
 
 impl<T> ToDisasmStr for T where T: Debug {
   fn to_disasm_str<'a>(&self, _: &mut Disasm<'a>) -> DisasmStr {
-    (format!("{:?}", *self)).into_cow()
+    (format!("{:?}", *self)).into()
   }
 }
 
 impl ToDisasmStr for Immediate8 {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
-    (format!("${:02x}", disasm.next_u8())).into_cow()
+    (format!("${:02x}", disasm.next_u8())).into()
   }
 }
 
 impl ToDisasmStr for Addr {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
     match *self {
-      Addr::BC => "(BC)".into_cow(), Addr::DE => "(DE)".into_cow(),
-      Addr::HL => "(HL)".into_cow(),
-      Addr::HLD => "(HL-)".into_cow(), Addr::HLI => "(HL+)".into_cow(),
-      Addr::ZeroPageC => "($FF00+C)".into_cow(),
-      Addr::Direct => (format!("(${:04x})", disasm.next_u16())).into_cow(),
-      Addr::ZeroPage => (format!("($FF00+${:02x})", disasm.next_u8())).into_cow()
+      Addr::BC => "(BC)".into(), Addr::DE => "(DE)".into(),
+      Addr::HL => "(HL)".into(),
+      Addr::HLD => "(HL-)".into(), Addr::HLI => "(HL+)".into(),
+      Addr::ZeroPageC => "($FF00+C)".into(),
+      Addr::Direct => (format!("(${:04x})", disasm.next_u16())).into(),
+      Addr::ZeroPage => (format!("($FF00+${:02x})", disasm.next_u8())).into()
     }
   }
 }
 
 impl ToDisasmStr for Immediate16 {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
-    (format!("${:04x}", disasm.next_u16())).into_cow()
+    (format!("${:04x}", disasm.next_u16())).into()
   }
 }
 impl ToDisasmStr for Direct16 {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
-    (format!("(${:04x})", disasm.next_u16())).into_cow()
+    (format!("(${:04x})", disasm.next_u16())).into()
   }
 }
 
@@ -66,17 +66,17 @@ impl ToDisasmStr for PcOffset {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
     let offset = disasm.next_u8() as i8;
     let addr = (disasm.pc as i16 + offset as i16) as u16;
-    (format!("${:04x}", addr)).into_cow()
+    (format!("${:04x}", addr)).into()
   }
 }
 
 impl<'a> Disasm<'a> {
-  fn null_op(&mut self, op: &'static str) -> DisasmStr { op.into_cow() }
+  fn null_op(&mut self, op: &'static str) -> DisasmStr { op.into() }
   fn unary_op<A: ToDisasmStr>(&mut self, op: &'static str, arg: A) -> DisasmStr {
-    (format!("{} {}", op, arg.to_disasm_str(self))).into_cow()
+    (format!("{} {}", op, arg.to_disasm_str(self))).into()
   }
   fn binary_op<A: ToDisasmStr, B: ToDisasmStr>(&mut self, op: &'static str, arg1: A, arg2: B) -> DisasmStr {
-    (format!("{} {}, {}", op, arg1.to_disasm_str(self), arg2.to_disasm_str(self))).into_cow()
+    (format!("{} {}, {}", op, arg1.to_disasm_str(self), arg2.to_disasm_str(self))).into()
   }
 }
 
@@ -127,7 +127,7 @@ impl<'a> CpuOps<DisasmStr> for Disasm<'a> {
   fn call_cc(&mut self, cond: Cond) -> DisasmStr { self.binary_op("CALL", cond, Immediate16) }
   fn  ret_cc(&mut self, cond: Cond) -> DisasmStr { self.unary_op(  "RET", cond) }
   fn     rst(&mut self, addr: u8) -> DisasmStr {
-    (format!("RST, ${:02x}", addr)).into_cow()
+    (format!("RST, ${:02x}", addr)).into()
   }
   // --- Miscellaneous
   fn halt(&mut self) -> DisasmStr { self.null_op("HALT") }
@@ -145,7 +145,7 @@ impl<'a> CpuOps<DisasmStr> for Disasm<'a> {
   fn load16_sp_hl(&mut self) -> DisasmStr { self.null_op("LD SP, HL") }
   fn load16_hl_sp_e(&mut self) -> DisasmStr {
     let offset = self.next_u8() as i8;
-    (format!("LD HL, SP{:+2x}", offset)).into_cow()
+    (format!("LD HL, SP{:+2x}", offset)).into()
   }
   // 16-bit arithmetic
   fn push16(&mut self, reg: Reg16) -> DisasmStr { self.unary_op("PUSH", reg) }
@@ -153,13 +153,13 @@ impl<'a> CpuOps<DisasmStr> for Disasm<'a> {
   fn  add16(&mut self, reg: Reg16) -> DisasmStr { self.binary_op("ADD", "HL", reg) }
   fn add16_sp_e(&mut self) -> DisasmStr {
     let offset = self.next_u8() as i8;
-    (format!("ADD SP, ${:02x}", offset)).into_cow()
+    (format!("ADD SP, ${:02x}", offset)).into()
   }
   fn inc16(&mut self, reg: Reg16) -> DisasmStr { self.unary_op("INC", reg) }
   fn dec16(&mut self, reg: Reg16) -> DisasmStr { self.unary_op("DEC", reg) }
   // --- Undefined
   fn undefined(&mut self, op: u8) -> DisasmStr {
-    (format!("${:02x} ??", op)).into_cow()
+    (format!("${:02x} ??", op)).into()
   }
   fn undefined_debug(&mut self) -> DisasmStr { self.null_op("DBG") }
 }
