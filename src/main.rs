@@ -1,12 +1,9 @@
-#![feature(collections, core, custom_attribute, exit_status, into_cow, negate_unsigned, path_ext, plugin, std_misc, step_by)]
-
 #![cfg_attr(test, feature(test))]
 #![cfg_attr(test, plugin(quickcheck_macros))]
 
 #[macro_use]
 extern crate bitflags;
 extern crate clock_ticks;
-extern crate collections;
 extern crate getopts;
 extern crate num;
 extern crate sdl2;
