@@ -19,7 +19,7 @@ extern crate test;
 extern crate quickcheck;
 
 use std::env;
-use std::fs::PathExt;
+use std::fs;
 use std::thread;
 use time::Duration;
 
@@ -62,7 +62,7 @@ fn prepare_emulator() -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
 
   let bootrom_default = home_dir.and_then(|home| {
     let path = home.join("boot.bin");
-    if path.exists() { Some(path) } else { None }
+    if fs::metadata(&path).is_ok() { Some(path) } else { None }
   });
 
   let mut benchmark_duration = None;

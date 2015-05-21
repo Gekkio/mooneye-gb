@@ -21,7 +21,7 @@ impl CmdLine {
     opts.optopt("e", "benchmark", "run a benchmark", "seconds");
     opts.optflag("h", "help", "print help");
 
-    let matches = try!(opts.parse(args.tail()));
+    let matches = try!(opts.parse(&args[1..]));
     if matches.opt_present("h") {
       let short = opts.short_usage(&program);
       let brief = format!("{} CARTRIDGE_FILE", short);
