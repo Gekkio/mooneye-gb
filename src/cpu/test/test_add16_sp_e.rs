@@ -1,3 +1,5 @@
+use quickcheck::quickcheck;
+
 use cpu::registers::{
   Flags, Reg16, HALF_CARRY, CARRY
 };
@@ -16,9 +18,10 @@ fn test_add16_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool
     check_flags(cpu.regs.f)
 }
 
-#[quickcheck]
-fn test_e8(sp: u16, e: i8) -> bool {
-  test_add16_sp_e(sp, e, |_| true)
+#[test]
+fn test_e8() {
+  fn prop(sp: u16, e: i8) -> bool { test_add16_sp_e(sp, e, |_| true) }
+  quickcheck(prop as fn(u16, i8) -> bool);
 }
 
 #[test]

@@ -86,9 +86,15 @@ fn test_isolate_rightmost_one<T: IntExt>(x: T) -> bool {
 }
 
 #[cfg(test)]
-#[quickcheck]
-fn test_u8_isolate_rightmost_one(x: u8) -> bool { test_isolate_rightmost_one(x) }
+#[test]
+fn test_u8_isolate_rightmost_one() {
+  fn prop(x: u8) -> bool { test_isolate_rightmost_one(x) }
+  quickcheck(prop as fn(u8) -> bool);
+}
 
 #[cfg(test)]
-#[quickcheck]
-fn test_u16_isolate_rightmost_one(x: u16) -> bool { test_isolate_rightmost_one(x) }
+#[test]
+fn test_u16_isolate_rightmost_one() {
+  fn prop(x: u16) -> bool { test_isolate_rightmost_one(x) }
+  quickcheck(prop as fn(u16) -> bool);
+}
