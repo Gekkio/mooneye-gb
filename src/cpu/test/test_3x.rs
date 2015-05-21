@@ -17,7 +17,7 @@ fn test_30() {
 #[test]
 fn test_30_negative() {
   let cpu = run_test(
-    &[0x00, 0xed, 0x30, -3 as u8], // JR NC, e
+    &[0x00, 0xed, 0x30, -3i8 as u8], // JR NC, e
     |cpu| {
       cpu.regs.pc = 0x02;
     }
@@ -178,7 +178,7 @@ fn test_38() {
 #[test]
 fn test_38_negative() {
   let cpu = run_test(
-    &[0x00, 0xed, 0x38, -3 as u8], // JR C, e
+    &[0x00, 0xed, 0x38, -3i8 as u8], // JR C, e
     |cpu| {
       cpu.regs.f = CARRY;
       cpu.regs.pc = 0x02;
