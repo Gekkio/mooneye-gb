@@ -7,7 +7,7 @@ use sdl2::keycode::KeyCode;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect;
 use sdl2::render;
-use sdl2::render::{RenderDriverIndex, Renderer, Texture};
+use sdl2::render::{Renderer, Texture};
 use sdl2::video;
 use sdl2::video::{Window, WindowPos};
 use std::convert::From;
@@ -153,7 +153,7 @@ const SCREEN_RECT: rect::Rect = rect::Rect {
 
 impl SdlBackend {
   pub fn init() -> BackendResult<SdlBackend> {
-    let sdl = try!(sdl2::init(sdl2::INIT_VIDEO | sdl2::INIT_GAME_CONTROLLER));
+    let sdl = try!(sdl2::init().video().game_controller().build());
     Ok(SdlBackend {
       sdl: sdl,
       fps_counter: FpsCounter::new(),
@@ -241,9 +241,9 @@ impl Backend for SdlBackend {
   type Error = BackendError;
   fn main_loop(mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) -> BackendResult<()> {
     let window =
-      try!(Window::new(&self.sdl, "Mooneye GB", WindowPos::PosUndefined, WindowPos::PosUndefined, 640, 576, video::OPENGL));
+      try!(self.sdl.window("Mooneye GB", 640, 576).build());
     let mut renderer =
-      try!(Renderer::from_window(window, RenderDriverIndex::Auto, render::ACCELERATED | render::PRESENTVSYNC));
+      try!(window.renderer().accelerated().present_vsync().build());
     {
       let mut drawer = renderer.drawer();
       drawer.clear();
