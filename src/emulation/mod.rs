@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::Formatter;
 use std::ops::{Add, Sub};
-use std::time::duration::Duration;
+use time::Duration;
 
 use gameboy;
 pub use self::time::EmuTime;

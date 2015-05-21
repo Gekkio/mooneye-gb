@@ -2,7 +2,7 @@ use clock_ticks::precise_time_ns;
 use std::env;
 use std::thread;
 use std::path::PathBuf;
-use std::time::duration::Duration;
+use time::Duration;
 
 use backend;
 use backend::{Backend, BackendMessage, BackendSharedMemory};

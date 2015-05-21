@@ -1,7 +1,7 @@
 use clock_ticks::precise_time_ns;
 use std::fmt;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
-use std::time::duration::Duration;
+use time::Duration;
 
 use backend::{
   BackendSharedMemory, BackendMessage

@@ -11,6 +11,7 @@ extern crate getopts;
 extern crate num;
 extern crate sdl2;
 extern crate snooze;
+extern crate time;
 
 #[cfg(test)]
 extern crate test;
@@ -20,7 +21,7 @@ extern crate quickcheck;
 use std::env;
 use std::fs::PathExt;
 use std::thread;
-use std::time::duration::Duration;
+use time::Duration;
 
 use backend::Backend;
 use cmdline::CmdLine;
