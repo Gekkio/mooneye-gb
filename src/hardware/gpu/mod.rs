@@ -443,7 +443,7 @@ impl<'a> Gpu<'a> {
         let data1 = tile.data[(line as u16) as usize];
         let data2 = tile.data[(line as u16 + 1) as usize];
 
-        let bit = (x % 8).wrapping_sub(7).wrapping_mul(-1) as usize;
+        let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
         let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
@@ -475,7 +475,7 @@ impl<'a> Gpu<'a> {
         let data1 = tile.data[(line as u16) as usize];
         let data2 = tile.data[(line as u16 + 1) as usize];
 
-        let bit = (x % 8).wrapping_sub(7).wrapping_mul(-1) as usize;
+        let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
         let color = self.bg_palette.get(&Color::from_u8(color_value));
         pixels[i] = color;
