@@ -1,5 +1,3 @@
-use std::iter;
-
 use cpu::Cpu;
 use emulation::EmuTime;
 use hardware::Bus;
@@ -42,13 +40,13 @@ impl TestHardware {
 }
 
 impl<'a> Bus for TestHardware {
-  fn write(&mut self, time: EmuTime, addr: u16, value: u8) {
+  fn write(&mut self, _: EmuTime, addr: u16, value: u8) {
     self.memory[addr as usize] = value;
   }
-  fn read(&self, time: EmuTime, addr: u16) -> u8 {
+  fn read(&self, _: EmuTime, addr: u16) -> u8 {
     self.memory[addr as usize]
   }
-  fn emulate(&mut self, time: EmuTime) {}
+  fn emulate(&mut self, _: EmuTime) {}
   fn rewind_time(&mut self) {}
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
   fn has_interrupt(&self) -> bool { false }

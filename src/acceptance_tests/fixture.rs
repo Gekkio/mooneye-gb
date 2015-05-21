@@ -56,7 +56,7 @@ pub fn run_acceptance_test(name: &str) {
     }
   }
   backend_tx.send(BackendMessage::Quit).unwrap();
-  emulation_thread.join();
+  emulation_thread.join().unwrap();
   match registers {
     None => panic!("Test did not finish"),
     Some(regs) => {

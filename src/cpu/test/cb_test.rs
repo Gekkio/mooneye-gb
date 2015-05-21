@@ -1,6 +1,5 @@
 use cpu::registers::{
-  Flags,
-  ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
+  ZERO, HALF_CARRY
 };
 use cpu::test::run_test;
 
