@@ -1,3 +1,4 @@
+use podio::ReadPodExt;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::fs::File;
@@ -6,14 +7,13 @@ use std::path::Path;
 use std::str;
 
 use gameboy::{
-  BootromData,
-  BOOTROM_EMPTY, BOOTROM_SIZE,
+  BOOTROM_SIZE,
   ROM_BANK_SIZE
 };
 use util::program_result::ProgramResult;
 
 pub struct HardwareConfig {
-  pub bootrom: Option<BootromData>,
+  pub bootrom: Option<Vec<u8>>,
   pub cartridge: CartridgeConfig
 }
 
@@ -251,17 +251,9 @@ impl CartridgeConfig {
   }
 }
 
-pub fn read_bootrom(path: &Path) -> Result<BootromData, ProgramResult> {
+pub fn read_bootrom(path: &Path) -> Result<Vec<u8>, ProgramResult> {
   let mut file = try!(File::open(path));
-  let mut bootrom_data = BOOTROM_EMPTY;
-
-  let mut buffer = vec!();
-
-  try!(file.read_to_end(&mut buffer));
-
-  bootrom_data.move_from(buffer, 0, BOOTROM_SIZE);
-
-  return Ok(bootrom_data);
+  Ok(try!(file.read_exact(BOOTROM_SIZE)))
 }
 
 pub fn create_hardware_config(bootrom_path: Option<&Path>, cartridge_path: &Path) -> Result<HardwareConfig, ProgramResult> {

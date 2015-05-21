@@ -6,6 +6,7 @@ extern crate bitflags;
 extern crate clock_ticks;
 extern crate getopts;
 extern crate num;
+extern crate podio;
 extern crate sdl2;
 extern crate snooze;
 extern crate time;

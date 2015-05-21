@@ -1,4 +1,3 @@
-pub type BootromData = [u8; BOOTROM_SIZE];
 pub type HiramData = [u8; HIRAM_SIZE];
 pub type ScreenBuffer = [Color; SCREEN_PIXELS];
 pub type WramBank = [u8; WRAM_BANK_SIZE];
@@ -24,7 +23,6 @@ impl Color {
 }
 
 pub const BOOTROM_SIZE: usize = 0x100;
-pub const BOOTROM_EMPTY: BootromData = [0; BOOTROM_SIZE];
 pub const CPU_SPEED_HZ: usize = 4_194_304;
 pub const HIRAM_SIZE: usize = 0x80;
 pub const HIRAM_EMPTY: HiramData = [0; HIRAM_SIZE];

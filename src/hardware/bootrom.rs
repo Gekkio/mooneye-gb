@@ -1,23 +1,23 @@
 use std::ops::Index;
 
-use gameboy::{BootromData, BOOTROM_EMPTY};
+use gameboy::BOOTROM_SIZE;
 
 pub struct Bootrom {
-  data: BootromData,
+  data: Vec<u8>,
   installed: bool,
   active: bool
 }
 
 impl Bootrom {
-  pub fn new(config: Option<BootromData>) -> Bootrom {
-    let data = match config {
-      Some(config_data) => config_data,
-      None => BOOTROM_EMPTY
+  pub fn new(config: Option<Vec<u8>>) -> Bootrom {
+    let (installed, data) = match config {
+      Some(config_data) => (true, config_data),
+      None => (false, vec![])
     };
 
     Bootrom {
       data: data,
-      installed: config.is_some(),
+      installed: installed,
       active: false
     }
   }
