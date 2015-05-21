@@ -46,18 +46,14 @@ pub fn run_acceptance_test(name: &str) {
     if Duration::nanoseconds((time - start_time) as i64) > max_duration {
       break;
     }
-    select!(
-      machine_event = machine_rx.recv() => {
-        match machine_event {
-          Err(_) => break,
-          Ok(MachineMessage::Debug(regs)) => {
-            registers = Some(regs);
-            break
-          },
-          _ => ()
-        }
-      }
-    )
+    match machine_rx.recv() {
+      Err(_) => break,
+      Ok(MachineMessage::Debug(regs)) => {
+        registers = Some(regs);
+        break
+      },
+      _ => ()
+    }
   }
   backend_tx.send(BackendMessage::Quit).unwrap();
   emulation_thread.join();
