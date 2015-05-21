@@ -1,5 +1,3 @@
-use std::char;
-
 pub struct Serial {
   data: u8,
   control: Control

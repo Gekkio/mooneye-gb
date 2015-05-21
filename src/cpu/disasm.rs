@@ -1,4 +1,4 @@
-use std::borrow::{Cow, IntoCow};
+use std::borrow::Cow;
 use std::fmt::Debug;
 
 use cpu::{

@@ -1,6 +1,5 @@
 use getopts::Fail;
 use std::convert::From;
-use std::env;
 use std::io;
 use std::io::{Write, stderr};
 use std::process;

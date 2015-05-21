@@ -1,7 +1,5 @@
 use std::ops::Index;
 
-use gameboy::BOOTROM_SIZE;
-
 pub struct Bootrom {
   data: Vec<u8>,
   installed: bool,

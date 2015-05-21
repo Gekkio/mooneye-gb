@@ -2,7 +2,6 @@ use std::iter;
 
 use config::{
   CartridgeConfig,
-  CartridgeRamSize,
   CartridgeType
 };
 use gameboy::{
