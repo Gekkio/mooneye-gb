@@ -15,7 +15,6 @@ use std::error::Error;
 use std::iter;
 use std::fmt;
 use std::fmt::Display;
-use std::slice::bytes;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError};
 
@@ -94,7 +93,11 @@ impl BackendSharedMemory for SharedMemory {
       let out_slice = &mut data[out_start .. out_end];
 
       for (pixel, gb_color) in out_slice.chunks_mut(4).zip(in_slice.iter()) {
-        bytes::copy_memory(palette.get_bytes(gb_color), pixel);
+        let color = palette.get_bytes(gb_color);
+        pixel[0] = color[0];
+        pixel[1] = color[1];
+        pixel[2] = color[2];
+        pixel[3] = color[3];
       }
     }
   }
