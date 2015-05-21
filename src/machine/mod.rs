@@ -131,24 +131,24 @@ impl<'a> Machine<'a> {
               let value = self.perf_counter.get_relative_speed();
               to_backend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
             }
-            select!(
-              backend_event = from_backend.recv() => {
-                match backend_event {
-                  Err(_) => return,
-                  Ok(BackendMessage::Quit) => return,
-                  Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
-                  Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
-                  Ok(BackendMessage::Turbo(true)) => { self.mode = EmulationMode::MaxSpeed; break },
-                  Ok(BackendMessage::Break) => { self.mode = EmulationMode::Debug; break },
-                  _ => ()
-                }
-              },
-              _ = pulse.recv() => {
+            match from_backend.try_recv() {
+              Err(TryRecvError::Empty) => (),
+              Err(_) => return,
+              Ok(BackendMessage::Quit) => return,
+              Ok(BackendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
+              Ok(BackendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
+              Ok(BackendMessage::Turbo(true)) => { self.mode = EmulationMode::MaxSpeed; break },
+              Ok(BackendMessage::Break) => { self.mode = EmulationMode::Debug; break },
+              Ok(_) => ()
+            }
+            match pulse.recv() {
+              Ok(_) => {
                 if !self.emulate(&to_backend) {
                   break;
                 }
-              }
-            )
+              },
+              _ => return
+            }
           }
         },
         EmulationMode::MaxSpeed => {
