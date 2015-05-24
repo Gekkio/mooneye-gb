@@ -1,4 +1,4 @@
-TESTS := acceptance manual-only
+TESTS := acceptance emulator-only manual-only
 
 all:
 	@$(foreach TEST, $(TESTS), $(MAKE) -C $(TEST) --no-print-directory; )
