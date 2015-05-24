@@ -4,7 +4,7 @@
 ; M = 2: memory access for high byte
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   ld hl, DIV
 
@@ -72,4 +72,4 @@ test_finish:
   assert_c $01
   assert_d $00
   assert_e $01
-  jp print_results
+  jp process_results

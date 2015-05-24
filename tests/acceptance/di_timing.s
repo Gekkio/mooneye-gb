@@ -4,7 +4,7 @@
 ; DI is expected to disable interrupts immediately
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
 .macro start_timer
   ei
@@ -40,8 +40,7 @@ test_round1:
   ; so we should see an interrupt 24 cycles after timer was started (= 24 nops)
   nops 24
   ; This DI should never get executed
-  di
-  test_failure
+  jp fail_round1
 
 test_round2:
   stop_timer
@@ -57,12 +56,13 @@ test_round2:
   nop
 
 test_finish:
-  save_results
-  jp print_results
+  test_ok
+
+fail_round1:
+  test_failure_string "FAIL: ROUND 1"
 
 fail_round2:
-  di
-  test_failure
+  test_failure_string "FAIL: ROUND 2"
 
 .org $50
   jp hl

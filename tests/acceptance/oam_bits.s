@@ -3,7 +3,7 @@
 ; writable and readable normally
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
   wait_vblank
@@ -18,28 +18,24 @@
   ld (hl), a
   ld a, (hl)
   cp $FF
-  jr nz, fail_1
+  jp nz, fail_1
 
 ; Write all 0s (= $00) and expect the same value back
   ld a, $00
   ld (hl), a
   ld a, (hl)
   cp $00
-  jr nz, fail_0
+  jp nz, fail_0
   
   inc hl
   dec b
   jr nz, -
 
 test_finish:
-  enable_lcd
   ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
-  save_results
-  jp print_results
+  test_ok
 
 fail_1:
-  enable_lcd
-  test_failure
+  test_failure_string "FAIL: ALL 1s"
 fail_0:
-  enable_lcd
-  test_failure
+  test_failure_string "FAIL: ALL 0s"

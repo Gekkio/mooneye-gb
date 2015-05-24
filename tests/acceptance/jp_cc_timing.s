@@ -5,7 +5,7 @@
 ; M = 3: internal delay
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
 
@@ -26,14 +26,19 @@
 
 test_finish:
   ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
-  save_results
-  jp print_results
+  test_ok
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first two bytes of JP cc, nn will be at $FDFE, so
 ; the high byte of nn is at the first byte of OAM during testing
 wram_test:
   jp c, $1a00
+
+fail_round1:
+  test_failure_string "FAIL: ROUND 1"
+
+fail_round2:
+  test_failure_string "FAIL: ROUND 2"
 
 ; $1F80 - $1FE0 will be copied to $FF80 - $FFE0
 .org $1f80
@@ -81,12 +86,10 @@ finish_round1:
 
 ; this will be copied to $FFDA
 .org $1fda
-fail_round2:
-  test_failure
+  jp fail_round2
 
 .org $1aca
-fail_round1:
-  test_failure
+  jp fail_round1
 
 .org $1ada
 finish_round2:

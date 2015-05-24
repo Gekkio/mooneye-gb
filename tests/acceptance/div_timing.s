@@ -6,7 +6,7 @@
 ; M = 1: memory access from (HL)
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   ld hl, DIV
 
@@ -53,4 +53,4 @@ test_finish:
   assert_b $00
   assert_c $00
   assert_d $01
-  jp print_results
+  jp process_results

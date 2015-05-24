@@ -2,7 +2,7 @@
 ; interrupt with a write to IE/IF.
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
   ld a, $08
@@ -23,7 +23,7 @@ test_finish:
   save_results
   assert_b $01
   assert_e $01
-  jp print_results
+  jp process_results
 
 .org $58
   inc e

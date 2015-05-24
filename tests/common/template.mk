@@ -6,7 +6,7 @@ BUILD_PATH := $(BASE_PATH)/build/$(notdir $(basename $(CURDIR)))
 
 all: $(addprefix $(BUILD_PATH)/, $(addsuffix .gb, $(basename $(wildcard *.s))))
 
-$(BUILD_PATH)/%.o: %.s ../common/common.i
+$(BUILD_PATH)/%.o: %.s ../common/*.s
 	@mkdir -p $(BUILD_PATH)
 	@$(WLA) -o $(WLAFLAGS) $< $@
 

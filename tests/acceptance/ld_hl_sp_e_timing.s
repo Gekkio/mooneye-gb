@@ -4,7 +4,7 @@
 ; M = 2: internal delay
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
 
@@ -32,7 +32,7 @@ test_finish:
   assert_c $FE
   assert_d $D0
   assert_e $3F
-  jp print_results
+  jp process_results
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first byte of LD HL, SP+e will be at $FDFF, so

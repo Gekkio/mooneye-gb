@@ -19,7 +19,7 @@
 ; and x=51 is equivalent to the nops 62 case
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   ld bc, DIV
 
@@ -36,31 +36,33 @@
   ld_ff_a IF, a
 .endm
 
+test_round1:
   ei
-  ld hl, test_round1
+  ld hl, finish_round1
 
   reset_div
   nops 50
   trigger_intr
 
   ; never executed
-  test_failure
+  test_failure_string "FAIL: ROUND 1"
 
-test_round1:
+finish_round1:
   ld a, (bc)
   ld d, a
 
+test_round2:
   ei
-  ld hl, test_round2
+  ld hl, finish_round2
 
   reset_div
   nops 51
   trigger_intr
 
   ; never executed
-  test_failure
+  test_failure_string "FAIL: ROUND 2"
 
-test_round2:
+finish_round2:
   ld a, (bc)
   ld e, a
 
@@ -71,7 +73,7 @@ test_finish:
   save_results
   assert_d $00
   assert_e $01
-  jp print_results
+  jp process_results
 
 .org $58
   jp hl

@@ -2,24 +2,18 @@
 .define CART_ROM_BANKS 4
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
 .macro request_bank ARGS bank
-  ld a, bank
-  ld ($2000), a
-  ld a, bank >> 5
-  ld ($4000), a
+  ld b, bank
+  ld c, bank >> 5
+  call switch_bank
 .endm
 
 .macro expect_value ARGS value
-  ld a, ($4000)
-  cp value
-  jr z, +
-  test_failure
-+ nop
+  ld d, value
+  call test_mbc
 .endm
-
-  di
 
   request_bank 0
   expect_value $01 ; MBC1 quirk
@@ -43,8 +37,22 @@
   request_bank 36
   expect_value $00 ; Wrap
 
-  save_results
-  call print_results
+  request_bank 1
+  test_ok
+
+switch_bank:
+  ld a, b
+  ld ($2000), a
+  ld a, c
+  ld ($4000), a
+  ret
+
+test_mbc:
+  ld a, ($4000)
+  cp d
+  ret z
+  request_bank 1
+  test_failure
 
 .bank 0
 .org $0000

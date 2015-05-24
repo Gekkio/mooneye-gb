@@ -1,7 +1,7 @@
 ; This tests the duration of OAM DMA
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
 
@@ -17,7 +17,7 @@ test_finish:
   save_results
   assert_c $FF
   assert_d $01
-  jp print_results
+  jp process_results
 
 hiram_test:
   ld hl, OAM

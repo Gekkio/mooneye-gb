@@ -7,7 +7,7 @@
 ; M = 5: PC push: memory access for low byte
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
 
@@ -30,7 +30,7 @@ test_finish:
   assert_e $B9
   assert_h $FF
   assert_l $D6
-  jp print_results
+  jp process_results
 
 hiram_test:
   ld sp, OAM+$20

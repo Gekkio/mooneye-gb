@@ -5,34 +5,32 @@
 ; M = 3: internal delay
 
 .incdir "../common"
-.include "common.i"
-
-  di
+.include "common.s"
 
   wait_vblank
+
+  ; also first byte of wram_test to OAM
+  ld a, (wram_test)
+  ld (OAM - 1), a
   ; copy rest of wram_test to VRAM
   ld hl, VRAM
   ld de, (wram_test + 1)
   ld bc, $10
   call memcpy
 
-  ; also copy wram_test to OAM
-  ld hl, OAM - 1
-  ld de, wram_test
-  ld bc, $10
-  call memcpy
-
-  ld sp, $CFFF
+  ld sp, $FFFE
   run_hiram_test
 
 test_finish:
   ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
-  assert_b $CF
-  assert_c $FE
-  assert_d $D0
-  assert_e $41
-  jp print_results
+  ; Round 1 result
+  assert_b $FF
+  assert_c $FD
+  ; Round 2 result
+  assert_d $00
+  assert_e $40
+  jp process_results
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first byte of ADD SP, e will be at $FDFF, so
@@ -42,32 +40,45 @@ wram_test:
   add sp, $42
   ; save result to temporary storage
   ld hl, sp+$00
-  ld sp, $CFFF
-  push hl
+  ld a, h
+  ld (result_tmp), a
+  ld a, l
+  ld (result_tmp+1), a
   ; set HL = DE
-  push de
-  pop hl
+  ld h, d
+  ld l, e
   jp hl
 
 hiram_test:
+
+; the memory read of ADD SP, e is aligned to happen exactly one cycle
+; before the OAM DMA end, so e = $FF = -1
+; So, we should actually execute the instruction ADD SP, -1
+; and as a result SP = $FFFE - 1 = $FFFD
+test_round1:
   ld b, 38
   start_oam_dma $80
 - dec b
   jr nz, -
   nops 1
-  ; set hl to address of finish_round1 in hiram
+  ; set DE to address of finish_round1 in hiram
   ld de, $FF80 + (finish_round1 - hiram_test)
   ld hl, OAM - 1
   jp hl
-  ; the memory read of ADD SP, e is aligned to happen exactly one cycle
-  ; before the OAM DMA end, so e = $FF = -1
 
 finish_round1:
-  pop bc
-  ld sp, $CF80
-  push bc
-  ld sp, $CFFF
+  ld a, (result_tmp)
+  ld (result_round1), a
+  ld a, (result_tmp + 1)
+  ld (result_round1 + 1), a
 
+  ld sp, $FFFE
+
+; the memory read of ADD SP, e is aligned to happen exactly when the
+; OAM DMA ends, so e = $42 = $42
+; So, we should see execution of instruction ADD SP, $42
+; and as a result SP = $FFFE + $42 = $0040
+test_round2:
   ld b, 38
   start_oam_dma $80
 - dec b
@@ -77,11 +88,23 @@ finish_round1:
   ld de, $FF80 + (finish_round2 - hiram_test)
   ld hl, OAM - 1
   jp hl
-  ; the memory read of ADD SP, e is aligned to happen exactly one cycle
-  ; before the OAM DMA end, so e = $42 = 42
 
 finish_round2:
-  pop de
-  ld sp, $CF80 - 2
-  pop bc
+  ; Round 1 result -> BC
+  ld a, (result_round1)
+  ld b, a
+  ld a, (result_round1 + 1)
+  ld c, a
+
+  ; Round 2 result -> DE
+  ld a, (result_tmp)
+  ld d, a
+  ld a, (result_tmp + 1)
+  ld e, a
+
   jp test_finish
+
+.ramsection "Test-State" slot 2
+  result_tmp dw
+  result_round1 dw
+.ends

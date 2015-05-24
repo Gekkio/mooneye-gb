@@ -5,7 +5,7 @@
 ; M = 3: memory access for low byte
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
 
@@ -26,7 +26,7 @@ test_finish:
   assert_l $24
   assert_d $81
   assert_e $24
-  jp print_results
+  jp process_results
 
 hiram_test:
   ld sp, OAM+$10

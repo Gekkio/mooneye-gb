@@ -4,7 +4,7 @@
 ; triggered
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
 .macro reset
   ld a, $08
@@ -56,7 +56,7 @@ test_finish:
   assert_c $00
   assert_d $01
   assert_e $01
-  jp print_results
+  jp process_results
 
 .org $58
   inc e

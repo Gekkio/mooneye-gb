@@ -4,7 +4,7 @@
 ; triggered
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   ; Make sure IE, IF, and E are all $00
   di
@@ -48,7 +48,7 @@ test_finish:
   assert_c $E8
   assert_d $01
   assert_e $E0
-  jp print_results
+  jp process_results
 
 .org $58
   inc e

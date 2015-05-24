@@ -1,7 +1,7 @@
 ; This tests RETI instruction interrupt enable timing
 
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
   ld a, $09 ; Enable both vblank and serial interrupts (handlers at $40, $58)
@@ -27,7 +27,7 @@ test_finish:
   assert_b $01
   assert_d $01
   assert_e $01
-  jp print_results
+  jp process_results
 
 .org $40
   inc d

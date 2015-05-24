@@ -1,13 +1,14 @@
 ; *Manual test* for sprite priority
 ; See sprite_priority-expected.png for a reference image
+
 .incdir "../common"
-.include "common.i"
+.include "common.s"
 
   di
   wait_vblank
   disable_lcd
   call reset_screen
-  call load_font
+  call print_load_font
 
   ; OBP palette 0 should use only black
   ld a, $ff
