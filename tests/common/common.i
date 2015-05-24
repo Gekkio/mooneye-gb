@@ -9,12 +9,22 @@
   slot 4 start $A000 size $1000
 .endme
 
+.ifndef CART_TYPE
+  .define CART_TYPE 0
+.endif
+.ifndef CART_ROM_BANKS
+  .define CART_ROM_BANKS 2
+.endif
+.ifndef CART_RAM_SIZE
+  .define CART_RAM_SIZE 0
+.endif
+
 .rombanksize $4000
-.rombanks 2
+.rombanks CART_ROM_BANKS
 
 .emptyfill $FF
-.cartridgetype 0
-.ramsize 0
+.cartridgetype CART_TYPE
+.ramsize CART_RAM_SIZE
 .romdmg
 .name "mooneye-gb test"
 
