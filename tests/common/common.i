@@ -1,11 +1,12 @@
 ;
 
 .memorymap
-  defaultslot 0
-  slotsize $4000
-  slot 0 $0000
-  slot 1 $4000
-  slot 2 $C000
+  defaultslot 1
+  slot 0 start $0000 size $4000
+  slot 1 start $4000 size $4000
+  slot 2 start $C000 size $1000
+  slot 3 start $D000 size $1000
+  slot 4 start $A000 size $1000
 .endme
 
 .rombanksize $4000
@@ -17,8 +18,7 @@
 .romdmg
 .name "mooneye-gb test"
 
-.bank 0
-
+.bank 0 slot 0
 .org $100
   nop
   jp $150
@@ -448,5 +448,4 @@ font:
   ; http://opengameart.org/content/8x8-ascii-bitmap-font-with-c-source
   .incbin "font.bin"
 
-.bank 0
 .org $150
