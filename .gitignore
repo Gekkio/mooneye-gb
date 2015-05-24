@@ -2,6 +2,7 @@
 *.swp
 *.gb
 *.o
+*.link
 /roms
 /target
 /Cargo.lock

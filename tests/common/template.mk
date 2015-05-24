@@ -1,16 +1,26 @@
 WLA := wla-gb
 WLALINK := wlalink
 
-NAME := $(shell basename $(CURDIR))
+BASE_PATH := $(CURDIR)/..
+BUILD_PATH := $(BASE_PATH)/build/$(notdir $(basename $(CURDIR)))
 
-all: test.gb
+all: $(addprefix $(BUILD_PATH)/, $(addsuffix .gb, $(basename $(wildcard *.s))))
 
-test.o: test.s ../common/common.i
-	@$(WLA) -o $(WLAFLAGS) test.s test.o
+$(BUILD_PATH)/%.o: %.s ../common/common.i
+	@mkdir -p $(BUILD_PATH)
+	@$(WLA) -o $(WLAFLAGS) $< $@
 
-test.gb: test.o
-	@$(WLALINK) ../common/linkfile test.gb
-	@echo --- $(NAME)
+$(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
+	@mkdir -p $(BUILD_PATH)
+	@echo "[objects]\n$<" > $@
+
+$(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
+	@mkdir -p $(BUILD_PATH)
+	@$(WLALINK) $< $@
+	@echo --- $(notdir $(basename $@))
 
 clean:
-	@rm -f test.gb test.o
+	@rm -fr $(BUILD_PATH)
+
+.SECONDARY:
+.PHONY: clean all

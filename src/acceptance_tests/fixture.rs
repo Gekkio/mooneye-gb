@@ -20,7 +20,7 @@ impl BackendSharedMemory for AcceptanceSharedMemory {
 
 pub fn run_acceptance_test(name: &str) {
   let bootrom_path = env::home_dir().unwrap().join(".mooneye-gb").join("boot.bin");
-  let test_name = format!("tests/{}/test.gb", name);
+  let test_name = format!("tests/build/acceptance/{}.gb", name);
   let cartridge_path = PathBuf::from(&test_name);
   let hardware_config = config::create_hardware_config(Some(&bootrom_path), &cartridge_path).unwrap();
 
