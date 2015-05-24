@@ -9,6 +9,9 @@ use gameboy::{
 };
 use util::int::IntExt;
 
+#[cfg(all(test, not(feature = "acceptance_tests")))]
+mod test;
+
 enum Mbc {
   None, Mbc1, Mbc2, Mbc3
 }
@@ -64,7 +67,7 @@ impl Cartridge {
     self.rom[reladdr as usize]
   }
   pub fn read_rom_bankx(&self, reladdr: u16) -> u8 {
-    self.rom[self.rom_offset + reladdr as usize]
+    self.rom[self.rom_addr(reladdr)]
   }
   pub fn write_control(&mut self, reladdr: u16, value: u8) {
     match self.mbc {
@@ -75,7 +78,8 @@ impl Cartridge {
             self.ram_accessible = (value & 0x0f) == 0x0a;
           },
           0x20 ... 0x3f => {
-            self.rom_bank = (self.rom_bank & 0x60) | (value & 0x1f);
+            let value = if value & 0x1f == 0x00 { 0x01 } else { value & 0x1f };
+            self.rom_bank = (self.rom_bank & 0x60) | value;
             self.update_rom_offset();
           },
           0x40 ... 0x5f => {
@@ -149,15 +153,13 @@ impl Cartridge {
   fn ram_addr(&self, reladdr: u16) -> usize {
     (self.ram_offset + reladdr as usize) & (self.ram.len() - 1)
   }
+  fn rom_addr(&self, reladdr: u16) -> usize {
+    (self.rom_offset + reladdr as usize) & (self.rom.len() - 1)
+  }
   fn update_rom_offset(&mut self) {
     match self.mbc {
       Mbc::Mbc1 | Mbc::Mbc2 | Mbc::Mbc3 => {
-        let bank =
-          match self.rom_bank & (self.rom_banks as u8 - 1) { // ROM bank numbers wrap around
-            0x00 => 0x01,
-            bank => bank
-          };
-        self.rom_offset = ROM_BANK_SIZE * bank as usize;
+        self.rom_offset = ROM_BANK_SIZE * self.rom_bank as usize;
       },
       _ => ()
     }
