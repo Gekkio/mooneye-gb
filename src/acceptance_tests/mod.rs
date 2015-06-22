@@ -63,6 +63,15 @@ fn push_timing() { run_acceptance_test("acceptance/push_timing") }
 fn rapid_di_ei() { run_acceptance_test("acceptance/rapid_di_ei") }
 
 #[test]
+fn ret_timing() { run_acceptance_test("acceptance/ret_timing") }
+
+#[test]
+fn reti_timing() { run_acceptance_test("acceptance/reti_timing") }
+
+#[test]
+fn ret_cc_timing() { run_acceptance_test("acceptance/ret_cc_timing") }
+
+#[test]
 fn reti_intr_timing() { run_acceptance_test("acceptance/reti_intr_timing") }
 
 #[test]

@@ -21,24 +21,6 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 
 ### Do joypad interrupts depend on the select bits P14-P15, or do we get an interrupt whenever any key is pressed regardless of select bit state?
 
-### Some instructions take more cycles than just the memory accesses. At which point in the instruction execution do these extra cycles occur?
-
-These instructions cost more than the memory accesses and need to be investigated:
-
-* RET cc
-* RET
-* RETI
-
-These instructions have just internal delays and no memory accesses, so the
-timing does not matter as it is not observable:
-
-* LD SP, HL
-* ADD HL, rr
-* INC rr
-* DEC rr
-
-Most of these instructions involve writing a 16-bit register, which could explain the timing.
-
 ## Answered questions
 
 ### Does BIT b, (HL) take 12 or 16 T-cycles?
@@ -247,3 +229,15 @@ Gameboy has a limit of 10 sprites per scanline, so when drawing a scanline, you 
 
 Drawing order depends on both OAM position and X coordinate. Sprites with small X coordinates have priority over sprites with large X coordinates.
 So, in practice you draw the sprites in descending X order. If the X coordinate is the same for some sprites, you use the OAM position order (low position is drawn last).
+
+### Some instructions take more cycles than just the memory accesses. At which point in the instruction execution do these extra cycles occur?
+
+These instructions have just internal delays and no memory accesses, so the
+timing does not matter as it is not observable:
+
+* LD SP, HL
+* ADD HL, rr
+* INC rr
+* DEC rr
+
+These instructions involve writing a 16-bit register, which could explain the timing.

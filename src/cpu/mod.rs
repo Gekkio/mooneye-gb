@@ -726,11 +726,11 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn ret_cc(&mut self, cond: Cond) {
+    self.time.tick();
+    self.hardware.emulate(self.time);
     if cond.check(self.regs.f) {
       self.ctrl_ret();
     }
-    self.time.tick();
-    self.hardware.emulate(self.time);
   }
   /// RST n
   ///
