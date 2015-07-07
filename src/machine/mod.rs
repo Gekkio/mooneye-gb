@@ -1,5 +1,4 @@
 use clock_ticks::precise_time_ns;
-use std::fmt;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
 use time::Duration;
 
@@ -42,12 +41,6 @@ impl Channels {
   }
 }
 
-impl<'a> fmt::Debug for Machine<'a> {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{:?}", self.cpu)
-  }
-}
-
 /// Amount of cycles in each emulation pulse
 const PULSE_CYCLES: MachineCycles = MachineCycles(10484); // 10ms worth of cycles
 
@@ -87,7 +80,7 @@ impl<'a> Machine<'a> {
   fn debug_status(&mut self) {
     let pc = self.cpu.get_pc();
     let op = self.cpu.disasm_op();
-    println!("${:04x}: {:18} {:?}", pc, op, self);
+    println!("${:04x}: {:18} {}", pc, op, self.cpu);
   }
   pub fn main_benchmark(&mut self, channels: Channels, duration: Duration) {
     let from_backend = channels.from_backend;

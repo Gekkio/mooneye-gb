@@ -20,13 +20,13 @@ pub mod registers;
 mod test;
 
 pub struct Cpu<H: Bus> {
+  time: EmuTime,
   regs: Registers,
   ime: bool,
   ime_change: ImeChange,
   halt: bool,
   hiram: HiramData,
   hardware: H,
-  time: EmuTime,
   hit_debug: bool
 }
 
@@ -128,8 +128,8 @@ impl Addr {
         addr
       },
       Direct => cpu.next_u16(),
-      ZeroPage => 0xff00 as u16 | cpu.next_u8() as u16,
-      ZeroPageC => 0xff00 as u16 | cpu.regs.c as u16,
+      ZeroPage => 0xff00u16 | cpu.next_u8() as u16,
+      ZeroPageC => 0xff00u16 | cpu.regs.c as u16,
     }
   }
 }
@@ -171,9 +171,9 @@ impl Out8 for Reg8 {
 }
 
 
-impl<H> fmt::Debug for Cpu<H> where H: Bus {
+impl<H> fmt::Display for Cpu<H> where H: Bus {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{:?}", self.regs)
+    write!(f, "{}", self.regs)
   }
 }
 impl<H> Cpu<H> where H: Bus {
