@@ -68,3 +68,65 @@ The emulator is runnable on Android, but cross-compiling and packaging is a huge
 | Debug break  | Home      |
 | Debug step   | Page Down |
 | Debug run    | End       |
+
+## Accuracy comparison
+
+Versions used:
+
+* mooneye-gb (master)
+* BGB 1.5.1
+* Gambatte 2015-03-23 (f9fb003)
+* GiiBiiAdvance 2015-05-16 (dbf669a)
+* Higan 0.94
+
+### Blargg's tests
+
+| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan |
+| ----------------- | ---------- | ---- | -------- | ------------- | ----- |
+| cpu_instrs        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| dmg_sound-2       | :x:        | :+1: | :+1:     | :x:           | :x:   |
+| instr_timing      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| mem_timing-2      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| oam_bug-2         | :x:        | :x:  | :x:      | :x:           | :x:   |
+
+### Mooneye GB acceptance tests
+
+| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan |
+| ----------------- | ---------- | ---- | -------- | ------------- | ------|
+| add_sp_e_timing   | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| call_timing       | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| call_timing2      | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| call_cc_timing    | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| call_cc_timing2   | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| di_timing         | :+1:       | :x:  | :x:      | :x:           | :x:   |
+| div_timing        | :+1:       | :+1: | :+1:     | :+1:          | :x:   |
+| ei_timing         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| halt_ime1         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| if_ie_registers   | :+1:       | :+1: | :+1:     | :+1:          | :x:   |
+| intr_timing       | :+1:       | :+1: | :+1:     | :+1:          | :x:   |
+| jp_timing         | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| jp_cc_timing      | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| ld_hl_sp_e_timing | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| oam_bits          | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| oam_dma_restart   | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| oam_dma_timing    | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| pop_timing        | :+1:       | :x:  | :+1:     | :+1:          | :x:   |
+| push_timing       | :+1:       | :x:  | :x:      | :x:           | :x:   |
+| rapid_di_ei       | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| ret_timing        | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| ret_cc_timing     | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| reti_timing       | :+1:       | :x:  | :+1:     | :x:           | :x:   |
+| reti_intr_timing  | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
+| rst_timing        | :+1:       | :x:  | :x:      | :x:           | :x:   |
+
+### Mooneye GB emulator-only tests
+
+| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan |
+| ----------------- | ---------- | ---- | -------- | ------------- | ------|
+| mbc1_rom_4banks   | :+1:       | :x:  | :+1:     | :+1:          | :+1:  |
+
+### Mooneye GB manual tests
+
+| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan |
+| ----------------- | ---------- | ---- | -------- | ------------- | ------|
+| sprite_priority   | :+1:       | :+1: | :+1:     | :x:           | :+1:  |
