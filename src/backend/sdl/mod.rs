@@ -3,9 +3,9 @@ use sdl2;
 use sdl2::Sdl;
 use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event::Event;
-use sdl2::keycode::KeyCode;
+use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect;
+use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use std::convert::From;
 use std::error::Error;
@@ -144,13 +144,6 @@ static PALETTE: [Color; 4] =
     Color::RGBA(33,  32,  16,  255)
   ];
 
-const SCREEN_RECT: rect::Rect = rect::Rect {
-  x: 0,
-  y: 0,
-  w: gameboy::SCREEN_WIDTH as i32,
-  h: gameboy::SCREEN_HEIGHT as i32
-};
-
 impl SdlBackend {
   pub fn init() -> BackendResult<SdlBackend> {
     let sdl = try!(sdl2::init().video().game_controller().build());
@@ -162,42 +155,41 @@ impl SdlBackend {
     })
   }
   fn refresh_gb_screen(&self, renderer: &mut Renderer, texture: &mut Texture) -> BackendResult<()> {
+    let rect = Rect::new_unwrap(0, 0, gameboy::SCREEN_WIDTH as u32, gameboy::SCREEN_HEIGHT as u32);
     {
       let pixels = self.shared_memory.pixel_buffer_lock.lock().unwrap();
-      try!(texture.update(Some(SCREEN_RECT), &pixels, PIXEL_BUFFER_STRIDE as i32));
+      try!(texture.update(Some(rect), &pixels, PIXEL_BUFFER_STRIDE));
     }
-    let mut drawer = renderer.drawer();
-    drawer.clear();
-    drawer.set_logical_size(gameboy::SCREEN_WIDTH as i32, gameboy::SCREEN_HEIGHT as i32);
-    drawer.copy(&texture, Some(SCREEN_RECT), Some(SCREEN_RECT));
+    renderer.clear();
+    try!(renderer.set_logical_size(gameboy::SCREEN_WIDTH as u32, gameboy::SCREEN_HEIGHT as u32));
+    renderer.copy(&texture, Some(rect), Some(rect));
     Ok(())
   }
   fn present(&mut self, renderer: &mut Renderer, texture: &mut Texture, font: &Font) -> BackendResult<()> {
     try!(self.refresh_gb_screen(renderer, texture));
-    let mut drawer = renderer.drawer();
-    drawer.set_logical_size(gameboy::SCREEN_WIDTH as i32 * 4, gameboy::SCREEN_HEIGHT as i32 * 4);
+    try!(renderer.set_logical_size(gameboy::SCREEN_WIDTH as u32 * 4, gameboy::SCREEN_HEIGHT as u32 * 4));
 
     let speed_text = format!("{} %", self.relative_speed_stat.round());
-    try!(font.draw_text(&mut drawer, 0, 0, TextAlign::Left, &speed_text));
+    try!(font.draw_text(renderer, 0, 0, TextAlign::Left, &speed_text));
 
     let fps_text = format!("{} FPS", self.fps_counter.fps.round());
-    try!(font.draw_text(&mut drawer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, &fps_text));
-    drawer.present();
+    try!(font.draw_text(renderer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, &fps_text));
+    renderer.present();
     self.fps_counter.update();
     Ok(())
   }
 }
 
-fn to_joypad_key(key: KeyCode) -> Option<GbKey> {
+fn to_joypad_key(key: Keycode) -> Option<GbKey> {
   match key {
-    KeyCode::Right => Some(GbKey::Right),
-    KeyCode::Left => Some(GbKey::Left),
-    KeyCode::Up => Some(GbKey::Up),
-    KeyCode::Down => Some(GbKey::Down),
-    KeyCode::Z => Some(GbKey::A),
-    KeyCode::X => Some(GbKey::B),
-    KeyCode::Return => Some(GbKey::Start),
-    KeyCode::Backspace => Some(GbKey::Select),
+    Keycode::Right => Some(GbKey::Right),
+    Keycode::Left => Some(GbKey::Left),
+    Keycode::Up => Some(GbKey::Up),
+    Keycode::Down => Some(GbKey::Down),
+    Keycode::Z => Some(GbKey::A),
+    Keycode::X => Some(GbKey::B),
+    Keycode::Return => Some(GbKey::Start),
+    Keycode::Backspace => Some(GbKey::Select),
     _ => None
   }
 }
@@ -244,11 +236,8 @@ impl Backend for SdlBackend {
       try!(self.sdl.window("Mooneye GB", 640, 576).build());
     let mut renderer =
       try!(window.renderer().accelerated().present_vsync().build());
-    {
-      let mut drawer = renderer.drawer();
-      drawer.clear();
-      drawer.present();
-    }
+    renderer.clear();
+    renderer.present();
 
     let mut controllers = vec!();
 
@@ -266,27 +255,27 @@ impl Backend for SdlBackend {
       for event in self.sdl.event_pump().poll_iter() {
         match event {
           Event::Quit{..} => break 'main,
-          Event::KeyDown{keycode, ..} if keycode == KeyCode::Escape => break 'main,
-          Event::KeyDown{keycode, ..} => {
+          Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
+          Event::KeyDown{keycode: Some(keycode), ..} => {
             match to_joypad_key(keycode) {
               Some(key) => to_machine.send(BackendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
             match keycode {
-              KeyCode::Home => to_machine.send(BackendMessage::Break).unwrap(),
-              KeyCode::End => to_machine.send(BackendMessage::Run).unwrap(),
-              KeyCode::PageDown => to_machine.send(BackendMessage::Step).unwrap(),
-              KeyCode::LShift => to_machine.send(BackendMessage::Turbo(true)).unwrap(),
+              Keycode::Home => to_machine.send(BackendMessage::Break).unwrap(),
+              Keycode::End => to_machine.send(BackendMessage::Run).unwrap(),
+              Keycode::PageDown => to_machine.send(BackendMessage::Step).unwrap(),
+              Keycode::LShift => to_machine.send(BackendMessage::Turbo(true)).unwrap(),
               _ => ()
             }
           },
-          Event::KeyUp{keycode, ..} => {
+          Event::KeyUp{keycode: Some(keycode), ..} => {
             match to_joypad_key(keycode) {
               Some(key) => to_machine.send(BackendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
             match keycode {
-              KeyCode::LShift => to_machine.send(BackendMessage::Turbo(false)).unwrap(),
+              Keycode::LShift => to_machine.send(BackendMessage::Turbo(false)).unwrap(),
               _ => ()
             }
           },

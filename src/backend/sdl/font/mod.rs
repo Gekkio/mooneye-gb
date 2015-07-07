@@ -1,6 +1,6 @@
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
-use sdl2::render::{BlendMode, Renderer, RenderDrawer, Texture, TextureAccess};
+use sdl2::render::{BlendMode, Renderer, Texture, TextureAccess};
 use std::collections::BTreeMap;
 
 use super::BackendResult;
@@ -12,8 +12,8 @@ use super::BackendResult;
 /// *  Force offsets to zero
 mod inconsolata_20;
 
-const CHAR_WIDTH: i32 = 12;
-const CHAR_HEIGHT: i32 = 22;
+const CHAR_WIDTH: u32 = 12;
+const CHAR_HEIGHT: u32 = 22;
 
 pub enum TextAlign {
   Left,
@@ -51,37 +51,27 @@ impl Font {
       offsets: offsets
     })
   }
-  pub fn draw_char(&self, drawer: &mut RenderDrawer, ch: char, dst_x: i32, dst_y: i32) -> BackendResult<()> {
+  pub fn draw_char(&self, renderer: &mut Renderer, ch: char, dst_x: i32, dst_y: i32) -> BackendResult<()> {
     let value = ch as u32;
     match self.offsets.get(&value) {
       Some(&(x, y)) => {
-        let src_rect = Rect {
-          x: x,
-          y: y,
-          w: CHAR_WIDTH,
-          h: CHAR_HEIGHT
-        };
-        let dst_rect = Rect {
-          x: dst_x as i32,
-          y: dst_y as i32,
-          w: CHAR_WIDTH,
-          h: CHAR_HEIGHT
-        };
-        drawer.copy(&self.outline, Some(src_rect), Some(dst_rect));
-        drawer.copy(&self.glyph, Some(src_rect), Some(dst_rect));
+        let src_rect = try!(Rect::new(x, y, CHAR_WIDTH, CHAR_HEIGHT));
+        let dst_rect = try!(Rect::new(dst_x, dst_y, CHAR_WIDTH, CHAR_HEIGHT));
+        renderer.copy(&self.outline, src_rect, dst_rect);
+        renderer.copy(&self.glyph, src_rect, dst_rect);
       }
       _ => (),
     }
     Ok(())
   }
-  pub fn draw_text(&self, drawer: &mut RenderDrawer, x: i32, y: i32, alignment: TextAlign, text: &str) -> BackendResult<()> {
+  pub fn draw_text(&self, renderer: &mut Renderer, x: i32, y: i32, alignment: TextAlign, text: &str) -> BackendResult<()> {
     let final_x =
       match alignment {
         TextAlign::Left => x,
-        TextAlign::Right => x - text.len() as i32 * CHAR_WIDTH
+        TextAlign::Right => x - text.len() as i32 * CHAR_WIDTH as i32
       };
     for (i, ch) in text.chars().enumerate() {
-      try!(self.draw_char(drawer, ch, (final_x + CHAR_WIDTH * i as i32), y));
+      try!(self.draw_char(renderer, ch, (final_x + CHAR_WIDTH as i32 * i as i32), y));
     }
     Ok(())
   }
