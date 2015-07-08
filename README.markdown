@@ -98,7 +98,7 @@ Versions used:
 | call_timing2      | :+1:       | :x:  | :+1:     | :x:           | :x:   |
 | call_cc_timing    | :+1:       | :x:  | :+1:     | :x:           | :x:   |
 | call_cc_timing2   | :+1:       | :x:  | :+1:     | :x:           | :x:   |
-| di_timing         | :+1:       | :x:  | :x:      | :x:           | :x:   |
+| di_timing         | :+1:       | :+1: | :+1:     | :x:           | :x:   |
 | div_timing        | :+1:       | :+1: | :+1:     | :+1:          | :x:   |
 | ei_timing         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |
 | halt_ime1         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  |

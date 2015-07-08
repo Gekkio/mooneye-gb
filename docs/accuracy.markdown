@@ -30,9 +30,15 @@ If we assume that $FFFF is not readable by the CPU during OAM DMA, this would me
 Blargg's instruction timing ROM confirms that BIT takes 12, and RES/SET take 16 T-cycles, which makes perfect sense.
 Some opcode listings in the internet (e.g. GBCPUman.pdf) are wrong.
 
-### What is the exact behaviour of DI and EI?
+### What is the exact behaviour of DI?
 
-DI has an immediate effect, but EI has a delay of one machine cycle. EI simply sets an internal flag, which will have an effect after the next instruction is executed. If you rapidly switch between DI/EI right after another, the internal flag has no effect during the switching, and the last instruction wins.
+On DMG/MGB, DI has an immediate effect. On CGB/GBA, DI has a delay like EI (I'm really, really, doubting this but this is what the test result says right now).
+
+*See test: di_timing*
+
+### What is the exact behaviour of EI?
+
+EI has a delay of one machine cycle. EI simply sets an internal flag, which will have an effect after the next instruction is executed. If you rapidly switch between DI/EI right after another, the internal flag has no effect during the switching, and the last instruction wins.
 
 So, assuming interrupts are disabled, and an interrupt has already been requested, this code will cause only one interrupt:
 
