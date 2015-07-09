@@ -310,7 +310,8 @@ impl<H> Cpu<H> where H: Bus {
         }
       }
 
-      self.decode();
+      let op = self.next_u8();
+      self.decode(op);
     }
   }
 

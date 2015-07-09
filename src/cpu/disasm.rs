@@ -170,5 +170,6 @@ pub fn disasm<B: Bus>(bus: &B, pc_start: u16, time: EmuTime) -> DisasmStr {
     bus: bus,
     time: time
   };
-  disasm.decode()
+  let op = disasm.next_u8();
+  disasm.decode(op)
 }

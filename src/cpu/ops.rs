@@ -87,8 +87,7 @@ pub trait CpuOps<R> {
   fn undefined(&mut self, u8) -> R;
   fn undefined_debug(&mut self) -> R;
 
-  fn decode(&mut self) -> R {
-    let op = self.next_u8();
+  fn decode(&mut self, op: u8) -> R {
     match op {
       // --- 8-bit operations
       // 8-bit loads
