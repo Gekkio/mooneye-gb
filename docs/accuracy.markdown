@@ -247,3 +247,17 @@ timing does not matter as it is not observable:
 * DEC rr
 
 These instructions involve writing a 16-bit register, which could explain the timing.
+
+### We know that EI has a delayed effect. What happens if you do EI + HALT?
+
+*Question proposed by Ricki Brown.*
+
+If we execute EI right before HALT, tests show that the behaviour of HALT is the same as in a normal IME=1 case.
+We don't know whether IME=0 or IME=1 in the hardware when the CPU is sleeping, but it doesn't actually matter!
+
+If IME=1 when we enter HALT, it will wake up the CPU and service an interrupt as usual.
+
+If IME=0 when we enter HALT, it will wake up the CPU, and execution continues to the next instruction.
+At this point EI has an effect, IME becomes 1, and since interrupts are serviced before decoding, we end up servicing an interrupt anyway!
+
+*See test: halt\_ime0\_ei*

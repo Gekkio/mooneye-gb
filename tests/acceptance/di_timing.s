@@ -8,19 +8,6 @@
 .incdir "../common"
 .include "common.s"
 
-.macro delay_long_time
-  ld a, $09
-  ld b, a
-  ld a, $c9
-  ld c, a
-
-delay_long_time_\@:
-  dec bc
-  ld a,b
-  or c
-  jr nz, delay_long_time_\@
-.endm
-
   di
   ld a, $01
   ld_ff_a IE
@@ -39,7 +26,7 @@ test_round1:
   ld hl, finish_round1
   ei
 
-  delay_long_time
+  delay_long_time 2505
   nops 6
 
   ; This DI should never get executed
@@ -61,7 +48,7 @@ test_round2:
   ld hl, fail_round2
   ei
 
-  delay_long_time
+  delay_long_time 2505
   nops 5
 
   ; This time we let DI execute, because there is one less NOP

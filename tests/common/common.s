@@ -52,6 +52,24 @@
   .endr
 .endm
 
+.macro delay_long_time ARGS iterations
+  ld a, >iterations
+  ld b, a
+  ld a, <iterations
+  ld c, a
+  ; = 4 cycles
+
+delay_long_time_\@:
+  dec bc
+  ld a,b
+  or c
+  jr nz, delay_long_time_\@
+  ; = iterations * 7 - 1 cycles
+
+  ; total: iterations * 7 + 3 cycles
+.endm
+
+
 .macro halt_execution
   .ifdef ACCEPTANCE_TEST
     debug
@@ -192,12 +210,17 @@ test_failure_cb_\@:
 .endm
 
 .macro test_ok
-  print_results test_ok_cb_\@
-test_ok_cb_\@:
-  print_string_literal "TEST OK"
+  test_ok_string "TEST OK"
+.endm
+
+.macro test_ok_string ARGS string
+  print_results test_ok_string_cb_\@
+test_ok_string_cb_\@:
+  print_string_literal string
   ld d, $00
   ret
 .endm
+
 
 .macro print_results ARGS cb
   enable_lcd

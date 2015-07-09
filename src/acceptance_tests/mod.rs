@@ -27,7 +27,16 @@ fn div_timing() { run_acceptance_test("acceptance/div_timing") }
 fn ei_timing() { run_acceptance_test("acceptance/ei_timing") }
 
 #[test]
-fn halt_ime1() { run_acceptance_test("acceptance/halt_ime1") }
+fn halt_ime0_ei() { run_acceptance_test("acceptance/halt_ime0_ei") }
+
+#[test]
+fn halt_ime0_nointr_timing() { run_acceptance_test("acceptance/halt_ime0_nointr_timing") }
+
+#[test]
+fn halt_ime1_timing() { run_acceptance_test("acceptance/halt_ime1_timing") }
+
+#[test]
+fn halt_ime1_timing2() { run_acceptance_test("acceptance/halt_ime1_timing2") }
 
 #[test]
 fn if_ie_registers() { run_acceptance_test("acceptance/if_ie_registers") }

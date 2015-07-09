@@ -92,33 +92,36 @@ Versions used:
 
 ### Mooneye GB acceptance tests
 
-| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB |
-| ----------------- | ---------- | ---- | -------- | ------------- | ------| ---- |
-| add_sp_e_timing   | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| call_timing       | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| call_timing2      | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| call_cc_timing    | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| call_cc_timing2   | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| di_timing         | :+1:       | :+1: | :+1:     | :x:           | :x:   | :+1: |
-| div_timing        | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  |
-| ei_timing         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| halt_ime1         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  |
-| if_ie_registers   | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  |
-| intr_timing       | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  |
-| jp_timing         | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| jp_cc_timing      | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| ld_hl_sp_e_timing | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| oam_bits          | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| oam_dma_restart   | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| oam_dma_timing    | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| pop_timing        | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :x:  |
-| push_timing       | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
-| rapid_di_ei       | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| ret_timing        | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| ret_cc_timing     | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| reti_timing       | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
-| reti_intr_timing  | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| rst_timing        | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
+| Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB |
+| ----------------------- | ---------- | ---- | -------- | ------------- | ------| ---- |
+| add_sp_e_timing         | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| call_timing             | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| call_timing2            | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| call_cc_timing          | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| call_cc_timing2         | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| di_timing               | :+1:       | :+1: | :+1:     | :x:           | :x:   | :+1: |
+| div_timing              | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  |
+| ei_timing               | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
+| halt_ime0_ei            | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
+| halt_ime0_nointr_timing | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  |
+| halt_ime1_timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  |
+| halt_ime1_timing2       | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  |
+| if_ie_registers         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  |
+| intr_timing             | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  |
+| jp_timing               | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| jp_cc_timing            | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| ld_hl_sp_e_timing       | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| oam_bits                | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
+| oam_dma_restart         | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| oam_dma_timing          | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| pop_timing              | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :x:  |
+| push_timing             | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
+| rapid_di_ei             | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
+| ret_timing              | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| ret_cc_timing           | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| reti_timing             | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
+| reti_intr_timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
+| rst_timing              | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
 
 ### Mooneye GB emulator-only tests
 
