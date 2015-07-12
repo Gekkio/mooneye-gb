@@ -87,4 +87,7 @@ fn reti_intr_timing() { run_acceptance_test("acceptance/reti_intr_timing") }
 fn rst_timing() { run_acceptance_test("acceptance/rst_timing") }
 
 #[test]
+fn gpu_hblank_ly_scx_timing() { run_acceptance_test("acceptance/gpu/hblank_ly_scx_timing") }
+
+#[test]
 fn mbc1_rom_4banks() { run_acceptance_test("emulator-only/mbc1_rom_4banks") }
