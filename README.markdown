@@ -122,7 +122,7 @@ Versions used:
 | reti timing              | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  |
 | reti intr timing         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
 | rst timing               | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
-| lcd/hblank ly scx timing | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
+| gpu hblank ly scx timing | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
 
 ### Mooneye GB emulator-only tests
 
