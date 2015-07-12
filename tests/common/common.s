@@ -170,6 +170,20 @@ _wait_ly_\@:
   test_failure_string "TEST FAILED"
 .endm
 
+.macro test_failure_dump ARGS string
+  print_results _test_failure_dump_cb_\@
+_test_failure_dump_cb_\@:
+  ld de, regs_save
+  print_string_literal "REGISTERS"
+  call print_newline
+  call print_newline
+  call print_regs
+  call print_newline
+  print_string_literal "TEST FAILED"
+  ld d, $42
+  ret
+.endm
+
 .macro test_failure_string ARGS string
   print_results _test_failure_cb_\@
 _test_failure_cb_\@:

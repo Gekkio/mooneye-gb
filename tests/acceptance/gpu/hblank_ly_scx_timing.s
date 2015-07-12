@@ -1,4 +1,10 @@
-; test
+; Tests how SCX affects the duration between STAT mode=0 interrupt and LY increment.
+; No sprites or window.
+;
+; Expected behaviour:
+;   (SCX mod 8) = 0   => LY increments 51 cycles after STAT interrupt
+;   (SCX mod 8) = 1-4 => LY increments 50 cycles after STAT interrupt
+;   (SCX mod 8) = 5-7 => LY increments 49 cycles after STAT interrupt
 
 .incdir "../../common"
 .include "common.s"
@@ -22,30 +28,28 @@
   ld_ff_a IE
 
 .macro perform_test ARGS scanline delay_a delay_b
-  ld d, scanline
-  .if scanline == $00
-    ld e, $99
-  .else
-    ld e, scanline - 1
-  .endif
+  ld d, scanline - 1
+  ld e, scanline
   test_iter scanline delay_a
-  cp $14
+  cp d
   jp nz, test_fail
   test_iter scanline delay_b
-  cp $13
+  cp e
   jp nz, test_fail
 .endm
 
 .macro test_iter ARGS scanline delay
   call setup_and_wait
+  ; Interrupt processing: 5
+  ; Interrupt vector: 4 + 4 = 8
+  call standard_delay
+  ; 6 + 23 + 4
   nops delay
-  ld c, $00
-_test_iter_\@:
-  inc c
+  ; N cycles
   ld a, (hl)
-  cp scanline + 1
-  jr nz, _test_iter_\@
-  ld a, c
+  ; 1 cycle for decoding before memory read
+  ; 5 + 4 + 4 + 6 + 23 + 4 + N + 1
+  ; = 47 + N cycles before memory read
 .endm
 
   perform_test $42 2 3
@@ -78,14 +82,23 @@ _test_iter_\@:
   test_ok
 
 test_fail:
+  ld b, a
   ld_a_ff SCX
   save_results
-  jp process_results
+  ; A = SCX
+  ; B = LY value
+  ; D = scanline - 1
+  ; E = scanline
+  test_failure_dump
+
+standard_delay:
+  nops 23
+  ret
 
 setup_and_wait:
   wait_vblank
-- ld a, (hl)
-  cp e
+- ld_a_ff LY
+  cp d
   jr nz, -
   clear_interrupts
   ei
