@@ -7,44 +7,13 @@
   slot 4 start $A000 size $1000
 .endme
 
-.define VRAM $8000
-.define OAM  $FE00
+.include "hardware.s"
 
-.define P1   $FF00
-.define SB   $FF01
-.define SC   $FF02
-.define DIV  $FF04
-.define TIMA $FF05
-.define TMA  $FF06
-.define TAC  $FF07
-.define IF   $FF0F
-.define LCDC $FF40
-.define STAT $FF41
-.define SCY  $FF42
-.define SCX  $FF43
-.define LY   $FF44
-.define LYC  $FF45
-.define DMA  $FF46
-.define BGP  $FF47
-.define OBP0 $FF48
-.define OBP1 $FF49
-.define WY   $FF4A
-.define WX   $FF4B
-.define IE   $FFFF
-
-.macro ld_a_ff ARGS addr
-  ldh a, (addr - $FF00)
-.endm
-
-.macro ld_ff_a ARGS addr
-  ldh (addr - $FF00), a
-.endm
+; --- Macros ---
 
 .macro c_string ARGS string
   .db string, $00
 .endm
-
-; --- Macros ---
 
 .macro nops ARGS count
   .repeat count
@@ -59,11 +28,11 @@
   ld c, a
   ; = 4 cycles
 
-delay_long_time_\@:
+_delay_long_time_\@:
   dec bc
   ld a,b
   or c
-  jr nz, delay_long_time_\@
+  jr nz, _delay_long_time_\@
   ; = iterations * 7 - 1 cycles
 
   ; total: iterations * 7 + 3 cycles
@@ -100,10 +69,10 @@ delay_long_time_\@:
 .endm
 
 .macro wait_ly ARGS value
-wait_ly_\@:
+_wait_ly_\@:
   ld_a_ff LY
   cp value
-  jr nz, wait_ly_\@
+  jr nz, _wait_ly_\@
 .endm
 
 .macro wait_vblank
@@ -202,8 +171,8 @@ wait_ly_\@:
 .endm
 
 .macro test_failure_string ARGS string
-  print_results test_failure_cb_\@
-test_failure_cb_\@:
+  print_results _test_failure_cb_\@
+_test_failure_cb_\@:
   print_string_literal string
   ld d, $42
   ret
@@ -214,8 +183,8 @@ test_failure_cb_\@:
 .endm
 
 .macro test_ok_string ARGS string
-  print_results test_ok_string_cb_\@
-test_ok_string_cb_\@:
+  print_results _test_ok_cb_\@
+_test_ok_cb_\@:
   print_string_literal string
   ld d, $00
   ret
@@ -369,8 +338,8 @@ test_ok_string_cb_\@:
     ret
 
   process_results:
-    print_results process_results_cb
-  process_results_cb:
+    print_results _process_results_cb
+  _process_results_cb:
     ld de, regs_save
     print_string_literal "REGISTERS"
     call print_newline
@@ -384,7 +353,7 @@ test_ok_string_cb_\@:
     print_string_literal "ASSERTIONS"
     call print_newline
     call print_newline
-    call check_asserts
+    call _check_asserts
 
     ld a, d
     or a
@@ -393,16 +362,16 @@ test_ok_string_cb_\@:
     print_string_literal "TEST FAILED"
 +   ret
 
-  check_asserts:
+  _check_asserts:
     xor a
     ld d, a
 
     ld a, (regs_flags)
     ld e, a
 
-    .macro check_assert ARGS flag str value expected
+    .macro __check_assert ARGS flag str value expected
       bit flag, e
-      jr z, check_assert_skip\@
+      jr z, __check_assert_skip\@
 
       print_string_literal str
       print_string_literal ": "
@@ -411,35 +380,35 @@ test_ok_string_cb_\@:
       ld c, a
       ld a, (expected)
       cp c
-      jr z, check_assert_ok\@
-    check_assert_fail\@:
+      jr z, __check_assert_ok\@
+    __check_assert_fail\@:
       call print_a
       print_string_literal "! "
       inc d
-      jr check_assert_out\@
-    check_assert_ok\@:
+      jr __check_assert_out\@
+    __check_assert_ok\@:
       print_string_literal "OK  "
-      jr check_assert_out\@
-    check_assert_skip\@:
+      jr __check_assert_out\@
+    __check_assert_skip\@:
       print_string_literal "       "
-    check_assert_out\@:
+    __check_assert_out\@:
     .endm
 
     print_string_literal "  "
-    check_assert 0 "A" regs_save.a regs_assert.a
-    check_assert 1 "F" regs_save.f regs_assert.f
+    __check_assert 0 "A" regs_save.a regs_assert.a
+    __check_assert 1 "F" regs_save.f regs_assert.f
     call print_newline
     print_string_literal "  "
-    check_assert 2 "B" regs_save.b regs_assert.b
-    check_assert 3 "C" regs_save.c regs_assert.c
+    __check_assert 2 "B" regs_save.b regs_assert.b
+    __check_assert 3 "C" regs_save.c regs_assert.c
     call print_newline
     print_string_literal "  "
-    check_assert 4 "D" regs_save.d regs_assert.d
-    check_assert 5 "E" regs_save.e regs_assert.e
+    __check_assert 4 "D" regs_save.d regs_assert.d
+    __check_assert 5 "E" regs_save.e regs_assert.e
     call print_newline
     print_string_literal "  "
-    check_assert 6 "H" regs_save.h regs_assert.h
-    check_assert 7 "L" regs_save.l regs_assert.l
+    __check_assert 6 "H" regs_save.h regs_assert.h
+    __check_assert 7 "L" regs_save.l regs_assert.l
     call print_newline
 
     ret

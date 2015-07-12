@@ -23,8 +23,8 @@
 
   ld bc, DIV
 
-  ld a, $08
-  ld_ff_a IE, a
+  ld a, INTR_SERIAL
+  ld_ff_a IE
 
 .macro reset_div
   xor a
@@ -33,7 +33,7 @@
 
 .macro trigger_intr
   ld a, $08
-  ld_ff_a IF, a
+  ld_ff_a IF
 .endm
 
 test_round1:
@@ -75,5 +75,5 @@ test_finish:
   assert_e $01
   jp process_results
 
-.org $58
+.org INTR_VEC_SERIAL
   jp hl

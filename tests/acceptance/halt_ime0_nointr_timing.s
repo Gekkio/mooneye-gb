@@ -13,7 +13,7 @@
 .endm
 
 .macro enable_IE_vblank
-  ld a, $01
+  ld a, INTR_VBLANK
   ld_ff_a IE
 .endm
 
@@ -77,5 +77,5 @@ fail_halt:
 fail_intr:
   test_failure_string "FAIL: INTERRUPT"
 
-.org $40
+.org INTR_VEC_VBLANK
   jp hl

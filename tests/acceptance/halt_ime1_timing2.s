@@ -13,7 +13,7 @@
 .endm
 
 .macro enable_IE_vblank
-  ld a, $01
+  ld a, INTR_VBLANK
   ld_ff_a IE
 .endm
 
@@ -146,5 +146,5 @@ fail_round3:
 fail_round4:
   test_failure_string "FAIL: ROUND 4"
 
-.org $40
+.org INTR_VEC_VBLANK
   jp hl

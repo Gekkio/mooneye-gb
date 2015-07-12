@@ -1,10 +1,10 @@
 .macro print_string_literal ARGS string
-  ld bc, print_sl_data\@
+  ld bc, _print_sl_data\@
   call print_string
-  jr print_sl_out\@
-print_sl_data\@:
+  jr _print_sl_out\@
+_print_sl_data\@:
   c_string string
-print_sl_out\@:
+_print_sl_out\@:
 .endm
 
 .bank 1 slot 1

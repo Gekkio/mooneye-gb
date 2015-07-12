@@ -9,7 +9,7 @@
 .include "common.s"
 
   di
-  ld a, $01
+  ld a, INTR_VBLANK
   ld_ff_a IE
 
   ld hl, test_round1
@@ -69,5 +69,5 @@ fail_round1:
 fail_round2:
   test_failure_string "FAIL: ROUND 2"
 
-.org $40
+.org INTR_VEC_VBLANK
   jp hl

@@ -18,7 +18,7 @@
   ; Since IE is $00, we are *not* expecting an
   ; interrupt
   ld hl, IF
-  ld a, $08
+  ld a, INTR_SERIAL
   ld (hl), a
   nops 64
   ld b, e
@@ -31,7 +31,7 @@
   ; We already wrote it to IF, so now we expect
   ; one interrupt trigger
   ld hl, IE
-  ld a, $08
+  ld a, INTR_SERIAL
   ld (hl), a
   nops 64
   ld d, e
@@ -50,6 +50,6 @@ test_finish:
   assert_e $E0
   jp process_results
 
-.org $58
+.org INTR_VEC_SERIAL
   inc e
   reti

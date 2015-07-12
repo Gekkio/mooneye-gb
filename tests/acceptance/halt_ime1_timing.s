@@ -12,7 +12,7 @@
   ld b, a
 
   ; Enable timer interrupt
-  ld a, $04
+  ld a, INTR_TIMER
   ld_ff_a IE, a
 
   ; TIMA = $F0
@@ -35,5 +35,5 @@ test_finish:
   assert_b $00
   jp process_results
 
-.org $50
+.org INTR_VEC_TIMER
   jp test_finish

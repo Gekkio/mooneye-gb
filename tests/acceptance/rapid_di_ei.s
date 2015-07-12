@@ -7,7 +7,7 @@
 .include "common.s"
 
 .macro reset
-  ld a, $08
+  ld a, INTR_SERIAL
   ld (IF), a
   ld (IE), a
   xor a
@@ -58,6 +58,6 @@ test_finish:
   assert_e $01
   jp process_results
 
-.org $58
+.org INTR_VEC_SERIAL
   inc e
   reti
