@@ -1,9 +1,7 @@
 use cpu::{
   In8, Out8,
-  In16, Out16,
   Cond,
-  Immediate8, Addr,
-  Immediate16, Direct16
+  Immediate8, Addr
 };
 use cpu::registers::Reg8::{
   A, B, C, D, E, H, L
@@ -73,7 +71,8 @@ pub trait CpuOps<R> {
   fn  cpl(&mut self) -> R;
   // --- 16-bit operations
   // 16-bit loads
-  fn load16<O: Out16, I: In16>(&mut self, O, I) -> R;
+  fn load16_imm(&mut self, Reg16) -> R;
+  fn load16_nn_sp(&mut self) -> R;
   fn load16_sp_hl(&mut self) -> R;
   fn load16_hl_sp_e(&mut self) -> R;
   fn push16(&mut self, Reg16) -> R;
@@ -213,9 +212,9 @@ pub trait CpuOps<R> {
       0x2f => self. cpl(),
       // --- 16-bit operations
       // 16-bit loads
-      0x01 => self.load16(BC, Immediate16), 0x11 => self.load16(DE, Immediate16),
-      0x21 => self.load16(HL, Immediate16), 0x31 => self.load16(SP, Immediate16),
-      0x08 => self.load16(Direct16, SP),
+      0x01 => self.load16_imm(BC), 0x11 => self.load16_imm(DE),
+      0x21 => self.load16_imm(HL), 0x31 => self.load16_imm(SP),
+      0x08 => self.load16_nn_sp(),
       0xf9 => self.load16_sp_hl(),
       0xf8 => self.load16_hl_sp_e(),
       0xc5 => self.push16(BC), 0xd5 => self.push16(DE),

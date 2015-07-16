@@ -4,9 +4,7 @@ use std::fmt::Debug;
 use cpu::{
   CpuOps, Cond,
   In8, Out8,
-  In16, Out16,
-  Immediate8, Addr,
-  Immediate16, Direct16
+  Immediate8, Addr
 };
 use cpu::registers::Reg16;
 use emulation::EmuTime;
@@ -49,11 +47,14 @@ impl ToDisasmStr for Addr {
   }
 }
 
+struct Immediate16;
 impl ToDisasmStr for Immediate16 {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
     (format!("${:04x}", disasm.next_u16())).into()
   }
 }
+
+struct Direct16;
 impl ToDisasmStr for Direct16 {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
     (format!("(${:04x})", disasm.next_u16())).into()
@@ -61,7 +62,6 @@ impl ToDisasmStr for Direct16 {
 }
 
 struct PcOffset;
-
 impl ToDisasmStr for PcOffset {
   fn to_disasm_str<'a>(&self, disasm: &mut Disasm<'a>) -> DisasmStr {
     let offset = disasm.next_u8() as i8;
@@ -141,7 +141,8 @@ impl<'a> CpuOps<DisasmStr> for Disasm<'a> {
   fn  cpl(&mut self) -> DisasmStr { self.null_op( "CPL") }
   // --- 16-bit operations
   // 16-bit loads
-  fn load16<O: Out16, I: In16>(&mut self, out8: O, in8: I) -> DisasmStr { self.binary_op("LD", out8, in8) }
+  fn load16_imm(&mut self, reg: Reg16) -> DisasmStr { self.binary_op("LD", reg, Immediate16) }
+  fn load16_nn_sp(&mut self) -> DisasmStr { self.binary_op("LD", Direct16, Reg16::SP)}
   fn load16_sp_hl(&mut self) -> DisasmStr { self.null_op("LD SP, HL") }
   fn load16_hl_sp_e(&mut self) -> DisasmStr {
     let offset = self.next_u8() as i8;

@@ -34,16 +34,8 @@ pub struct Cpu<H: Bus> {
 pub trait In8: ToDisasmStr {
   fn read<H: Bus>(&self, &mut Cpu<H>) -> u8;
 }
-pub trait In16: ToDisasmStr {
-  fn read<H: Bus>(&self, &mut Cpu<H>) -> u16;
-}
-
-
 pub trait Out8: ToDisasmStr {
   fn write<H: Bus>(&self, &mut Cpu<H>, u8);
-}
-pub trait Out16: ToDisasmStr {
-  fn write<H: Bus>(&self, &mut Cpu<H>, u16);
 }
 
 
@@ -72,38 +64,6 @@ pub struct Immediate8;
 impl In8 for Immediate8 {
   fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u8 { cpu.next_u8() }
 }
-pub struct Immediate16;
-impl In16 for Immediate16 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u16 { cpu.next_u16() }
-}
-
-
-pub struct Direct16;
-impl In16 for Direct16 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u16 {
-    let addr = cpu.next_u16();
-    cpu.read_u16(addr)
-  }
-}
-impl Out16 for Direct16 {
-  fn write<H: Bus>(&self, cpu: &mut Cpu<H>, value: u16) {
-    let addr = cpu.next_u16();
-    cpu.write_u16(addr, value);
-  }
-}
-
-
-impl In16 for Reg16 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u16 {
-    cpu.regs.read16(*self)
-  }
-}
-impl Out16 for Reg16 {
-  fn write<H: Bus>(&self, cpu: &mut Cpu<H>, value: u16) {
-    cpu.regs.write16(*self, value)
-  }
-}
-
 
 #[derive(Clone, Copy)]
 pub enum Addr {
@@ -841,13 +801,22 @@ impl<H> CpuOps<()> for Cpu<H> where H: Bus {
   }
   // --- 16-bit operations
   // 16-bit loads
-  /// LD dd, ss
+  /// LD dd, nn
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn load16<O: Out16, I: In16>(&mut self, out8: O, in8: I) {
-    let value = in8.read(self);
-    out8.write(self, value);
+  fn load16_imm(&mut self, reg: Reg16) {
+    let value = self.next_u16();
+    self.regs.write16(reg, value);
+  }
+  /// LD (nn), SP
+  ///
+  /// Flags: Z N H C
+  ///        - - - -
+  fn load16_nn_sp(&mut self) {
+    let value = self.regs.sp;
+    let addr = self.next_u16();
+    self.write_u16(addr, value);
   }
   /// LD SP, HL
   ///
