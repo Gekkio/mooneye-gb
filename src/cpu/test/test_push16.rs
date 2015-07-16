@@ -1,6 +1,6 @@
 use quickcheck::quickcheck;
 
-use cpu::registers::Reg16;
+use cpu::registers::{Flags, Reg16};
 use cpu::test::run_test;
 
 fn test_push16(opcode: u8, reg: Reg16, x: u16) -> bool {
@@ -42,7 +42,7 @@ fn test_f5() {
       &[0xf5, 0xed, 0x00, 0x00],
       |cpu| {
         cpu.regs.a = a;
-        cpu.regs.f.set(f);
+        cpu.regs.f = Flags::from_bits_truncate(f);
         cpu.regs.sp = 0x0004;
       }
     );
