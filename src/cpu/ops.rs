@@ -1,7 +1,6 @@
 use cpu::{
   In8, Out8,
-  Cond,
-  Immediate8, Addr
+  Cond, Immediate8, Addr
 };
 use cpu::registers::Reg8::{
   A, B, C, D, E, H, L

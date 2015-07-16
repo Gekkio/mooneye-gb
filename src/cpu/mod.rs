@@ -12,7 +12,7 @@ use util::int::IntExt;
 
 pub use cpu::ops::CpuOps;
 
-mod disasm;
+pub mod disasm;
 mod ops;
 pub mod registers;
 
@@ -30,11 +30,10 @@ pub struct Cpu<H: Bus> {
   hit_debug: bool
 }
 
-
-pub trait In8: ToDisasmStr {
+pub trait In8: disasm::ResolveOp8 {
   fn read<H: Bus>(&self, &mut Cpu<H>) -> u8;
 }
-pub trait Out8: ToDisasmStr {
+pub trait Out8: disasm::ResolveOp8 {
   fn write<H: Bus>(&self, &mut Cpu<H>, u8);
 }
 
@@ -65,43 +64,20 @@ impl In8 for Immediate8 {
   fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u8 { cpu.next_u8() }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Addr {
   BC, DE, HL, HLD, HLI,
   Direct, ZeroPage, ZeroPageC
 }
-impl Addr {
-  fn addr<H: Bus>(&self, cpu: &mut Cpu<H>) -> u16 {
-    use self::Addr::*;
-    match *self {
-      BC => cpu.regs.read16(Reg16::BC),
-      DE => cpu.regs.read16(Reg16::DE),
-      HL => cpu.regs.read16(Reg16::HL),
-      HLD => {
-        let addr = cpu.regs.read16(Reg16::HL);
-        cpu.regs.write16(Reg16::HL, addr.wrapping_sub_one());
-        addr
-      },
-      HLI => {
-        let addr = cpu.regs.read16(Reg16::HL);
-        cpu.regs.write16(Reg16::HL, addr.wrapping_add_one());
-        addr
-      },
-      Direct => cpu.next_u16(),
-      ZeroPage => 0xff00u16 | cpu.next_u8() as u16,
-      ZeroPageC => 0xff00u16 | cpu.regs.c as u16,
-    }
-  }
-}
 impl In8 for Addr {
   fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u8 {
-    let addr = self.addr(cpu);
+    let addr = cpu.indirect_addr(*self);
     cpu.read_u8(addr)
   }
 }
 impl Out8 for Addr {
   fn write<H: Bus>(&self, cpu: &mut Cpu<H>, value: u8) {
-    let addr = self.addr(cpu);
+    let addr = cpu.indirect_addr(*self);
     cpu.write_u8(addr, value);
   }
 }
@@ -156,7 +132,12 @@ impl<H> Cpu<H> where H: Bus {
     self.regs.pc
   }
   pub fn disasm_op(&self) -> DisasmStr {
-    disasm::disasm(&self.hardware, self.regs.pc, self.time)
+    let pc = self.regs.pc;
+    let time = self.time;
+
+    disasm::disasm(pc, &mut |addr| {
+      self.hardware.read(time, addr)
+    }).to_disasm_str()
   }
   pub fn rewind_time(&mut self) {
     self.time.rewind();
@@ -239,6 +220,28 @@ impl<H> Cpu<H> where H: Bus {
   fn push_u16(&mut self, value: u16) {
     self.push_u8((value >> 8) as u8);
     self.push_u8(value as u8);
+  }
+
+  fn indirect_addr(&mut self, addr: Addr) -> u16 {
+    use self::Addr::*;
+    match addr {
+      BC => self.regs.read16(Reg16::BC),
+      DE => self.regs.read16(Reg16::DE),
+      HL => self.regs.read16(Reg16::HL),
+      HLD => {
+        let addr = self.regs.read16(Reg16::HL);
+        self.regs.write16(Reg16::HL, addr.wrapping_sub_one());
+        addr
+      },
+      HLI => {
+        let addr = self.regs.read16(Reg16::HL);
+        self.regs.write16(Reg16::HL, addr.wrapping_add_one());
+        addr
+      },
+      Direct => self.next_u16(),
+      ZeroPage => 0xff00u16 | self.next_u8() as u16,
+      ZeroPageC => 0xff00u16 | self.regs.c as u16,
+    }
   }
 
   pub fn execute(&mut self) {
