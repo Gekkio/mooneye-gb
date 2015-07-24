@@ -422,6 +422,7 @@ impl<'a> Gpu<'a> {
     let slice_start = gameboy::SCREEN_WIDTH * self.current_line as usize;
     let slice_end = gameboy::SCREEN_WIDTH + slice_start;
     let pixels = &mut self.back_buffer[slice_start .. slice_end];
+    let mut bg_prio = [false; gameboy::SCREEN_WIDTH];
 
     if self.control.contains(CTRL_BG_ON) {
       let addr_select = self.control.contains(CTRL_BG_ADDR);
@@ -447,7 +448,9 @@ impl<'a> Gpu<'a> {
 
         let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
-        let color = self.bg_palette.get(&Color::from_u8(color_value));
+        let raw_color = Color::from_u8(color_value);
+        let color = self.bg_palette.get(&raw_color);
+        bg_prio[i] = raw_color != Color::Off;
         pixels[i] = color;
       }
     }
@@ -479,7 +482,9 @@ impl<'a> Gpu<'a> {
 
         let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
-        let color = self.bg_palette.get(&Color::from_u8(color_value));
+        let raw_color = Color::from_u8(color_value);
+        let color = self.bg_palette.get(&raw_color);
+        bg_prio[i] = raw_color != Color::Off;
         pixels[i] = color;
       }
     }
@@ -533,7 +538,7 @@ impl<'a> Gpu<'a> {
           let color = palette.get(&raw_color);
           let target_x = sprite.x.wrapping_add(7 - x);
           if target_x < gameboy::SCREEN_WIDTH as u8 && raw_color != Color::Off {
-            if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as usize] == Color::Off {
+            if !sprite.flags.contains(SPRITE_PRIORITY) || !bg_prio[target_x as usize] {
               pixels[target_x as usize] = color;
             }
           }
