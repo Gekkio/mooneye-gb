@@ -532,7 +532,7 @@ impl<'a> Gpu<'a> {
           let raw_color = Color::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
           let color = palette.get(&raw_color);
           let target_x = sprite.x.wrapping_add(7 - x);
-          if target_x < 159 && raw_color != Color::Off {
+          if target_x < gameboy::SCREEN_WIDTH as u8 && raw_color != Color::Off {
             if !sprite.flags.contains(SPRITE_PRIORITY) || pixels[target_x as usize] == Color::Off {
               pixels[target_x as usize] = color;
             }
