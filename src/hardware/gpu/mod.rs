@@ -489,15 +489,13 @@ impl<'a> Gpu<'a> {
 
       let current_line = self.current_line;
 
-      let mut sprites_to_draw: Vec<(&Sprite, usize)> = self.oam
-        .into_iter()
-        .by_ref()
+      let mut sprites_to_draw: Vec<(usize, &Sprite)> = self.oam.iter()
         .filter(|sprite| current_line >= sprite.y && (current_line as usize) < (sprite.y + size) as usize)
         .take(10)
-        .zip(0..10)
+        .enumerate()
         .collect();
 
-      sprites_to_draw.sort_by(|&(a, a_index), &(b, b_index)| {
+      sprites_to_draw.sort_by(|&(a_index, a), &(b_index, b)| {
         match a.x.cmp(&b.x) {
           // If X coordinates are the same, use OAM index as priority (low index => draw last)
           Ordering::Equal => a_index.cmp(&b_index).reverse(),
@@ -506,7 +504,7 @@ impl<'a> Gpu<'a> {
         }
       });
 
-      for (sprite, _) in sprites_to_draw {
+      for (_, sprite) in sprites_to_draw {
         let palette =
           if sprite.flags.contains(SPRITE_PALETTE) { &self.obj_palette1 }
           else { &self.obj_palette0 };
