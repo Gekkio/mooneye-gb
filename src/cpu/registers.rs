@@ -8,10 +8,10 @@ mod flags {
 
   bitflags!(
     flags Flags: u8 {
-      const ZERO = 0x80,
-      const ADD_SUBTRACT = 0x40,
-      const HALF_CARRY = 0x20,
-      const CARRY = 0x10
+      const ZERO         = 0b_1000_0000,
+      const ADD_SUBTRACT = 0b_0100_0000,
+      const HALF_CARRY   = 0b_0010_0000,
+      const CARRY        = 0b_0001_0000
     }
   );
 

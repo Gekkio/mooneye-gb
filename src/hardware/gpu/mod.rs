@@ -59,8 +59,7 @@ struct Sprite {
   x: u8,
   y: u8,
   tile_num: u8,
-  flags: SpriteFlags,
-  flags_bits: u8
+  flags: SpriteFlags
 }
 
 impl Sprite {
@@ -69,20 +68,18 @@ impl Sprite {
       x: 0,
       y: 0,
       tile_num: 0,
-      flags: SpriteFlags::empty(),
-      flags_bits: 0
+      flags: SpriteFlags::empty()
     }
   }
 }
 
-const SPRITE_UNUSED_MASK: u8 = (1 << 3) | (1 << 2) | (1 << 1) | (1 << 0);
-
 bitflags!(
   flags SpriteFlags: u8 {
-    const SPRITE_PALETTE = 1 << 4,
-    const SPRITE_FLIPX = 1 << 5,
-    const SPRITE_FLIPY = 1 << 6,
-    const SPRITE_PRIORITY = 1 << 7
+    const SPRITE_UNUSED_MASK = 0b_0000_1111,
+    const SPRITE_PALETTE     = 0b_0001_0000,
+    const SPRITE_FLIPX       = 0b_0010_0000,
+    const SPRITE_FLIPY       = 0b_0100_0000,
+    const SPRITE_PRIORITY    = 0b_1000_0000
   }
 );
 
@@ -311,7 +308,6 @@ impl<'a> Gpu<'a> {
     match reladdr as usize % 4 {
       3 => {
         sprite.flags = SpriteFlags::from_bits_truncate(value);
-        sprite.flags_bits = value;
       },
       2 => sprite.tile_num = value,
       1 => sprite.x = value.wrapping_sub(8),
@@ -343,7 +339,7 @@ impl<'a> Gpu<'a> {
     }
     let sprite = &self.oam[reladdr as usize / 4];
     match reladdr as usize % 4 {
-      3 => sprite.flags_bits,
+      3 => sprite.flags.bits(),
       2 => sprite.tile_num,
       1 => sprite.x.wrapping_add(8),
       _ => sprite.y.wrapping_add(16)
