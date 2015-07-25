@@ -90,4 +90,10 @@ fn rst_timing() { run_acceptance_test("acceptance/rst_timing") }
 fn gpu_hblank_ly_scx_timing() { run_acceptance_test("acceptance/gpu/hblank_ly_scx_timing") }
 
 #[test]
+fn gpu_intr_1_2_timing() { run_acceptance_test("acceptance/gpu/intr_1_2_timing") }
+
+#[test]
+fn gpu_intr_2_0_timing() { run_acceptance_test("acceptance/gpu/intr_2_0_timing") }
+
+#[test]
 fn mbc1_rom_4banks() { run_acceptance_test("emulator-only/mbc1_rom_4banks") }
