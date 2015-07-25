@@ -28,13 +28,13 @@
   call setup_and_wait_mode0
 .endm
 
-  test_iter 5
-  ld d, b
   test_iter 4
+  ld d, b
+  test_iter 3
   ld e, b
   save_results
-  assert_d $6D
-  assert_e $6E
+  assert_d $07
+  assert_e $08
   jp process_results
 
 setup_and_wait_mode2:
@@ -51,7 +51,7 @@ setup_and_wait_mode2:
   jp fail_halt
 
 setup_and_wait_mode0:
-  ld a, %00010000
+  ld a, %00001000
   ld_ff_a STAT
   clear_interrupts
   ei
