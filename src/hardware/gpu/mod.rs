@@ -13,8 +13,8 @@ const CHARACTER_RAM_TILES: usize = 384;
 const TILE_MAP_SIZE: usize = 0x400;
 const OAM_SPRITES: usize = 40;
 const ACCESS_OAM_CYCLES: isize = 21;
-const ACCESS_VRAM_CYCLES: isize = 42;
-const HBLANK_CYCLES: isize = 51;
+const ACCESS_VRAM_CYCLES: isize = 43;
+const HBLANK_CYCLES: isize = 50;
 const VBLANK_LINE_CYCLES: isize = 114;
 const UNDEFINED_READ: u8 = 0xff;
 const STAT_UNUSED_MASK: u8 = (1 << 7);
@@ -355,9 +355,6 @@ impl<'a> Gpu<'a> {
         }
       },
       Mode::HBlank => {
-        if self.stat.contains(STAT_HBLANK_INT) {
-          irq.request_interrupt(Interrupt::LcdStat);
-        }
       },
       Mode::VBlank => {
         irq.request_interrupt(Interrupt::VBlank);
@@ -374,6 +371,12 @@ impl<'a> Gpu<'a> {
     }
 
     self.cycles -= 1;
+    if self.cycles == 1 && self.mode == Mode::AccessVram {
+      // STAT mode=0 interrupt happens one cycle before the actual mode switch!
+      if self.stat.contains(STAT_HBLANK_INT) {
+        irq.request_interrupt(Interrupt::LcdStat);
+      }
+    }
     if self.cycles > 0 {
       return;
     }

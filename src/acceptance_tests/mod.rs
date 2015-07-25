@@ -96,7 +96,13 @@ fn gpu_intr_1_2_timing() { run_acceptance_test("acceptance/gpu/intr_1_2_timing")
 fn gpu_intr_2_0_timing() { run_acceptance_test("acceptance/gpu/intr_2_0_timing") }
 
 #[test]
+fn gpu_intr_2_mode0_timing() { run_acceptance_test("acceptance/gpu/intr_2_mode0_timing") }
+
+#[test]
 fn gpu_intr_2_mode3_timing() { run_acceptance_test("acceptance/gpu/intr_2_mode3_timing") }
+
+#[test]
+fn gpu_intr_2_oam_ok_timing() { run_acceptance_test("acceptance/gpu/intr_2_oam_ok_timing") }
 
 #[test]
 fn mbc1_rom_4banks() { run_acceptance_test("emulator-only/mbc1_rom_4banks") }
