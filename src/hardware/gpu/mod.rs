@@ -12,10 +12,10 @@ use util::int::IntExt;
 const CHARACTER_RAM_TILES: usize = 384;
 const TILE_MAP_SIZE: usize = 0x400;
 const OAM_SPRITES: usize = 40;
-const ACCESS_OAM_CYCLES: isize = 80 / 4;
-const ACCESS_VRAM_CYCLES: isize = 172 / 4;
-const HBLANK_CYCLES: isize = 204 / 4;
-const VBLANK_LINE_CYCLES: isize = 456 / 4;
+const ACCESS_OAM_CYCLES: isize = 21;
+const ACCESS_VRAM_CYCLES: isize = 42;
+const HBLANK_CYCLES: isize = 51;
+const VBLANK_LINE_CYCLES: isize = 114;
 const UNDEFINED_READ: u8 = 0xff;
 const STAT_UNUSED_MASK: u8 = (1 << 7);
 

@@ -125,6 +125,7 @@ Versions used:
 | gpu hblank ly scx timing | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  |
 | gpu intr 1 2 timing      | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  |
 | gpu intr 2 0 timing      | :+1:       | :+1: | :x:      | :x:           | :+1:  | :x:  |
+| gpu intr 2 mode3 timing  | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  |
 
 ### Mooneye GB emulator-only tests
 
