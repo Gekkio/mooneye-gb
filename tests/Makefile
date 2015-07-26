@@ -23,5 +23,4 @@ $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
 clean:
 	@rm -rf $(BUILD_PATH)
 
-.SECONDARY:
 .PHONY: clean all
