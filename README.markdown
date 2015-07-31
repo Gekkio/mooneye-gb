@@ -1,12 +1,12 @@
 # Mooneye GB
 
-Mooneye GB is a Gameboy emulator written in Rust.
+Mooneye GB is a Game Boy emulator written in Rust.
 
-The main goals of this project are accuracy and documentation. Some existing emulators are very accurate (Gambatte, Gameboy Online, BGB >= 1.5) but are not documented very clearly, so they are not that good references for emulator developers. I want this project to document as clearly as possible *why* certain behaviour is emulated in a certain way. This also means writing a lot of test ROMs to figure out corner cases and precise behaviour on real hardware.
+The main goals of this project are accuracy and documentation. Some existing emulators are very accurate (Gambatte, BGB >= 1.5) but are not documented very clearly, so they are not that good references for emulator developers. I want this project to document as clearly as possible *why* certain behaviour is emulated in a certain way. This also means writing a lot of test ROMs to figure out corner cases and precise behaviour on real hardware.
 
 Non-goals:
 
-* CGB (Color Gameboy) support. It would be nice, but I want to make the normal Gameboy support extremely robust first.
+* CGB (Game Boy Color) support. It would be nice, but I want to make the normal Game Boy support extremely robust first.
 * A good debugger. A primitive debugger exists for development purposes, and it is enough.
 * A user interface. Building native UIs with Rust is a bit painful at the moment.
 
@@ -32,7 +32,24 @@ There's tons of documentation and tons of emulators in the internet, but in the 
 4. Run the test ROM on real hardware. If the test ROM made an invalid hypothesis, go back to 1.
 5. Replicate the behaviour in the emulator
 
-All test ROMs are manually run with a Gameboy Pocket (model MGB-001), Gameboy Color (model CGB-001) and a Gameboy Advance SP (model AGS-101).
+All test ROMs are manually run with these devices:
+
+| Device              | Model   | Mainboard    | CPU         |
+| ------------------- | ------- | ------------ | ----------- |
+| Game Boy Pocket     | MGB-001 | MGB-LCPU-01  | CPU MGB     |
+| Game Boy Color      | CGB-001 | CGB-CPU-03   | CPU CGB C   |
+| Game Boy Advance SP | AGS-101 | C/AGT-CPU-01 | CPU AGB B E |
+
+These devices are pending, but have not yet been used to run the entire test suite:
+
+| Device           | Model          | Mainboard    | CPU        |
+| ---------------- | -------------- | ------------ | ---------- |
+| Game Boy         | DMG-01         | DMG-CPU-04   | DMG CPU B  |
+| Game Boy Advance | ???            | ???          | ???        |
+| Super Game Boy   | SNSP-A-SG(UKV) | SGB-R-10     | SGB-CPU-01 |
+| Super Game Boy 2 | SHVC-SGB2-JPN  | SHVC-SGB2-01 | CPU SGB2   |
+
+**For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on CGB/AGB/AGS or emulators emulating those devices.**
 
 ## Performance
 
@@ -46,19 +63,21 @@ The emulator is runnable on Android, but cross-compiling and packaging is a huge
 
 ## Running the emulator
 
-1. Acquire a Gameboy bootrom, and put it to `~/.mooneye-gb/boot.bin`
+1. Acquire a Game Boy bootrom, and put it to `$HOME/.mooneye-gb/boot.bin`
 2. `cargo build --release`
 3. `cargo run --release -- PATH_TO_GAMEBOY_ROM`
 
-### Gameboy keys
+On Windows, also download an SDL2 package containing SDL2.dll, and put it to `target/debug` and `target/release`.
 
-| Gameboy | Key        |
-| ------- | ---------- |
-| Dpad    | Arrow keys |
-| A       | Z          |
-| B       | X          |
-| Start   | Return     |
-| Select  | Backspace  |
+### Game Boy keys
+
+| Game Boy | Key        |
+| -------- | ---------- |
+| Dpad     | Arrow keys |
+| A        | Z          |
+| B        | X          |
+| Start    | Return     |
+| Select   | Backspace  |
 
 ### Other keys
 
