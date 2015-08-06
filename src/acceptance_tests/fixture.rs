@@ -4,16 +4,16 @@ use std::thread;
 use std::path::PathBuf;
 use time::Duration;
 
-use backend;
-use backend::{Backend, BackendMessage, BackendSharedMemory};
 use config;
+use frontend;
+use frontend::{Frontend, FrontendMessage, FrontendSharedMemory};
 use gameboy;
 use machine;
 use machine::{EmulationMode, Machine, MachineMessage};
 
 struct AcceptanceSharedMemory;
 
-impl BackendSharedMemory for AcceptanceSharedMemory {
+impl FrontendSharedMemory for AcceptanceSharedMemory {
   fn draw_screen(&self, _: &gameboy::ScreenBuffer) {
   }
 }
@@ -24,13 +24,13 @@ pub fn run_acceptance_test(name: &str) {
   let cartridge_path = PathBuf::from(&test_name);
   let hardware_config = config::create_hardware_config(Some(&bootrom_path), &cartridge_path).unwrap();
 
-  let (backend_tx, backend_rx) = backend::new_channel();
+  let (frontend_tx, frontend_rx) = frontend::new_channel();
   let (machine_tx, machine_rx) = machine::new_channel();
 
   let emulation_thread = thread::spawn(move || {
     let shared_memory = AcceptanceSharedMemory;
     let mut mach = Machine::new(&shared_memory, hardware_config);
-    let channels = machine::Channels::new(machine_tx, backend_rx);
+    let channels = machine::Channels::new(machine_tx, frontend_rx);
 
     mach.set_mode(EmulationMode::MaxSpeed);
 
@@ -55,7 +55,7 @@ pub fn run_acceptance_test(name: &str) {
       _ => ()
     }
   }
-  backend_tx.send(BackendMessage::Quit).unwrap();
+  frontend_tx.send(FrontendMessage::Quit).unwrap();
   emulation_thread.join().unwrap();
   match registers {
     None => panic!("Test did not finish"),

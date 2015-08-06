@@ -2,12 +2,12 @@
 
 use std::fmt;
 
-use backend::{
-  BackendSharedMemory,
-  GbKey
-};
 use config::HardwareConfig;
 use emulation::{EmuTime, MachineCycles};
+use frontend::{
+  FrontendSharedMemory,
+  GbKey
+};
 use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
 use hardware::cartridge::Cartridge;
@@ -67,12 +67,12 @@ impl OamDma {
 }
 
 impl<'a> Hardware<'a> {
-  pub fn new(backend: &'a BackendSharedMemory, config: HardwareConfig) -> Hardware<'a> {
+  pub fn new(frontend: &'a FrontendSharedMemory, config: HardwareConfig) -> Hardware<'a> {
     Hardware {
       bootrom: Bootrom::new(config.bootrom),
       cartridge: Cartridge::new(config.cartridge),
       internal_ram: InternalRam::new(),
-      gpu: Gpu::new(backend),
+      gpu: Gpu::new(frontend),
       apu: Apu::new(),
       joypad: Joypad::new(),
       serial: Serial::new(),

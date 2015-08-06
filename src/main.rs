@@ -16,17 +16,17 @@ use std::fs;
 use std::thread;
 use time::Duration;
 
-use backend::Backend;
 use cmdline::CmdLine;
 use config::HardwareConfig;
+use frontend::Frontend;
 use machine::Machine;
 use util::program_result::ProgramResult;
 
-mod backend;
 mod cmdline;
 mod config;
 mod cpu;
 mod emulation;
+mod frontend;
 mod gameboy;
 mod hardware;
 mod machine;
@@ -84,18 +84,18 @@ fn main() {
 
   println!("{:?}", hardware_config);
 
-  let backend = match backend::init() {
+  let frontend = match frontend::init() {
     Err(error) => panic!("{}", error),
-    Ok(backend) => backend
+    Ok(frontend) => frontend
   };
 
-  let shared_memory = backend.shared_memory();
-  let (backend_tx, backend_rx) = backend::new_channel();
+  let shared_memory = frontend.shared_memory();
+  let (frontend_tx, frontend_rx) = frontend::new_channel();
   let (machine_tx, machine_rx) = machine::new_channel();
 
   thread::spawn(move || {
     let mut mach = Machine::new(&*shared_memory, hardware_config);
-    let channels = machine::Channels::new(machine_tx, backend_rx);
+    let channels = machine::Channels::new(machine_tx, frontend_rx);
 
     match misc_config.benchmark_duration {
       Some(duration) => { mach.main_benchmark(channels, duration); },
@@ -103,7 +103,7 @@ fn main() {
     }
   });
 
-  if let Err(error) = backend.main_loop(backend_tx, machine_rx) {
+  if let Err(error) = frontend.main_loop(frontend_tx, machine_rx) {
     panic!("{}", error);
   }
 }

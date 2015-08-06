@@ -15,18 +15,18 @@ use std::fmt::Display;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError};
 
-use backend::{
-  Backend, BackendSharedMemory, GbKey, BackendMessage
+use frontend::{
+  Frontend, FrontendSharedMemory, GbKey, FrontendMessage
 };
-use backend::sdl::font::{TextAlign, Font};
-use backend::sdl::fps::FpsCounter;
+use frontend::sdl::font::{TextAlign, Font};
+use frontend::sdl::fps::FpsCounter;
 use gameboy;
 use machine::MachineMessage;
 
 mod font;
 mod fps;
 
-pub struct SdlBackend {
+pub struct SdlFrontend {
   sdl: Sdl,
   fps_counter: FpsCounter,
   relative_speed_stat: f64,
@@ -48,35 +48,35 @@ impl SharedMemory {
 }
 
 #[derive(Clone, Debug)]
-pub enum BackendError {
+pub enum FrontendError {
   Sdl(String)
 }
 
-pub type BackendResult<T> = Result<T, BackendError>;
+pub type FrontendResult<T> = Result<T, FrontendError>;
 
-impl From<String> for BackendError {
-  fn from(e: String) -> BackendError {
-    BackendError::Sdl(e)
+impl From<String> for FrontendError {
+  fn from(e: String) -> FrontendError {
+    FrontendError::Sdl(e)
   }
 }
 
-impl Error for BackendError {
+impl Error for FrontendError {
   fn description(&self) -> &str {
     match *self {
-      BackendError::Sdl(..) => "SDL error"
+      FrontendError::Sdl(..) => "SDL error"
     }
   }
 }
 
-impl Display for BackendError {
+impl Display for FrontendError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
-      BackendError::Sdl(ref msg) => f.write_str(msg)
+      FrontendError::Sdl(ref msg) => f.write_str(msg)
     }
   }
 }
 
-impl BackendSharedMemory for SharedMemory {
+impl FrontendSharedMemory for SharedMemory {
   fn draw_screen(&self, pixels: &gameboy::ScreenBuffer) {
     let mut data = self.pixel_buffer_lock.lock().unwrap();
     let ref palette = self.palette;
@@ -144,17 +144,17 @@ static PALETTE: [Color; 4] =
     Color::RGBA(33,  32,  16,  255)
   ];
 
-impl SdlBackend {
-  pub fn init() -> BackendResult<SdlBackend> {
+impl SdlFrontend {
+  pub fn init() -> FrontendResult<SdlFrontend> {
     let sdl = try!(sdl2::init().video().game_controller().build());
-    Ok(SdlBackend {
+    Ok(SdlFrontend {
       sdl: sdl,
       fps_counter: FpsCounter::new(),
       relative_speed_stat: 0.0,
       shared_memory: Arc::new(SharedMemory::new())
     })
   }
-  fn refresh_gb_screen(&self, renderer: &mut Renderer, texture: &mut Texture) -> BackendResult<()> {
+  fn refresh_gb_screen(&self, renderer: &mut Renderer, texture: &mut Texture) -> FrontendResult<()> {
     let rect = Rect::new_unwrap(0, 0, gameboy::SCREEN_WIDTH as u32, gameboy::SCREEN_HEIGHT as u32);
     {
       let pixels = self.shared_memory.pixel_buffer_lock.lock().unwrap();
@@ -165,7 +165,7 @@ impl SdlBackend {
     renderer.copy(&texture, Some(rect), Some(rect));
     Ok(())
   }
-  fn present(&mut self, renderer: &mut Renderer, texture: &mut Texture, font: &Font) -> BackendResult<()> {
+  fn present(&mut self, renderer: &mut Renderer, texture: &mut Texture, font: &Font) -> FrontendResult<()> {
     try!(self.refresh_gb_screen(renderer, texture));
     try!(renderer.set_logical_size(gameboy::SCREEN_WIDTH as u32 * 4, gameboy::SCREEN_HEIGHT as u32 * 4));
 
@@ -208,30 +208,30 @@ fn controller_to_joypad_key(button: Button) -> Option<GbKey> {
   }
 }
 
-fn controller_axis_to_message(axis: Axis, value: i16) -> Option<BackendMessage> {
+fn controller_axis_to_message(axis: Axis, value: i16) -> Option<FrontendMessage> {
   match axis {
     Axis::LeftX => match value {
-      -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Left)),
-      -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Left)),
-      0...16383 => Some(BackendMessage::KeyUp(GbKey::Right)),
-      16384...32767 => Some(BackendMessage::KeyDown(GbKey::Right)),
+      -32768...-16384 => Some(FrontendMessage::KeyDown(GbKey::Left)),
+      -16383...-1 => Some(FrontendMessage::KeyUp(GbKey::Left)),
+      0...16383 => Some(FrontendMessage::KeyUp(GbKey::Right)),
+      16384...32767 => Some(FrontendMessage::KeyDown(GbKey::Right)),
       _ => None
     },
     Axis::LeftY => match value {
-      -32768...-16384 => Some(BackendMessage::KeyDown(GbKey::Up)),
-      -16383...-1 => Some(BackendMessage::KeyUp(GbKey::Up)),
-      0...16383 => Some(BackendMessage::KeyUp(GbKey::Down)),
-      16384...32767 => Some(BackendMessage::KeyDown(GbKey::Down)),
+      -32768...-16384 => Some(FrontendMessage::KeyDown(GbKey::Up)),
+      -16383...-1 => Some(FrontendMessage::KeyUp(GbKey::Up)),
+      0...16383 => Some(FrontendMessage::KeyUp(GbKey::Down)),
+      16384...32767 => Some(FrontendMessage::KeyDown(GbKey::Down)),
       _ => None
     },
     _ => None
   }
 }
 
-impl Backend for SdlBackend {
+impl Frontend for SdlFrontend {
   type SHM = SharedMemory;
-  type Error = BackendError;
-  fn main_loop(mut self, to_machine: SyncSender<BackendMessage>, from_machine: Receiver<MachineMessage>) -> BackendResult<()> {
+  type Error = FrontendError;
+  fn main_loop(mut self, to_machine: SyncSender<FrontendMessage>, from_machine: Receiver<MachineMessage>) -> FrontendResult<()> {
     let window =
       try!(self.sdl.window("Mooneye GB", 640, 576).build());
     let mut renderer =
@@ -258,24 +258,24 @@ impl Backend for SdlBackend {
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} => {
             match to_joypad_key(keycode) {
-              Some(key) => to_machine.send(BackendMessage::KeyDown(key)).unwrap(),
+              Some(key) => to_machine.send(FrontendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
             match keycode {
-              Keycode::Home => to_machine.send(BackendMessage::Break).unwrap(),
-              Keycode::End => to_machine.send(BackendMessage::Run).unwrap(),
-              Keycode::PageDown => to_machine.send(BackendMessage::Step).unwrap(),
-              Keycode::LShift => to_machine.send(BackendMessage::Turbo(true)).unwrap(),
+              Keycode::Home => to_machine.send(FrontendMessage::Break).unwrap(),
+              Keycode::End => to_machine.send(FrontendMessage::Run).unwrap(),
+              Keycode::PageDown => to_machine.send(FrontendMessage::Step).unwrap(),
+              Keycode::LShift => to_machine.send(FrontendMessage::Turbo(true)).unwrap(),
               _ => ()
             }
           },
           Event::KeyUp{keycode: Some(keycode), ..} => {
             match to_joypad_key(keycode) {
-              Some(key) => to_machine.send(BackendMessage::KeyUp(key)).unwrap(),
+              Some(key) => to_machine.send(FrontendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
             match keycode {
-              Keycode::LShift => to_machine.send(BackendMessage::Turbo(false)).unwrap(),
+              Keycode::LShift => to_machine.send(FrontendMessage::Turbo(false)).unwrap(),
               _ => ()
             }
           },
@@ -284,13 +284,13 @@ impl Backend for SdlBackend {
           },
           Event::ControllerButtonDown{button, ..} => {
             match controller_to_joypad_key(button) {
-              Some(key) => to_machine.send(BackendMessage::KeyDown(key)).unwrap(),
+              Some(key) => to_machine.send(FrontendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
           },
           Event::ControllerButtonUp{button, ..} => {
             match controller_to_joypad_key(button) {
-              Some(key) => to_machine.send(BackendMessage::KeyUp(key)).unwrap(),
+              Some(key) => to_machine.send(FrontendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
           },

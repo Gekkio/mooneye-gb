@@ -3,7 +3,7 @@
 use std::fmt;
 use std::cmp::Ordering;
 
-use backend::BackendSharedMemory;
+use frontend::FrontendSharedMemory;
 use gameboy;
 use gameboy::Color;
 use hardware::irq::{Irq, Interrupt};
@@ -38,7 +38,7 @@ pub struct Gpu<'a> {
   tile_map1: [u8; TILE_MAP_SIZE],
   tile_map2: [u8; TILE_MAP_SIZE],
   back_buffer: Box<gameboy::ScreenBuffer>,
-  backend: &'a (BackendSharedMemory + 'a)
+  frontend: &'a (FrontendSharedMemory + 'a)
 }
 
 #[derive(Clone, Copy)]
@@ -173,7 +173,7 @@ impl Mode {
 }
 
 impl<'a> Gpu<'a> {
-  pub fn new(backend: &'a BackendSharedMemory) -> Gpu<'a> {
+  pub fn new(frontend: &'a FrontendSharedMemory) -> Gpu<'a> {
     Gpu {
       control: Control::empty(),
       stat: Stat::empty(),
@@ -193,7 +193,7 @@ impl<'a> Gpu<'a> {
       tile_map1: [0; TILE_MAP_SIZE],
       tile_map2: [0; TILE_MAP_SIZE],
       back_buffer: Box::new(gameboy::SCREEN_EMPTY),
-      backend: backend
+      frontend: frontend
     }
   }
   pub fn get_control(&self) -> u8 {
@@ -394,7 +394,7 @@ impl<'a> Gpu<'a> {
         if self.current_line < 144 {
           self.switch_mode(Mode::AccessOam, irq);
         } else {
-          self.backend.draw_screen(&*self.back_buffer);
+          self.frontend.draw_screen(&*self.back_buffer);
           self.switch_mode(Mode::VBlank, irq);
         }
         self.check_compare_interrupt(irq);

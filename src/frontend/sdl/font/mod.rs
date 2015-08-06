@@ -3,7 +3,7 @@ use sdl2::rect::Rect;
 use sdl2::render::{BlendMode, Renderer, Texture, TextureAccess};
 use std::collections::BTreeMap;
 
-use super::BackendResult;
+use super::FrontendResult;
 
 /// Generated from Inconsolata 22px
 /// With BMFont v1.14 beta
@@ -26,7 +26,7 @@ pub struct Font {
   offsets: BTreeMap<u32, (i32, i32)>
 }
 
-fn load_image(data: &[u8], renderer: &Renderer) -> BackendResult<Texture> {
+fn load_image(data: &[u8], renderer: &Renderer) -> FrontendResult<Texture> {
   let mut texture =
     try!(renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, (256, 256)));
 
@@ -36,7 +36,7 @@ fn load_image(data: &[u8], renderer: &Renderer) -> BackendResult<Texture> {
 }
 
 impl Font {
-  pub fn init(renderer: &Renderer) -> BackendResult<Font> {
+  pub fn init(renderer: &Renderer) -> FrontendResult<Font> {
     let mut outline = try!(load_image(inconsolata_20::OUTLINE_BYTES, renderer));
     outline.set_color_mod(64, 0, 0);
 
@@ -51,7 +51,7 @@ impl Font {
       offsets: offsets
     })
   }
-  pub fn draw_char(&self, renderer: &mut Renderer, ch: char, dst_x: i32, dst_y: i32) -> BackendResult<()> {
+  pub fn draw_char(&self, renderer: &mut Renderer, ch: char, dst_x: i32, dst_y: i32) -> FrontendResult<()> {
     let value = ch as u32;
     match self.offsets.get(&value) {
       Some(&(x, y)) => {
@@ -64,7 +64,7 @@ impl Font {
     }
     Ok(())
   }
-  pub fn draw_text(&self, renderer: &mut Renderer, x: i32, y: i32, alignment: TextAlign, text: &str) -> BackendResult<()> {
+  pub fn draw_text(&self, renderer: &mut Renderer, x: i32, y: i32, alignment: TextAlign, text: &str) -> FrontendResult<()> {
     let final_x =
       match alignment {
         TextAlign::Left => x,
