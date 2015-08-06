@@ -45,7 +45,7 @@ These devices are pending, but have not yet been used to run the entire test sui
 | Device           | Model          | Mainboard    | CPU        |
 | ---------------- | -------------- | ------------ | ---------- |
 | Game Boy         | DMG-01         | DMG-CPU-04   | DMG CPU B  |
-| Game Boy Advance | ???            | ???          | ???        |
+| Game Boy Advance | AGB-001        | AGB-CPU-10   | CPU AGB A  |
 | Super Game Boy   | SNSP-A-SG(UKV) | SGB-R-10     | SGB-CPU-01 |
 | Super Game Boy 2 | SHVC-SGB2-JPN  | SHVC-SGB2-01 | CPU SGB2   |
 
