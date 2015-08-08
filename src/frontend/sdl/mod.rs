@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use num::traits::Float;
 use sdl2;
 use sdl2::Sdl;
 use sdl2::controller::{Axis, Button, GameController};
@@ -29,21 +28,19 @@ use std::fmt;
 use std::fmt::Display;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError};
+use time::{Duration, precise_time_ns};
 
 use frontend::{
   Frontend, FrontendSharedMemory, GbKey, FrontendMessage
 };
-use frontend::sdl::font::{TextAlign, Font};
 use frontend::sdl::fps::FpsCounter;
 use gameboy;
 use machine::MachineMessage;
 
-mod font;
 mod fps;
 
 pub struct SdlFrontend {
   sdl: Sdl,
-  fps_counter: FpsCounter,
   relative_speed_stat: f64,
   shared_memory: Arc<SharedMemory>
 }
@@ -164,7 +161,6 @@ impl SdlFrontend {
     let sdl = try!(sdl2::init().video().game_controller().build());
     Ok(SdlFrontend {
       sdl: sdl,
-      fps_counter: FpsCounter::new(),
       relative_speed_stat: 0.0,
       shared_memory: Arc::new(SharedMemory::new())
     })
@@ -180,17 +176,11 @@ impl SdlFrontend {
     renderer.copy(&texture, Some(rect), Some(rect));
     Ok(())
   }
-  fn present(&mut self, renderer: &mut Renderer, texture: &mut Texture, font: &Font) -> FrontendResult<()> {
+  fn present(&mut self, renderer: &mut Renderer, texture: &mut Texture) -> FrontendResult<()> {
     try!(self.refresh_gb_screen(renderer, texture));
     try!(renderer.set_logical_size(gameboy::SCREEN_WIDTH as u32 * 4, gameboy::SCREEN_HEIGHT as u32 * 4));
 
-    let speed_text = format!("{} %", self.relative_speed_stat.round());
-    try!(font.draw_text(renderer, 0, 0, TextAlign::Left, &speed_text));
-
-    let fps_text = format!("{} FPS", self.fps_counter.fps.round());
-    try!(font.draw_text(renderer, gameboy::SCREEN_WIDTH as i32 * 4, 0, TextAlign::Right, &fps_text));
     renderer.present();
-    self.fps_counter.update();
     Ok(())
   }
 }
@@ -256,9 +246,10 @@ impl Frontend for SdlFrontend {
 
     let mut controllers = vec!();
 
-    let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
+    let mut fps_counter = FpsCounter::new();
+    let mut last_stats_time = precise_time_ns();
 
-    let font = try!(Font::init(&renderer));
+    let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
 
     'main: loop {
       match from_machine.try_recv() {
@@ -318,9 +309,17 @@ impl Frontend for SdlFrontend {
           _ => ()
         }
       }
-      match self.present(&mut renderer, &mut texture, &font) {
+
+      match self.present(&mut renderer, &mut texture) {
         Err(error) => { println!("{}", error.description()); break },
         _ => ()
+      }
+
+      let frame_time = precise_time_ns();
+      fps_counter.update();
+      if Duration::nanoseconds((frame_time - last_stats_time) as i64) > Duration::seconds(2) {
+        println!("FPS: {:.0}, speed: {:.0} %", fps_counter.fps, self.relative_speed_stat);
+        last_stats_time = frame_time;
       }
     }
     Ok(())
