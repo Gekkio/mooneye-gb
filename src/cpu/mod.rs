@@ -206,10 +206,6 @@ impl<H> Cpu<H> where H: Bus {
     }
   }
 
-  fn read_u16(&mut self, addr: u16) -> u16 {
-    (self.read_u8(addr) as u16) |
-    ((self.read_u8(addr.wrapping_add_one()) as u16) << 8)
-  }
   fn write_u16(&mut self, addr: u16, value: u16) {
     self.write_u8(addr, value as u8);
     self.write_u8((addr.wrapping_add_one()), (value >> 8) as u8);

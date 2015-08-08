@@ -273,7 +273,7 @@ pub trait ResolveOp8 {
 }
 
 impl ResolveOp8 for Reg8 {
-  fn resolve<'a>(&self, disasm: &mut Disasm<'a>) -> Operand8 { Operand8::Register(*self) }
+  fn resolve<'a>(&self, _: &mut Disasm<'a>) -> Operand8 { Operand8::Register(*self) }
 }
 
 impl ResolveOp8 for cpu::Immediate8 {
