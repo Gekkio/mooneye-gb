@@ -305,8 +305,8 @@ impl<'a, 'b> CpuOps for &'a mut Disasm<'b> {
   // 8-bit arithmetic
   fn add<I: In8>(self, in8: I) -> Instr { Instr::Add(in8.resolve(self)) }
   fn adc<I: In8>(self, in8: I) -> Instr { Instr::Adc(in8.resolve(self)) }
-  fn sub<I: In8>(self, in8: I) -> Instr { Instr::Adc(in8.resolve(self)) }
-  fn sbc<I: In8>(self, in8: I) -> Instr { Instr::Adc(in8.resolve(self)) }
+  fn sub<I: In8>(self, in8: I) -> Instr { Instr::Sub(in8.resolve(self)) }
+  fn sbc<I: In8>(self, in8: I) -> Instr { Instr::Sbc(in8.resolve(self)) }
   fn  cp<I: In8>(self, in8: I) -> Instr {  Instr::Cp(in8.resolve(self)) }
   fn and<I: In8>(self, in8: I) -> Instr { Instr::And(in8.resolve(self)) }
   fn  or<I: In8>(self, in8: I) -> Instr {  Instr::Or(in8.resolve(self)) }
