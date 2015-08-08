@@ -161,3 +161,7 @@ Versions used:
 | Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | ----------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
 | sprite priority   | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
+
+# License
+
+Mooneye GB is licensed under GPLv3+.

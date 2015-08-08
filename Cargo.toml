@@ -3,6 +3,7 @@
 name = "mooneye-gb"
 version = "0.0.0"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
+license = "GPL-3.0+"
 
 [features]
 acceptance_tests = []
