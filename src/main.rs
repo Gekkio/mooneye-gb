@@ -15,7 +15,6 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #[macro_use]
 extern crate bitflags;
-extern crate clock_ticks;
 extern crate getopts;
 extern crate num;
 extern crate podio;

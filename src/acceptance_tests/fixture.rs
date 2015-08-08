@@ -13,11 +13,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use clock_ticks::precise_time_ns;
 use std::env;
 use std::thread;
 use std::path::PathBuf;
-use time::Duration;
+use time::{Duration, precise_time_ns};
 
 use config;
 use frontend;

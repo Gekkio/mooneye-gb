@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use clock_ticks::precise_time_s;
 use std::collections::VecDeque;
+use time::precise_time_s;
 
 const HISTORY_SIZE: usize = 64;
 const RECALC_INTERVAL_SECONDS: f64 = 0.200;

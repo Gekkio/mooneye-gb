@@ -13,9 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use clock_ticks::precise_time_ns;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
-use time::Duration;
+use time::{Duration, precise_time_ns};
 
 use config::HardwareConfig;
 use cpu::Cpu;

@@ -10,7 +10,6 @@ acceptance_tests = []
 
 [dependencies]
 bitflags = "*"
-clock_ticks = "*"
 getopts = "*"
 num = "*"
 podio = "*"
