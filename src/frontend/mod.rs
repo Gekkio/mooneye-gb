@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use sdl2;
 use sdl2::Sdl;
-use sdl2::controller::{Axis, Button, GameController};
+use sdl2::controller::{Axis, Button};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
@@ -167,7 +167,7 @@ static PALETTE: [Color; 4] =
 
 impl SdlFrontend {
   pub fn init() -> FrontendResult<SdlFrontend> {
-    let sdl = try!(sdl2::init().video().game_controller().build());
+    let sdl = try!(sdl2::init());
     Ok(SdlFrontend {
       sdl: sdl,
       relative_speed_stat: 0.0,
@@ -215,8 +215,12 @@ impl SdlFrontend {
     self.main_loop_inner(frontend_tx, machine_rx)
   }
   fn main_loop_inner(mut self, frontend_tx: SyncSender<FrontendMessage>, machine_rx: Receiver<MachineMessage>) -> FrontendResult<()> {
+    let sdl_video = try!(self.sdl.video());
+    let mut sdl_event_pump = try!(self.sdl.event_pump());
+    let sdl_game_controller = try!(self.sdl.game_controller());
+
     let window =
-      try!(self.sdl.window("Mooneye GB", 640, 576).build());
+      try!(sdl_video.window("Mooneye GB", 640, 576).build());
     let mut renderer =
       try!(window.renderer().accelerated().present_vsync().build());
     renderer.clear();
@@ -236,7 +240,7 @@ impl SdlFrontend {
         _ => ()
       }
 
-      for event in self.sdl.event_pump().poll_iter() {
+      for event in sdl_event_pump.poll_iter() {
         match event {
           Event::Quit{..} => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
@@ -264,7 +268,7 @@ impl SdlFrontend {
             }
           },
           Event::ControllerDeviceAdded{which: id, ..} => {
-            controllers.push(try!(GameController::open(id)))
+            controllers.push(try!(sdl_game_controller.open(id as u32)))
           },
           Event::ControllerButtonDown{button, ..} => {
             match controller_to_joypad_key(button) {
