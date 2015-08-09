@@ -14,7 +14,6 @@ getopts = "*"
 num = "*"
 podio = "*"
 sdl2 = "*"
-snooze-rs = "*"
 time = "*"
 
 [dev-dependencies]

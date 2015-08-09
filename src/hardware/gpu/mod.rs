@@ -17,9 +17,8 @@
 
 use std::fmt;
 use std::cmp::Ordering;
-use std::sync::Arc;
 
-use frontend::SharedMemory;
+use emulation::{EmuEvents, EE_VSYNC};
 use gameboy;
 use gameboy::Color;
 use hardware::irq::{Irq, Interrupt};
@@ -53,8 +52,7 @@ pub struct Gpu {
   oam: [Sprite; OAM_SPRITES],
   tile_map1: [u8; TILE_MAP_SIZE],
   tile_map2: [u8; TILE_MAP_SIZE],
-  back_buffer: Box<gameboy::ScreenBuffer>,
-  frontend: Arc<SharedMemory>
+  pub back_buffer: Box<gameboy::ScreenBuffer>
 }
 
 #[derive(Clone, Copy)]
@@ -189,7 +187,7 @@ impl Mode {
 }
 
 impl Gpu {
-  pub fn new(frontend: Arc<SharedMemory>) -> Gpu {
+  pub fn new() -> Gpu {
     Gpu {
       control: Control::empty(),
       stat: Stat::empty(),
@@ -208,8 +206,7 @@ impl Gpu {
       oam: [Sprite::new(); OAM_SPRITES],
       tile_map1: [0; TILE_MAP_SIZE],
       tile_map2: [0; TILE_MAP_SIZE],
-      back_buffer: Box::new(gameboy::SCREEN_EMPTY),
-      frontend: frontend
+      back_buffer: Box::new(gameboy::SCREEN_EMPTY)
     }
   }
   pub fn get_control(&self) -> u8 {
@@ -381,7 +378,7 @@ impl Gpu {
       _ => ()
     }
   }
-  pub fn emulate(&mut self, irq: &mut Irq) {
+  pub fn emulate(&mut self, irq: &mut Irq, emu_events: &mut EmuEvents) {
     if !self.control.contains(CTRL_LCD_ON) {
       return;
     }
@@ -410,7 +407,7 @@ impl Gpu {
         if self.current_line < 144 {
           self.switch_mode(Mode::AccessOam, irq);
         } else {
-          self.frontend.draw_screen(&*self.back_buffer);
+          emu_events.insert(EE_VSYNC);
           self.switch_mode(Mode::VBlank, irq);
         }
         self.check_compare_interrupt(irq);

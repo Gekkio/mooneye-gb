@@ -19,7 +19,6 @@ extern crate getopts;
 extern crate num;
 extern crate podio;
 extern crate sdl2;
-extern crate snooze;
 extern crate time;
 
 #[cfg(test)]
@@ -101,7 +100,7 @@ fn main() {
     Err(error) => panic!("{}", error),
     Ok(frontend) => frontend
   };
-  let machine = Machine::new(frontend.shared_memory(), hardware_config);
+  let machine = Machine::new(hardware_config);
 
   let result = match misc_config.benchmark_duration {
     Some(duration) => frontend.main_loop_benchmark(machine, duration),

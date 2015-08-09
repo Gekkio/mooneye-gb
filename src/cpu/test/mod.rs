@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use cpu::Cpu;
-use emulation::EmuTime;
+use emulation::{EmuTime, EmuEvents};
 use hardware::Bus;
 use hardware::irq::Interrupt;
 
@@ -65,6 +65,7 @@ impl<'a> Bus for TestHardware {
   fn rewind_time(&mut self) {}
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
   fn has_interrupt(&self) -> bool { false }
+  fn trigger_emu_events(&mut self, events: EmuEvents) { }
 }
 
 pub fn run_test<I: Fn(&mut Cpu<TestHardware>) -> ()>(instructions: &[u8], cpu_init: I) -> Cpu<TestHardware> {

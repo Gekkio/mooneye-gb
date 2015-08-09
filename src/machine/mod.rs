@@ -13,190 +13,45 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use std::sync::Arc;
-use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
-use time::{Duration, precise_time_ns};
-
 use config::HardwareConfig;
 use cpu::Cpu;
 use cpu::registers::Registers;
-use emulation::{EmuTime, MachineCycles, EE_DEBUG_OP};
-use frontend::{FrontendMessage, SharedMemory};
+use emulation::{EmuTime, EmuEvents};
+use frontend::{GbKey};
+use gameboy;
 use hardware::Hardware;
-use self::perf_counter::PerfCounter;
+pub use self::perf_counter::PerfCounter;
 
 mod perf_counter;
-mod pulse;
 
 pub struct Machine {
-  cpu: Cpu<Hardware>,
-  perf_counter: PerfCounter,
-  mode: EmulationMode,
-  time: EmuTime
+  cpu: Cpu<Hardware>
 }
-
-pub struct Channels {
-  to_frontend: SyncSender<MachineMessage>,
-  from_frontend: Receiver<FrontendMessage>
-}
-
-pub enum MachineMessage {
-  RelativeSpeedStat(f64), Debug(Registers)
-}
-
-impl Channels {
-  pub fn new(to_frontend: SyncSender<MachineMessage>,
-             from_frontend: Receiver<FrontendMessage>) -> Channels {
-    Channels {
-      to_frontend: to_frontend,
-      from_frontend: from_frontend
-    }
-  }
-}
-
-/// Amount of cycles in each emulation pulse
-const PULSE_CYCLES: MachineCycles = MachineCycles(10484); // 10ms worth of cycles
 
 impl Machine {
-  pub fn new(frontend: Arc<SharedMemory>, config: HardwareConfig) -> Machine {
+  pub fn new(config: HardwareConfig) -> Machine {
     Machine {
-      cpu: Cpu::new(Hardware::new(frontend, config)),
-      perf_counter: PerfCounter::new(),
-      mode: EmulationMode::Normal,
-      time: EmuTime::zero()
+      cpu: Cpu::new(Hardware::new(config))
     }
   }
-  pub fn set_mode(&mut self, mode: EmulationMode) {
-    self.mode = mode;
-  }
-  fn emulate(&mut self, to_frontend: &SyncSender<MachineMessage>) {
-    let end_time = self.cpu.execute_until(self.time + PULSE_CYCLES);
-
-    self.perf_counter.update(end_time - self.time);
-    self.time = end_time;
-
-    if self.time.needs_rewind() {
-      self.time.rewind();
-      self.cpu.rewind_time();
-    }
-    let emu_events = self.cpu.hardware().ack_emu_events();
-    if emu_events.contains(EE_DEBUG_OP) {
-      to_frontend.send(MachineMessage::Debug(self.cpu.regs)).unwrap();
-    }
-  }
-  fn debug_step(&mut self) {
-    self.cpu.execute();
-    self.debug_status();
-  }
-  fn debug_status(&mut self) {
-    let pc = self.cpu.get_pc();
-    let op = self.cpu.disasm_op();
-    println!("${:04x}: {:18} {}", pc, op, self.cpu);
-  }
-  pub fn main_benchmark(&mut self, channels: Channels, duration: Duration) {
-    let from_frontend = channels.from_frontend;
-    let to_frontend = channels.to_frontend;
-    self.reset();
-
-    let start_time = precise_time_ns();
-
+  pub fn emulate(&mut self, target_time: EmuTime) -> (EmuEvents, EmuTime) {
     loop {
-      let time = precise_time_ns();
-      if Duration::nanoseconds((time - start_time) as i64) > duration {
-          println!("{}", self.time.cycles().as_clock_cycles());
+      self.cpu.execute();
+      if !self.cpu.hardware().emu_events().is_empty() || self.cpu.time() >= target_time {
         break;
       }
-      match from_frontend.try_recv() {
-        Err(TryRecvError::Disconnected) => break,
-        _ => ()
-      }
-      self.emulate(&to_frontend);
     }
-  }
-  pub fn main_loop(&mut self, channels: Channels) {
-    let from_frontend = channels.from_frontend;
-    let to_frontend = channels.to_frontend;
-    self.reset();
-
-    let pulse_duration = PULSE_CYCLES.as_duration();
-
-    let mut last_perf_update = precise_time_ns();
-    let perf_update_freq = Duration::milliseconds(100);
-
-    loop {
-      match self.mode {
-        EmulationMode::Normal => {
-          let pulse = pulse::start(pulse_duration);
-
-          loop {
-            let time = precise_time_ns();
-            if Duration::nanoseconds((time - last_perf_update) as i64) > perf_update_freq {
-              last_perf_update = time;
-              let value = self.perf_counter.get_relative_speed();
-              to_frontend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
-            }
-            match from_frontend.try_recv() {
-              Err(TryRecvError::Empty) => (),
-              Err(_) => return,
-              Ok(FrontendMessage::Quit) => return,
-              Ok(FrontendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
-              Ok(FrontendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
-              Ok(FrontendMessage::Turbo(true)) => { self.mode = EmulationMode::MaxSpeed; break },
-              Ok(FrontendMessage::Break) => { self.mode = EmulationMode::Debug; break },
-              Ok(_) => ()
-            }
-            match pulse.recv() {
-              Ok(_) => self.emulate(&to_frontend),
-              _ => return
-            }
-          }
-        },
-        EmulationMode::MaxSpeed => {
-          loop {
-            let time = precise_time_ns();
-            if Duration::nanoseconds((time - last_perf_update) as i64) > perf_update_freq {
-              last_perf_update = time;
-              let value = self.perf_counter.get_relative_speed();
-              to_frontend.send(MachineMessage::RelativeSpeedStat(value)).unwrap();
-            }
-            match from_frontend.try_recv() {
-              Err(TryRecvError::Disconnected) => return,
-              Ok(FrontendMessage::Quit) => return,
-              Ok(FrontendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
-              Ok(FrontendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
-              Ok(FrontendMessage::Turbo(false)) => { self.mode = EmulationMode::Normal; break },
-              Ok(FrontendMessage::Break) => { self.mode = EmulationMode::Debug; break },
-              _ => ()
-            }
-            self.emulate(&to_frontend)
-          }
-        },
-        EmulationMode::Debug => {
-          self.debug_status();
-          loop {
-            match from_frontend.recv() {
-              Err(_) => return,
-              Ok(FrontendMessage::Quit) => return,
-              Ok(FrontendMessage::KeyDown(key)) => self.cpu.hardware().key_down(key),
-              Ok(FrontendMessage::KeyUp(key)) => self.cpu.hardware().key_up(key),
-              Ok(FrontendMessage::Run) => { self.mode = EmulationMode::Normal; break },
-              Ok(FrontendMessage::Step) => { self.debug_step(); }
-              _ => ()
-            }
-          }
-        }
-      }
-    }
+    (self.cpu.hardware().ack_emu_events(), self.cpu.time())
   }
   pub fn reset(&mut self) {
     self.cpu.hardware().bootrom.reset();
   }
-}
-
-pub enum EmulationMode {
-  Debug, Normal, MaxSpeed
-}
-
-pub fn new_channel() -> (SyncSender<MachineMessage>, Receiver<MachineMessage>) {
-  sync_channel(128)
+  pub fn key_down(&mut self, key: GbKey) {
+    self.cpu.hardware().key_down(key);
+  }
+  pub fn key_up(&mut self, key: GbKey) {
+    self.cpu.hardware().key_up(key);
+  }
+  pub fn regs(&self) -> Registers { self.cpu.regs }
+  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { self.cpu.hardware.screen_buffer() }
 }

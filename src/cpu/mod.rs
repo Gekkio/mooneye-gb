@@ -141,6 +141,7 @@ impl<H> Cpu<H> where H: Bus {
   pub fn hardware(&mut self) -> &mut H {
     &mut self.hardware
   }
+  pub fn time(&self) -> EmuTime { self.time }
   pub fn get_pc(&self) -> u16 {
     self.regs.pc
   }
@@ -287,13 +288,6 @@ impl<H> Cpu<H> where H: Bus {
       let op = self.next_u8();
       ops::decode(self, op)
     }
-  }
-
-  pub fn execute_until(&mut self, time: EmuTime) -> EmuTime {
-    while self.hardware.emu_events().is_empty() && self.time < time {
-      self.execute();
-    }
-    self.time
   }
 
   fn alu_add(&mut self, value: u8, use_carry: bool) {

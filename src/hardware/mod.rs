@@ -16,11 +16,11 @@
 #![allow(dead_code)]
 
 use std::fmt;
-use std::sync::Arc;
 
 use config::HardwareConfig;
 use emulation::{EmuTime, EmuEvents, MachineCycles};
-use frontend::{GbKey, SharedMemory};
+use frontend::{GbKey};
+use gameboy;
 use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
 use hardware::cartridge::Cartridge;
@@ -50,7 +50,6 @@ pub trait Bus {
   fn ack_interrupt(&mut self) -> Option<Interrupt>;
   fn has_interrupt(&self) -> bool;
   fn rewind_time(&mut self);
-  fn emu_events(&self) -> EmuEvents;
   fn trigger_emu_events(&mut self, EmuEvents);
 }
 
@@ -83,12 +82,12 @@ impl OamDma {
 }
 
 impl Hardware {
-  pub fn new(frontend: Arc<SharedMemory>, config: HardwareConfig) -> Hardware {
+  pub fn new(config: HardwareConfig) -> Hardware {
     Hardware {
       bootrom: Bootrom::new(config.bootrom),
       cartridge: Cartridge::new(config.cartridge),
       internal_ram: InternalRam::new(),
-      gpu: Gpu::new(frontend),
+      gpu: Gpu::new(),
       apu: Apu::new(),
       joypad: Joypad::new(),
       serial: Serial::new(),
@@ -102,7 +101,9 @@ impl Hardware {
     let events = self.emu_events;
     self.emu_events = EmuEvents::empty();
     events
-  }
+  }  
+  pub fn emu_events(&self) -> EmuEvents { self.emu_events }
+  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { &self.gpu.back_buffer }
   pub fn key_down(&mut self, key: GbKey) {
     self.joypad.key_down(key, &mut self.irq);
   }
@@ -263,7 +264,7 @@ impl Bus for Hardware {
       self.oam_dma.active = false;
     }
     self.timer.emulate(&mut self.irq);
-    self.gpu.emulate(&mut self.irq);
+    self.gpu.emulate(&mut self.irq, &mut self.emu_events);
     self.apu.emulate();
   }
   fn ack_interrupt(&mut self) -> Option<Interrupt> { self.irq.ack_interrupt() }
@@ -271,7 +272,6 @@ impl Bus for Hardware {
   fn rewind_time(&mut self) {
     self.timer.rewind_time();
   }
-  fn emu_events(&self) -> EmuEvents { self.emu_events }
   fn trigger_emu_events(&mut self, events: EmuEvents) { self.emu_events.insert(events) }
 }
 
