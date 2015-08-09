@@ -28,10 +28,12 @@ use std::fmt;
 use std::fmt::Display;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
+use std::thread;
 use time::{Duration, precise_time_ns};
 
 use gameboy;
-use machine::MachineMessage;
+use machine;
+use machine::{Machine, MachineMessage};
 use self::fps::FpsCounter;
 
 mod fps;
@@ -190,7 +192,29 @@ impl SdlFrontend {
     renderer.present();
     Ok(())
   }
-  pub fn main_loop(mut self, to_machine: SyncSender<FrontendMessage>, from_machine: Receiver<MachineMessage>) -> FrontendResult<()> {
+  pub fn main_loop_benchmark(self, machine: Machine, duration: Duration) -> FrontendResult<()> {
+    let (frontend_tx, frontend_rx) = new_channel();
+    let (machine_tx, machine_rx) = machine::new_channel();
+    let mut mach = machine;
+
+    thread::spawn(move || {
+      let channels = machine::Channels::new(machine_tx, frontend_rx);
+      mach.main_benchmark(channels, duration);
+    });
+    self.main_loop_inner(frontend_tx, machine_rx)
+  }
+  pub fn main_loop(self, machine: Machine) -> FrontendResult<()> {
+    let (frontend_tx, frontend_rx) = new_channel();
+    let (machine_tx, machine_rx) = machine::new_channel();
+    let mut mach = machine;
+
+    thread::spawn(move || {
+      let channels = machine::Channels::new(machine_tx, frontend_rx);
+      mach.main_loop(channels);
+    });
+    self.main_loop_inner(frontend_tx, machine_rx)
+  }
+  fn main_loop_inner(mut self, frontend_tx: SyncSender<FrontendMessage>, machine_rx: Receiver<MachineMessage>) -> FrontendResult<()> {
     let window =
       try!(self.sdl.window("Mooneye GB", 640, 576).build());
     let mut renderer =
@@ -206,7 +230,7 @@ impl SdlFrontend {
     let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
 
     'main: loop {
-      match from_machine.try_recv() {
+      match machine_rx.try_recv() {
         Err(TryRecvError::Disconnected) => break,
         Ok(MachineMessage::RelativeSpeedStat(value)) => self.relative_speed_stat = value,
         _ => ()
@@ -218,24 +242,24 @@ impl SdlFrontend {
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} => {
             match to_joypad_key(keycode) {
-              Some(key) => to_machine.send(FrontendMessage::KeyDown(key)).unwrap(),
+              Some(key) => frontend_tx.send(FrontendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
             match keycode {
-              Keycode::Home => to_machine.send(FrontendMessage::Break).unwrap(),
-              Keycode::End => to_machine.send(FrontendMessage::Run).unwrap(),
-              Keycode::PageDown => to_machine.send(FrontendMessage::Step).unwrap(),
-              Keycode::LShift => to_machine.send(FrontendMessage::Turbo(true)).unwrap(),
+              Keycode::Home => frontend_tx.send(FrontendMessage::Break).unwrap(),
+              Keycode::End => frontend_tx.send(FrontendMessage::Run).unwrap(),
+              Keycode::PageDown => frontend_tx.send(FrontendMessage::Step).unwrap(),
+              Keycode::LShift => frontend_tx.send(FrontendMessage::Turbo(true)).unwrap(),
               _ => ()
             }
           },
           Event::KeyUp{keycode: Some(keycode), ..} => {
             match to_joypad_key(keycode) {
-              Some(key) => to_machine.send(FrontendMessage::KeyUp(key)).unwrap(),
+              Some(key) => frontend_tx.send(FrontendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
             match keycode {
-              Keycode::LShift => to_machine.send(FrontendMessage::Turbo(false)).unwrap(),
+              Keycode::LShift => frontend_tx.send(FrontendMessage::Turbo(false)).unwrap(),
               _ => ()
             }
           },
@@ -244,19 +268,19 @@ impl SdlFrontend {
           },
           Event::ControllerButtonDown{button, ..} => {
             match controller_to_joypad_key(button) {
-              Some(key) => to_machine.send(FrontendMessage::KeyDown(key)).unwrap(),
+              Some(key) => frontend_tx.send(FrontendMessage::KeyDown(key)).unwrap(),
               None => ()
             }
           },
           Event::ControllerButtonUp{button, ..} => {
             match controller_to_joypad_key(button) {
-              Some(key) => to_machine.send(FrontendMessage::KeyUp(key)).unwrap(),
+              Some(key) => frontend_tx.send(FrontendMessage::KeyUp(key)).unwrap(),
               None => ()
             }
           },
           Event::ControllerAxisMotion{axis, value, ..} => {
             match controller_axis_to_message(axis, value) {
-              Some(message) => to_machine.send(message).unwrap(),
+              Some(message) => frontend_tx.send(message).unwrap(),
               None => ()
             }
           },

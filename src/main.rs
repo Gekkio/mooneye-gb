@@ -27,7 +27,6 @@ extern crate quickcheck;
 
 use std::env;
 use std::fs;
-use std::thread;
 use time::Duration;
 
 use cmdline::CmdLine;
@@ -56,7 +55,7 @@ fn parse_seconds(text: &str) -> Result<Duration, ProgramResult> {
   Ok(Duration::seconds(seconds))
 }
 
-struct MiscConfig {
+pub struct MiscConfig {
   benchmark_duration: Option<Duration>
 }
 
@@ -102,22 +101,14 @@ fn main() {
     Err(error) => panic!("{}", error),
     Ok(frontend) => frontend
   };
+  let machine = Machine::new(frontend.shared_memory(), hardware_config);
 
-  let shared_memory = frontend.shared_memory();
-  let (frontend_tx, frontend_rx) = frontend::new_channel();
-  let (machine_tx, machine_rx) = machine::new_channel();
+  let result = match misc_config.benchmark_duration {
+    Some(duration) => frontend.main_loop_benchmark(machine, duration),
+    None => frontend.main_loop(machine)
+  };
 
-  thread::spawn(move || {
-    let mut mach = Machine::new(shared_memory, hardware_config);
-    let channels = machine::Channels::new(machine_tx, frontend_rx);
-
-    match misc_config.benchmark_duration {
-      Some(duration) => { mach.main_benchmark(channels, duration); },
-      None => { mach.main_loop(channels); }
-    }
-  });
-
-  if let Err(error) = frontend.main_loop(frontend_tx, machine_rx) {
+  if let Err(error) = result {
     panic!("{}", error);
   }
 }
