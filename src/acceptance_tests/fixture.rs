@@ -16,21 +16,15 @@
 use std::env;
 use std::thread;
 use std::path::PathBuf;
+use std::sync::Arc;
 use time::{Duration, precise_time_ns};
 
 use config;
 use frontend;
-use frontend::{Frontend, FrontendMessage, FrontendSharedMemory};
+use frontend::{FrontendMessage, SharedMemory};
 use gameboy;
 use machine;
 use machine::{EmulationMode, Machine, MachineMessage};
-
-struct AcceptanceSharedMemory;
-
-impl FrontendSharedMemory for AcceptanceSharedMemory {
-  fn draw_screen(&self, _: &gameboy::ScreenBuffer) {
-  }
-}
 
 pub fn run_acceptance_test(name: &str) {
   let bootrom_path = env::home_dir().unwrap().join(".mooneye-gb").join("boot.bin");
@@ -42,8 +36,8 @@ pub fn run_acceptance_test(name: &str) {
   let (machine_tx, machine_rx) = machine::new_channel();
 
   let emulation_thread = thread::spawn(move || {
-    let shared_memory = AcceptanceSharedMemory;
-    let mut mach = Machine::new(&shared_memory, hardware_config);
+    let shared_memory = Arc::new(SharedMemory::new());
+    let mut mach = Machine::new(shared_memory, hardware_config);
     let channels = machine::Channels::new(machine_tx, frontend_rx);
 
     mach.set_mode(EmulationMode::MaxSpeed);

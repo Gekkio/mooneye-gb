@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use std::sync::Arc;
 use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, sync_channel};
 use time::{Duration, precise_time_ns};
 
@@ -20,17 +21,15 @@ use config::HardwareConfig;
 use cpu::Cpu;
 use cpu::registers::Registers;
 use emulation::{EmuTime, MachineCycles};
-use frontend::{
-  FrontendSharedMemory, FrontendMessage
-};
+use frontend::{FrontendMessage, SharedMemory};
 use hardware::Hardware;
 use self::perf_counter::PerfCounter;
 
 mod perf_counter;
 mod pulse;
 
-pub struct Machine<'a> {
-  cpu: Cpu<Hardware<'a>>,
+pub struct Machine {
+  cpu: Cpu<Hardware>,
   perf_counter: PerfCounter,
   mode: EmulationMode,
   time: EmuTime
@@ -58,8 +57,8 @@ impl Channels {
 /// Amount of cycles in each emulation pulse
 const PULSE_CYCLES: MachineCycles = MachineCycles(10484); // 10ms worth of cycles
 
-impl<'a> Machine<'a> {
-  pub fn new(frontend: &'a FrontendSharedMemory, config: HardwareConfig) -> Machine<'a> {
+impl Machine {
+  pub fn new(frontend: Arc<SharedMemory>, config: HardwareConfig) -> Machine {
     Machine {
       cpu: Cpu::new(Hardware::new(frontend, config)),
       perf_counter: PerfCounter::new(),

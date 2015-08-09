@@ -16,13 +16,11 @@
 #![allow(dead_code)]
 
 use std::fmt;
+use std::sync::Arc;
 
 use config::HardwareConfig;
 use emulation::{EmuTime, MachineCycles};
-use frontend::{
-  FrontendSharedMemory,
-  GbKey
-};
+use frontend::{GbKey, SharedMemory};
 use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
 use hardware::cartridge::Cartridge;
@@ -54,11 +52,11 @@ pub trait Bus {
   fn rewind_time(&mut self);
 }
 
-pub struct Hardware<'a> {
+pub struct Hardware {
   pub bootrom: Bootrom,
   pub cartridge: Cartridge,
   internal_ram: InternalRam,
-  gpu: Gpu<'a>,
+  gpu: Gpu,
   apu: Apu,
   joypad: Joypad,
   serial: Serial,
@@ -81,8 +79,8 @@ impl OamDma {
   }
 }
 
-impl<'a> Hardware<'a> {
-  pub fn new(frontend: &'a FrontendSharedMemory, config: HardwareConfig) -> Hardware<'a> {
+impl Hardware {
+  pub fn new(frontend: Arc<SharedMemory>, config: HardwareConfig) -> Hardware {
     Hardware {
       bootrom: Bootrom::new(config.bootrom),
       cartridge: Cartridge::new(config.cartridge),
@@ -238,7 +236,7 @@ impl<'a> Hardware<'a> {
   }
 }
 
-impl<'a> Bus for Hardware<'a> {
+impl Bus for Hardware {
   fn read(&self, time: EmuTime, addr: u16) -> u8 {
     if self.oam_dma.active {
       println!("Warning: read at ${:04x} during OAM DMA!", addr);
@@ -266,7 +264,7 @@ impl<'a> Bus for Hardware<'a> {
   }
 }
 
-impl<'a> fmt::Debug for Hardware<'a> {
+impl fmt::Debug for Hardware {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{:?}", self.gpu)
   }

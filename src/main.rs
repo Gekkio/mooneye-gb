@@ -32,7 +32,7 @@ use time::Duration;
 
 use cmdline::CmdLine;
 use config::HardwareConfig;
-use frontend::Frontend;
+use frontend::SdlFrontend;
 use machine::Machine;
 use util::program_result::ProgramResult;
 
@@ -98,7 +98,7 @@ fn main() {
 
   println!("{:?}", hardware_config);
 
-  let frontend = match frontend::init() {
+  let frontend = match SdlFrontend::init() {
     Err(error) => panic!("{}", error),
     Ok(frontend) => frontend
   };
@@ -108,7 +108,7 @@ fn main() {
   let (machine_tx, machine_rx) = machine::new_channel();
 
   thread::spawn(move || {
-    let mut mach = Machine::new(&*shared_memory, hardware_config);
+    let mut mach = Machine::new(shared_memory, hardware_config);
     let channels = machine::Channels::new(machine_tx, frontend_rx);
 
     match misc_config.benchmark_duration {

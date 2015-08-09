@@ -17,8 +17,9 @@
 
 use std::fmt;
 use std::cmp::Ordering;
+use std::sync::Arc;
 
-use frontend::FrontendSharedMemory;
+use frontend::SharedMemory;
 use gameboy;
 use gameboy::Color;
 use hardware::irq::{Irq, Interrupt};
@@ -34,7 +35,7 @@ const VBLANK_LINE_CYCLES: isize = 114;
 const UNDEFINED_READ: u8 = 0xff;
 const STAT_UNUSED_MASK: u8 = (1 << 7);
 
-pub struct Gpu<'a> {
+pub struct Gpu {
   control: Control,
   stat: Stat,
   current_line: u8,
@@ -53,7 +54,7 @@ pub struct Gpu<'a> {
   tile_map1: [u8; TILE_MAP_SIZE],
   tile_map2: [u8; TILE_MAP_SIZE],
   back_buffer: Box<gameboy::ScreenBuffer>,
-  frontend: &'a (FrontendSharedMemory + 'a)
+  frontend: Arc<SharedMemory>
 }
 
 #[derive(Clone, Copy)]
@@ -187,8 +188,8 @@ impl Mode {
   }
 }
 
-impl<'a> Gpu<'a> {
-  pub fn new(frontend: &'a FrontendSharedMemory) -> Gpu<'a> {
+impl Gpu {
+  pub fn new(frontend: Arc<SharedMemory>) -> Gpu {
     Gpu {
       control: Control::empty(),
       stat: Stat::empty(),
@@ -566,7 +567,7 @@ impl<'a> Gpu<'a> {
   }
 }
 
-impl<'a> fmt::Debug for Gpu<'a> {
+impl fmt::Debug for Gpu {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "LCDC:{:08b} STAT:{:08b} LY:{:02x} ", self.get_control(), self.get_stat(), self.get_current_line())
   }
