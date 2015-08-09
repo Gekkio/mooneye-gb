@@ -20,7 +20,7 @@ use time::{Duration, precise_time_ns};
 use config::HardwareConfig;
 use cpu::Cpu;
 use cpu::registers::Registers;
-use emulation::{EmuTime, MachineCycles};
+use emulation::{EmuTime, MachineCycles, EE_DEBUG_OP};
 use frontend::{FrontendMessage, SharedMemory};
 use hardware::Hardware;
 use self::perf_counter::PerfCounter;
@@ -69,10 +69,8 @@ impl Machine {
   pub fn set_mode(&mut self, mode: EmulationMode) {
     self.mode = mode;
   }
-  fn emulate(&mut self, to_frontend: &SyncSender<MachineMessage>) -> bool {
-    let end_time = self.time + PULSE_CYCLES;
-
-    self.cpu.execute_until(end_time);
+  fn emulate(&mut self, to_frontend: &SyncSender<MachineMessage>) {
+    let end_time = self.cpu.execute_until(self.time + PULSE_CYCLES);
 
     self.perf_counter.update(end_time - self.time);
     self.time = end_time;
@@ -81,10 +79,10 @@ impl Machine {
       self.time.rewind();
       self.cpu.rewind_time();
     }
-    if let Some(regs) = self.cpu.ack_debug() {
-      to_frontend.send(MachineMessage::Debug(regs)).unwrap();
+    let emu_events = self.cpu.hardware().ack_emu_events();
+    if emu_events.contains(EE_DEBUG_OP) {
+      to_frontend.send(MachineMessage::Debug(self.cpu.regs)).unwrap();
     }
-    true
   }
   fn debug_step(&mut self) {
     self.cpu.execute();
@@ -148,11 +146,7 @@ impl Machine {
               Ok(_) => ()
             }
             match pulse.recv() {
-              Ok(_) => {
-                if !self.emulate(&to_frontend) {
-                  break;
-                }
-              },
+              Ok(_) => self.emulate(&to_frontend),
               _ => return
             }
           }
@@ -174,9 +168,7 @@ impl Machine {
               Ok(FrontendMessage::Break) => { self.mode = EmulationMode::Debug; break },
               _ => ()
             }
-            if !self.emulate(&to_frontend) {
-              break;
-            }
+            self.emulate(&to_frontend)
           }
         },
         EmulationMode::Debug => {

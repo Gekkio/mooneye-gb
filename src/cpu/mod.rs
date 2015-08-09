@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-use emulation::EmuTime;
+use emulation::{EmuTime, EmuEvents, EE_DEBUG_OP};
 use gameboy::{HiramData, HIRAM_EMPTY};
 use hardware::Bus;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
@@ -36,13 +36,12 @@ mod test;
 
 pub struct Cpu<H: Bus> {
   time: EmuTime,
-  regs: Registers,
+  pub regs: Registers,
   ime: bool,
   ime_change: ImeChange,
   halt: bool,
   hiram: HiramData,
-  hardware: H,
-  hit_debug: bool
+  pub hardware: H
 }
 
 pub trait In8: disasm::ResolveOp8 {
@@ -136,8 +135,7 @@ impl<H> Cpu<H> where H: Bus {
       halt: false,
       hiram: HIRAM_EMPTY,
       hardware: hardware,
-      time: EmuTime::zero(),
-      hit_debug: false
+      time: EmuTime::zero()
     }
   }
   pub fn hardware(&mut self) -> &mut H {
@@ -165,14 +163,6 @@ impl<H> Cpu<H> where H: Bus {
   }
   pub fn write_hiram(&mut self, reladdr: u16, value: u8) {
     self.hiram[reladdr as usize] = value;
-  }
-
-  pub fn ack_debug(&mut self) -> Option<Registers> {
-    if !self.hit_debug { None }
-    else {
-      self.hit_debug = false;
-      Some(self.regs.clone())
-    }
   }
 
   fn next_u8(&mut self) -> u8 {
@@ -299,10 +289,11 @@ impl<H> Cpu<H> where H: Bus {
     }
   }
 
-  pub fn execute_until(&mut self, time: EmuTime) {
-    while self.time < time {
+  pub fn execute_until(&mut self, time: EmuTime) -> EmuTime {
+    while self.hardware.emu_events().is_empty() && self.time < time {
       self.execute();
     }
+    self.time
   }
 
   fn alu_add(&mut self, value: u8, use_carry: bool) {
@@ -937,7 +928,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
     panic!("Undefined opcode {}", op)
   }
   fn undefined_debug(self) {
-    self.hit_debug = true;
+    self.hardware.trigger_emu_events(EE_DEBUG_OP);
   }
   fn cb_prefix(self) {
     let op = self.next_u8();

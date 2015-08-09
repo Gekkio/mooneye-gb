@@ -19,7 +19,7 @@ use std::fmt;
 use std::sync::Arc;
 
 use config::HardwareConfig;
-use emulation::{EmuTime, MachineCycles};
+use emulation::{EmuTime, EmuEvents, MachineCycles};
 use frontend::{GbKey, SharedMemory};
 use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
@@ -50,6 +50,8 @@ pub trait Bus {
   fn ack_interrupt(&mut self) -> Option<Interrupt>;
   fn has_interrupt(&self) -> bool;
   fn rewind_time(&mut self);
+  fn emu_events(&self) -> EmuEvents;
+  fn trigger_emu_events(&mut self, EmuEvents);
 }
 
 pub struct Hardware {
@@ -62,7 +64,8 @@ pub struct Hardware {
   serial: Serial,
   pub timer: Timer,
   oam_dma: OamDma,
-  irq: Irq
+  irq: Irq,
+  emu_events: EmuEvents
 }
 
 struct OamDma {
@@ -91,8 +94,14 @@ impl Hardware {
       serial: Serial::new(),
       timer: Timer::new(),
       oam_dma: OamDma::new(),
-      irq: Irq::new()
+      irq: Irq::new(),
+      emu_events: EmuEvents::empty()
     }
+  }
+  pub fn ack_emu_events(&mut self) -> EmuEvents {
+    let events = self.emu_events;
+    self.emu_events = EmuEvents::empty();
+    events
   }
   pub fn key_down(&mut self, key: GbKey) {
     self.joypad.key_down(key, &mut self.irq);
@@ -262,6 +271,8 @@ impl Bus for Hardware {
   fn rewind_time(&mut self) {
     self.timer.rewind_time();
   }
+  fn emu_events(&self) -> EmuEvents { self.emu_events }
+  fn trigger_emu_events(&mut self, events: EmuEvents) { self.emu_events.insert(events) }
 }
 
 impl fmt::Debug for Hardware {

@@ -19,6 +19,7 @@ use std::ops::{Add, Sub};
 use time::Duration;
 
 use gameboy;
+pub use self::emu_events::{EmuEvents, EE_DEBUG_OP};
 pub use self::time::EmuTime;
 
 mod time;
@@ -53,4 +54,13 @@ impl fmt::Debug for MachineCycles {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", self.0)
   }
+}
+
+#[allow(dead_code)]
+mod emu_events {
+  bitflags!(
+    flags EmuEvents: u8 {
+      const EE_DEBUG_OP = 0b_0000_0001
+    }
+  );
 }
