@@ -9,14 +9,14 @@ license = "GPL-3.0+"
 acceptance_tests = []
 
 [dependencies]
-bitflags = "*"
-getopts = "*"
+bitflags = "0.3"
+getopts = "0.2"
 glium_sdl2 = "0.5"
-nalgebra = "*"
-num = "*"
-podio = "*"
+nalgebra = "0.2"
+num = "0.1"
+podio = "0.1"
 sdl2 = "0.7"
-time = "*"
+time = "0.1"
 
 [dependencies.glium]
 version = "0.8"
@@ -24,4 +24,4 @@ features = ["nalgebra"]
 default-features = false
 
 [dev-dependencies]
-quickcheck = "*"
+quickcheck = "0.2"
