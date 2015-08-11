@@ -14,45 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::collections::VecDeque;
-use time::precise_time_s;
+use time::SteadyTime;
 
 use emulation::MachineCycles;
 
-const HISTORY_SIZE: usize = 64;
-const EXPECTED_CYCLES_PER_SECOND: f64 = 4194304.0;
+const HISTORY_SIZE: usize = 128;
 
 /// A cycles-per-second counter
 pub struct PerfCounter {
   history: VecDeque<f64>,
-  last_time: f64
+  last_time: SteadyTime
 }
 
 impl PerfCounter {
   pub fn new() -> PerfCounter {
     PerfCounter {
       history: VecDeque::with_capacity(HISTORY_SIZE),
-      last_time: precise_time_s()
+      last_time: SteadyTime::now()
     }
   }
-  pub fn update(&mut self, cycles: MachineCycles) {
-    let time = precise_time_s();
-    let cycles_per_s = cycles.as_clock_cycles() as f64 / (time - self.last_time);
+  pub fn update(&mut self, cycles: MachineCycles, current_time: SteadyTime) {
+    let delta_ns = (current_time - self.last_time).num_nanoseconds().unwrap_or(0);
+    let cycles_per_s = cycles.as_clock_cycles() as f64 / (delta_ns as f64 / 1_000_000_000.0);
 
     self.make_room_for_new_element();
     self.history.push_front(cycles_per_s);
 
-    self.last_time = time;
+    self.last_time = current_time;
   }
-  /// Returns the estimated relative speed in percentages compared to
-  /// a real device
-  pub fn get_relative_speed(&self) -> f64 {
-    let mut avg_cps = 0.0;
-    for history_cps in self.history.iter() {
-      avg_cps += *history_cps;
-    }
-    avg_cps /= self.history.len() as f64;
-
-    (avg_cps * 100.0) / EXPECTED_CYCLES_PER_SECOND
+  pub fn get_cps(&self) -> f64 {
+    let sum = self.history.iter().fold(0.0, |acc, &item| acc + item);
+    sum / self.history.len() as f64
   }
   fn make_room_for_new_element(&mut self) {
     if self.history.len() >= HISTORY_SIZE {

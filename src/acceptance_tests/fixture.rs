@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::env;
 use std::path::PathBuf;
-use time::{Duration, precise_time_ns};
+use time::{Duration, SteadyTime};
 
 use config;
 use emulation::{EmuTime, EE_DEBUG_OP, MachineCycles};
@@ -32,14 +32,14 @@ pub fn run_acceptance_test(name: &str) {
   machine.reset();
 
   let max_duration = Duration::seconds(30);
-  let start_time = precise_time_ns();
+  let start_time = SteadyTime::now();
 
   let mut emu_time = EmuTime::zero();
 
   let mut registers = None;
   loop {
-    let time = precise_time_ns();
-    if Duration::nanoseconds((time - start_time) as i64) > max_duration {
+    let time = SteadyTime::now();
+    if time - start_time > max_duration {
       break;
     }
     const PULSE_CYCLES: MachineCycles = MachineCycles((gameboy::CPU_SPEED_HZ / 4) as u32);

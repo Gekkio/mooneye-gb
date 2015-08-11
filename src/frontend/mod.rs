@@ -25,7 +25,7 @@ use std::convert::From;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Display;
-use time::{Duration, precise_time_ns};
+use time::{Duration, SteadyTime};
 
 use emulation::{EmuTime, MachineCycles, EE_VSYNC};
 use gameboy;
@@ -159,16 +159,22 @@ impl SdlFrontend {
 
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
-    let mut last_stats_time = precise_time_ns();
 
     let mut emu_time = EmuTime::zero();
-    let start_time_ns = precise_time_ns();
+    let start_time = SteadyTime::now();
+    let mut last_stats_time = start_time;
 
     let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
 
     machine.reset();
     'main: loop {
-      if Duration::nanoseconds((precise_time_ns() - start_time_ns) as i64) >= duration { break }
+      let frame_time = SteadyTime::now();
+      fps_counter.update(frame_time);
+      if frame_time - last_stats_time > Duration::seconds(2) {
+        println!("FPS: {:.0}, speed: {:.0} %", fps_counter.get_fps(), 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64);
+        last_stats_time = frame_time;
+      }
+      if frame_time - start_time >= duration { break }
 
       for event in self.event_pump.poll_iter() {
         match event {
@@ -187,7 +193,7 @@ impl SdlFrontend {
           self.update_pixels(machine.screen_buffer());
         }
 
-        perf_counter.update(end_time - emu_time);
+        perf_counter.update(end_time - emu_time, frame_time);
         if end_time >= target_time {
           emu_time = end_time;
           break;
@@ -197,13 +203,6 @@ impl SdlFrontend {
       match self.present(&mut renderer, &mut texture) {
         Err(error) => { println!("{}", error.description()); break },
         _ => ()
-      }
-
-      let frame_time = precise_time_ns();
-      fps_counter.update();
-      if Duration::nanoseconds((frame_time - last_stats_time) as i64) > Duration::seconds(2) {
-        println!("FPS: {:.0}, speed: {:.0} %", fps_counter.fps, perf_counter.get_relative_speed());
-        last_stats_time = frame_time;
       }
     }
     Ok(())
@@ -221,26 +220,27 @@ impl SdlFrontend {
 
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
-    let mut last_stats_time = precise_time_ns();
 
     let mut emu_time = EmuTime::zero();
     let mut controllers = vec![];
 
-    let mut last_frame = precise_time_ns();
+    let mut last_frame = SteadyTime::now();
+    let mut last_stats_time = last_frame;
+
     let mut turbo = false;
 
     let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
 
     machine.reset();
     'main: loop {
-      let current_time = precise_time_ns();
-      let delta = current_time - last_frame;
-      last_frame = current_time;
+      let frame_time = SteadyTime::now();
+      let delta = frame_time - last_frame;
+      last_frame = frame_time;
 
-      fps_counter.update();
-      if Duration::nanoseconds((current_time - last_stats_time) as i64) > Duration::seconds(2) {
-        println!("FPS: {:.0}, speed: {:.0} %", fps_counter.fps, perf_counter.get_relative_speed());
-        last_stats_time = current_time;
+      fps_counter.update(frame_time);
+      if frame_time - last_stats_time > Duration::seconds(2) {
+        println!("FPS: {:.0}, speed: {:.0} %", fps_counter.get_fps(), 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64);
+        last_stats_time = frame_time;
       }
 
       for event in self.event_pump.poll_iter() {
@@ -283,7 +283,7 @@ impl SdlFrontend {
         if turbo {
           MachineCycles((gameboy::CPU_SPEED_HZ / 4) as u32 / 60)
         } else {
-          MachineCycles(((delta * (gameboy::CPU_SPEED_HZ / 4) as u64) / 1_000_000_000) as u32)
+          MachineCycles((delta * (gameboy::CPU_SPEED_HZ as i32 / 4)).num_seconds() as u32)
         };
 
       let target_time = emu_time + cycles;
@@ -295,7 +295,7 @@ impl SdlFrontend {
         }
 
         if end_time >= target_time {
-          perf_counter.update(end_time - emu_time);
+          perf_counter.update(end_time - emu_time, frame_time);
           emu_time = end_time;
           break;
         }
