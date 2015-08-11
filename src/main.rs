@@ -15,7 +15,11 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate glium;
+extern crate glium_sdl2;
 extern crate getopts;
+extern crate nalgebra;
 extern crate num;
 extern crate podio;
 extern crate sdl2;

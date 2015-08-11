@@ -11,10 +11,17 @@ acceptance_tests = []
 [dependencies]
 bitflags = "*"
 getopts = "*"
+glium_sdl2 = "0.5"
+nalgebra = "*"
 num = "*"
 podio = "*"
-sdl2 = "*"
+sdl2 = "0.7"
 time = "*"
+
+[dependencies.glium]
+version = "0.8"
+features = ["nalgebra"]
+default-features = false
 
 [dev-dependencies]
 quickcheck = "*"

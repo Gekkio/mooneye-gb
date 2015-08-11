@@ -18,6 +18,7 @@ pub type ScreenBuffer = [Color; SCREEN_PIXELS];
 pub type WramBank = [u8; WRAM_BANK_SIZE];
 
 #[derive(PartialEq, Clone, Copy)]
+#[repr(u8)]
 pub enum Color {
   Off = 0,
   Light = 1,

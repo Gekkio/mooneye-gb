@@ -13,14 +13,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use glium::{GliumCreationError, Surface, SwapBuffersError};
+use glium_sdl2::DisplayBuild;
 use sdl2;
 use sdl2::{Sdl, EventPump};
 use sdl2::controller::{Axis, Button};
-use sdl2::event::Event;
+use sdl2::event::{Event, WindowEventId};
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect::Rect;
-use sdl2::render::{Renderer, Texture};
 use std::convert::From;
 use std::error::Error;
 use std::fmt;
@@ -31,8 +30,10 @@ use emulation::{EmuTime, MachineCycles, EE_VSYNC};
 use gameboy;
 use machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
+use self::renderer::Renderer;
 
 mod fps;
+mod renderer;
 
 #[derive(Debug)]
 pub enum GbKey {
@@ -41,14 +42,13 @@ pub enum GbKey {
 
 pub struct SdlFrontend {
   sdl: Sdl,
-  event_pump: EventPump,
-  pixel_buffer: Vec<u8>,
-  palette: Palette
+  event_pump: EventPump
 }
 
 #[derive(Clone, Debug)]
 pub enum FrontendError {
-  Sdl(String)
+  Sdl(String),
+  Renderer(String)
 }
 
 pub type FrontendResult<T> = Result<T, FrontendError>;
@@ -59,10 +59,23 @@ impl From<String> for FrontendError {
   }
 }
 
+impl From<GliumCreationError<String>> for FrontendError {
+  fn from(e: GliumCreationError<String>) -> FrontendError {
+    FrontendError::Renderer(format!("{:?}", e))
+  }
+}
+
+impl From<SwapBuffersError> for FrontendError {
+  fn from(e: SwapBuffersError) -> FrontendError {
+    FrontendError::Renderer(format!("{:?}", e))
+  }
+}
+
 impl Error for FrontendError {
   fn description(&self) -> &str {
     match *self {
-      FrontendError::Sdl(..) => "SDL error"
+      FrontendError::Sdl(ref msg) => msg,
+      FrontendError::Renderer(ref msg) => msg
     }
   }
 }
@@ -70,54 +83,11 @@ impl Error for FrontendError {
 impl Display for FrontendError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
-      FrontendError::Sdl(ref msg) => f.write_str(msg)
+      FrontendError::Sdl(ref msg) => f.write_str(msg),
+      FrontendError::Renderer(ref msg) => f.write_str(msg)
     }
   }
 }
-
-const PIXEL_BUFFER_ROWS: usize = gameboy::SCREEN_HEIGHT;
-const PIXEL_BUFFER_STRIDE: usize = 256 * 4;
-const PIXEL_BUFFER_SIZE: usize = PIXEL_BUFFER_STRIDE * PIXEL_BUFFER_ROWS;
-
-struct Palette {
-  colors: [[u8; 4]; 4]
-}
-
-impl Palette {
-  fn from_colors(colors: &[Color; 4]) -> Palette {
-    fn convert(color: &Color) -> [u8; 4] {
-      match *color {
-        Color::RGBA(r, g, b, a) => [a, b, g, r],
-        _ => [0, 0, 0, 0]
-      }
-    }
-    let colors = [
-      convert(&colors[0]),
-      convert(&colors[1]),
-      convert(&colors[2]),
-      convert(&colors[3])
-    ];
-    Palette {
-      colors: colors
-    }
-  }
-  fn get_bytes<'a>(&'a self, gb_color: &gameboy::Color) -> &'a [u8; 4] {
-    match *gb_color {
-      gameboy::Color::Off => &self.colors[0],
-      gameboy::Color::Light => &self.colors[1],
-      gameboy::Color::Dark => &self.colors[2],
-      gameboy::Color::On => &self.colors[3]
-    }
-  }
-}
-
-static PALETTE: [Color; 4] =
-  [
-    Color::RGBA(255, 247, 123, 255),
-    Color::RGBA(181, 174, 74,  255),
-    Color::RGBA(107, 105, 49,  255),
-    Color::RGBA(33,  32,  16,  255)
-  ];
 
 impl SdlFrontend {
   pub fn init() -> FrontendResult<SdlFrontend> {
@@ -125,37 +95,15 @@ impl SdlFrontend {
     let event_pump = try!(sdl.event_pump());
     Ok(SdlFrontend {
       sdl: sdl,
-      event_pump: event_pump,
-      pixel_buffer: vec![0xff; PIXEL_BUFFER_SIZE],
-      palette: Palette::from_colors(&PALETTE)
+      event_pump: event_pump
     })
-  }
-  fn refresh_gb_screen(&self, renderer: &mut Renderer, texture: &mut Texture) -> FrontendResult<()> {
-    let rect = Rect::new_unwrap(0, 0, gameboy::SCREEN_WIDTH as u32, gameboy::SCREEN_HEIGHT as u32);
-    {
-      try!(texture.update(Some(rect), &self.pixel_buffer, PIXEL_BUFFER_STRIDE));
-    }
-    renderer.clear();
-    try!(renderer.set_logical_size(gameboy::SCREEN_WIDTH as u32, gameboy::SCREEN_HEIGHT as u32));
-    renderer.copy(&texture, Some(rect), Some(rect));
-    Ok(())
-  }
-  fn present(&mut self, renderer: &mut Renderer, texture: &mut Texture) -> FrontendResult<()> {
-    try!(self.refresh_gb_screen(renderer, texture));
-    try!(renderer.set_logical_size(gameboy::SCREEN_WIDTH as u32 * 4, gameboy::SCREEN_HEIGHT as u32 * 4));
-
-    renderer.present();
-    Ok(())
   }
   pub fn main_loop_benchmark(mut self, mut machine: Machine, duration: Duration) -> FrontendResult<()> {
     let sdl_video = try!(self.sdl.video());
 
-    let window =
-      try!(sdl_video.window("Mooneye GB", 640, 576).build());
-    let mut renderer =
-      try!(window.renderer().accelerated().build());
-    renderer.clear();
-    renderer.present();
+    let display =
+      try!(sdl_video.window("Mooneye GB", 640, 576).opengl().position_centered().build_glium());
+    let mut renderer = try!(Renderer::new(&display));
 
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
@@ -163,8 +111,6 @@ impl SdlFrontend {
     let mut emu_time = EmuTime::zero();
     let start_time = SteadyTime::now();
     let mut last_stats_time = start_time;
-
-    let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
 
     machine.reset();
     'main: loop {
@@ -180,6 +126,9 @@ impl SdlFrontend {
         match event {
           Event::Quit{..} => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
+          Event::Window { win_event_id: WindowEventId::SizeChanged, ..} => {
+            renderer.update_dimensions(&display);
+          },
           _ => ()
         }
       }
@@ -190,7 +139,7 @@ impl SdlFrontend {
         let (events, end_time) = machine.emulate(target_time);
 
         if events.contains(EE_VSYNC) {
-          self.update_pixels(machine.screen_buffer());
+          renderer.update_pixels(machine.screen_buffer());
         }
 
         perf_counter.update(end_time - emu_time, frame_time);
@@ -200,10 +149,10 @@ impl SdlFrontend {
         }
       }
 
-      match self.present(&mut renderer, &mut texture) {
-        Err(error) => { println!("{}", error.description()); break },
-        _ => ()
-      }
+      let mut target = display.draw();
+      target.clear_color(0.0, 0.0, 0.0, 1.0);
+      try!(renderer.draw(&mut target));
+      try!(target.finish());
     }
     Ok(())
   }
@@ -211,12 +160,9 @@ impl SdlFrontend {
     let sdl_video = try!(self.sdl.video());
     let sdl_game_controller = try!(self.sdl.game_controller());
 
-    let window =
-      try!(sdl_video.window("Mooneye GB", 640, 576).build());
-    let mut renderer =
-      try!(window.renderer().accelerated().present_vsync().build());
-    renderer.clear();
-    renderer.present();
+    let display =
+      try!(sdl_video.window("Mooneye GB", 640, 576).build_glium());
+    let mut renderer = try!(Renderer::new(&display));
 
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
@@ -228,8 +174,6 @@ impl SdlFrontend {
     let mut last_stats_time = last_frame;
 
     let mut turbo = false;
-
-    let mut texture = try!(renderer.create_texture_streaming(PixelFormatEnum::RGBA8888, (256, 256)));
 
     machine.reset();
     'main: loop {
@@ -246,6 +190,9 @@ impl SdlFrontend {
       for event in self.event_pump.poll_iter() {
         match event {
           Event::Quit{..} => break 'main,
+          Event::Window { win_event_id: WindowEventId::SizeChanged, ..} => {
+            renderer.update_dimensions(&display);
+          },
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} => {
             if let Some(key) = map_keycode(keycode) { machine.key_down(key) }
@@ -291,7 +238,7 @@ impl SdlFrontend {
         let (events, end_time) = machine.emulate(target_time);
 
         if events.contains(EE_VSYNC) {
-          self.update_pixels(machine.screen_buffer());
+          renderer.update_pixels(machine.screen_buffer());
         }
 
         if end_time >= target_time {
@@ -301,33 +248,12 @@ impl SdlFrontend {
         }
       }
 
-      match self.present(&mut renderer, &mut texture) {
-        Err(error) => { println!("{}", error.description()); break },
-        _ => ()
-      }
+      let mut target = display.draw();
+      target.clear_color(0.0, 0.0, 0.0, 1.0);
+      try!(renderer.draw(&mut target));
+      try!(target.finish());
     }
     Ok(())
-  }
-  fn update_pixels(&mut self, pixels: &gameboy::ScreenBuffer) {
-    let ref mut data = self.pixel_buffer;
-    let ref palette = self.palette;
-    for y in (0..gameboy::SCREEN_HEIGHT) {
-      let in_start = y * gameboy::SCREEN_WIDTH;
-      let in_end = in_start + gameboy::SCREEN_WIDTH;
-      let in_slice = &pixels[in_start .. in_end];
-
-      let out_start = y * PIXEL_BUFFER_STRIDE;
-      let out_end = out_start + gameboy::SCREEN_WIDTH * 4;
-      let out_slice = &mut data[out_start .. out_end];
-
-      for (pixel, gb_color) in out_slice.chunks_mut(4).zip(in_slice.iter()) {
-        let color = palette.get_bytes(gb_color);
-        pixel[0] = color[0];
-        pixel[1] = color[1];
-        pixel[2] = color[2];
-        pixel[3] = color[3];
-      }
-    }
   }
 }
 
