@@ -79,11 +79,12 @@ fn prepare_emulator() -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
     benchmark_duration = Some(try!(parse_seconds(&text)))
   }
 
-  let bootrom_path = cmdline.bootrom_path.or(bootrom_default);
+  let bootrom_path = try!(cmdline.bootrom_path.or(bootrom_default).ok_or(
+      ProgramResult::Error("A Game Boy boot ROM is required to run Mooneye GB".into())));
   let cartridge_path = cmdline.cartridge_path;
 
   let hw_config = try!(
-    config::create_hardware_config(bootrom_path.as_ref().map(|x| x.as_path()), &cartridge_path));
+    config::create_hardware_config(Some(&bootrom_path), &cartridge_path));
 
   Ok((hw_config,
     MiscConfig { benchmark_duration: benchmark_duration }))
