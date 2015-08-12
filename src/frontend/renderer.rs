@@ -18,7 +18,9 @@ use glium::{DrawError, DrawParameters, IndexBuffer, Program, VertexBuffer, Surfa
 use glium::backend::Facade;
 use glium::index::PrimitiveType;
 use glium::program::ProgramCreationError;
-use glium::texture::{ClientFormat, PixelValue, TextureCreationError};
+use glium::texture::{
+  ClientFormat, MipmapsOption, PixelValue, TextureCreationError, UncompressedUintFormat
+};
 use glium::texture::pixel_buffer::PixelBuffer;
 use glium::texture::unsigned_texture2d::UnsignedTexture2d;
 use nalgebra::{Diag, Mat4, Vec4};
@@ -124,7 +126,10 @@ impl Renderer {
     let pixel_buffer = PixelBuffer::new_empty(display, gameboy::SCREEN_WIDTH * gameboy::SCREEN_HEIGHT);
     pixel_buffer.write(&vec![gameboy::Color::Off; pixel_buffer.get_size()]);
 
-    let mut texture = try!(Texture::empty(display, TEXTURE_WIDTH, TEXTURE_HEIGHT));
+    let mut texture = try!(Texture::empty_with_format(display,
+                                                      UncompressedUintFormat::U8,
+                                                      MipmapsOption::NoMipmap,
+                                                      TEXTURE_WIDTH, TEXTURE_HEIGHT));
     upload_pixels(&mut texture, &pixel_buffer);
 
     let (width, height) = display.get_context().get_framebuffer_dimensions();
