@@ -13,13 +13,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use glium::{GliumCreationError, Surface, SwapBuffersError};
+use glium::{Api, GliumCreationError, Surface, SwapBuffersError, Version};
 use glium_sdl2::DisplayBuild;
 use sdl2;
 use sdl2::{Sdl, EventPump};
 use sdl2::controller::{Axis, Button};
 use sdl2::event::{Event, WindowEventId};
 use sdl2::keyboard::Keycode;
+use sdl2::video::gl_attr::GLAttr;
 use std::convert::From;
 use std::error::Error;
 use std::fmt;
@@ -100,6 +101,7 @@ impl SdlFrontend {
   }
   pub fn main_loop_benchmark(mut self, mut machine: Machine, duration: Duration) -> FrontendResult<()> {
     let sdl_video = try!(self.sdl.video());
+    configure_gl_attr(&mut sdl_video.gl_attr());
 
     let display =
       try!(sdl_video.window("Mooneye GB", 640, 576).opengl().position_centered().build_glium());
@@ -158,11 +160,18 @@ impl SdlFrontend {
   }
   pub fn main_loop(mut self, mut machine: Machine) -> FrontendResult<()> {
     let sdl_video = try!(self.sdl.video());
+    configure_gl_attr(&mut sdl_video.gl_attr());
+
     let sdl_game_controller = try!(self.sdl.game_controller());
 
     let display =
       try!(sdl_video.window("Mooneye GB", 640, 576).build_glium());
     let mut renderer = try!(Renderer::new(&display));
+
+    println!("Initialized renderer with {}", match *display.get_opengl_version() {
+      Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
+      Version(Api::GlEs, major, minor) => format!("OpenGL ES {}.{}", major, minor)
+    });
 
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
@@ -305,3 +314,8 @@ fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
   }
 }
 
+fn configure_gl_attr<'a>(gl_attr: &mut GLAttr<'a>) {
+  gl_attr.set_context_major_version(3);
+  gl_attr.set_context_minor_version(2);
+  gl_attr.set_context_flags().forward_compatible().set();
+}
