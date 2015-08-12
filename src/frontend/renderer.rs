@@ -110,9 +110,9 @@ impl Renderer {
       Vertex { position: [ 1.0, -1.0], tex_coords: [TEX_OFFSET_X, TEX_OFFSET_Y] }
     ];
 
-    let vertex_buffer = try!(VertexBuffer::new(display, &vertexes));
+    let vertex_buffer = try!(VertexBuffer::immutable(display, &vertexes));
 
-    let index_buffer = try!(IndexBuffer::new(
+    let index_buffer = try!(IndexBuffer::immutable(
       display, PrimitiveType::TriangleStrip, &[1u16, 2, 0, 3]));
 
     let program = try!(program!(
