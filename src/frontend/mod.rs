@@ -20,7 +20,6 @@ use sdl2::{Sdl, EventPump};
 use sdl2::controller::{Axis, Button};
 use sdl2::event::{Event, WindowEventId};
 use sdl2::keyboard::Keycode;
-use sdl2::video::GLProfile;
 use sdl2::video::gl_attr::GLAttr;
 use std::convert::From;
 use std::error::Error;
@@ -316,10 +315,11 @@ fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn configure_gl_attr<'a>(gl_attr: &mut GLAttr<'a>) { }
+fn configure_gl_attr<'a>(_: &mut GLAttr<'a>) { }
 
 #[cfg(target_os = "macos")]
 fn configure_gl_attr<'a>(gl_attr: &mut GLAttr<'a>) {
+  use sdl2::video::GLProfile;
   gl_attr.set_context_major_version(3);
   gl_attr.set_context_minor_version(2);
   gl_attr.set_context_profile(GLProfile::Core);
