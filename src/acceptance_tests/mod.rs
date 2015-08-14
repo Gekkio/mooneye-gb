@@ -39,6 +39,9 @@ fn di_timing() { run_acceptance_test("acceptance/di_timing") }
 fn div_timing() { run_acceptance_test("acceptance/div_timing") }
 
 #[test]
+fn dmg_boot_regs() { run_acceptance_test("acceptance/dmg_boot_regs") }
+
+#[test]
 fn ei_timing() { run_acceptance_test("acceptance/ei_timing") }
 
 #[test]

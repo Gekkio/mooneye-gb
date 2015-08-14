@@ -121,6 +121,7 @@ Versions used:
 | call cc_timing2                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | di timing                       | :+1:       | :+1: | :+1:     | :x:           | :x:   | :+1: | :+1: |
 | div timing                      | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
+| dmg boot regs                   | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | ei timing                       | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | halt ime0 ei                    | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | halt ime0 nointr_timing         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :x:  |
@@ -160,6 +161,11 @@ Versions used:
 
 | Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | ----------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| agb+ boot regs    |            | :x:  |          | :x:           |       | :x:  |      |
+| cgb boot regs     |            | :+1: |          | :x:           |       | :x:  | :+1: |
+| mgb boot regs     |            | :+1: |          | :+1:          |       |      | :+1: |
+| sgb boot regs     |            | :x:  |          | :+1:          |       | :x:  | :+1: |
+| sgb2 boot regs    |            | :x:  |          | :+1:          |       | :x:  |      |
 | sprite priority   | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
 
 # License
