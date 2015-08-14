@@ -32,7 +32,7 @@ impl Serial {
     self.data = value
   }
   pub fn get_control(&self) -> u8 {
-    self.control.bits & CTRL_UNUSED_MASK
+    self.control.bits | CTRL_UNUSED_MASK
   }
   pub fn set_control(&mut self, value: u8) {
     self.control = Control::from_bits_truncate(value);
