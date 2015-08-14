@@ -217,8 +217,8 @@ impl Hardware {
       0xff => {
         match addr & 0xff {
           0x00 => self.joypad.get_register(),
-          0x01 => panic!("Unsupported read at ${:04x}", addr),
-          0x02 => panic!("Unsupported read at ${:04x}", addr),
+          0x01 => self.serial.get_data(),
+          0x02 => self.serial.get_control(),
           0x04 => self.timer.get_divider(time),
           0x05 => self.timer.get_counter(),
           0x06 => self.timer.get_modulo(),
