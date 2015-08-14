@@ -312,6 +312,8 @@ _test_ok_cb_\@:
   regs_save instanceof reg_dump
   regs_flags db
   regs_assert instanceof reg_dump
+  memdump_len db
+  memdump_addr dw
 .ends
 
 .bank 1 slot 1
@@ -391,6 +393,49 @@ _test_ok_cb_\@:
     call print_newline
     print_string_literal "TEST FAILED"
 +   ret
+
+  dump_mem:
+    ld (memdump_len), a
+    ld a, l
+    ld (memdump_addr), a
+    ld a, h
+    ld (memdump_addr + 1), a
+
+    enable_lcd
+    wait_vblank
+    disable_lcd
+    call reset_screen
+    call print_load_font
+
+    ld hl, $9800
+
+    ld a, (memdump_addr + 1)
+    ld d, a
+    ld a, (memdump_addr)
+    ld e, a
+  _dump_mem_line:
+    ld a, d
+    call print_a
+    ld a, e
+    call print_a
+
+-   ld a, (de)
+    call print_a
+    inc de
+    ld a, (memdump_len)
+    dec a
+    jr z, +
+    ld (memdump_len), a
+    ld a, l
+    and $1F
+    cp 20
+    jr nz, -
+    call print_newline
+    jr _dump_mem_line
+
++
+    enable_lcd
+    halt_execution
 
   _check_asserts:
     xor a
