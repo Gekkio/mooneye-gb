@@ -43,9 +43,6 @@ impl Machine {
     }
     (self.cpu.hardware().ack_emu_events(), self.cpu.time())
   }
-  pub fn reset(&mut self) {
-    self.cpu.hardware().bootrom.reset();
-  }
   pub fn key_down(&mut self, key: GbKey) {
     self.cpu.hardware().key_down(key);
   }

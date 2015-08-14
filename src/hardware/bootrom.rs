@@ -31,14 +31,13 @@ impl Bootrom {
     Bootrom {
       data: data,
       installed: installed,
-      active: false
+      active: installed
     }
   }
 
   pub fn is_installed(&self) -> bool { self.installed }
   pub fn is_active(&self) -> bool { self.active }
 
-  pub fn reset(&mut self) { self.active = self.installed; }
   pub fn deactivate(&mut self) { self.active = false; }
 }
 

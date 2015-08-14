@@ -114,7 +114,6 @@ impl SdlFrontend {
     let start_time = SteadyTime::now();
     let mut last_stats_time = start_time;
 
-    machine.reset();
     'main: loop {
       let frame_time = SteadyTime::now();
       fps_counter.update(frame_time);
@@ -184,7 +183,6 @@ impl SdlFrontend {
 
     let mut turbo = false;
 
-    machine.reset();
     'main: loop {
       let frame_time = SteadyTime::now();
       let delta = frame_time - last_frame;
