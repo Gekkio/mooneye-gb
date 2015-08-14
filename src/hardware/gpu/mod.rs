@@ -108,11 +108,11 @@ struct Palette {
 impl Palette {
   fn new() -> Palette {
     Palette {
-      off: Color::Off,
-      light: Color::Off,
-      dark: Color::Off,
-      on: Color::Off,
-      bits: 0x00
+      off: Color::On,
+      light: Color::On,
+      dark: Color::On,
+      on: Color::On,
+      bits: 0xff
     }
   }
   fn get(&self, color: &Color) -> Color {
