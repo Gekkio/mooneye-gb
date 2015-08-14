@@ -231,7 +231,6 @@ impl Hardware {
           0x43 => self.gpu.get_scroll_x(),
           0x44 => self.gpu.get_current_line(),
           0x45 => self.gpu.get_compare_line(),
-          0x46 => panic!("Unsupported read at ${:04x}", addr),
           0x47 => self.gpu.get_bg_palette(),
           0x48 => self.gpu.get_obj_palette0(),
           0x49 => self.gpu.get_obj_palette1(),
