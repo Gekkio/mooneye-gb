@@ -19,16 +19,17 @@ use glium::backend::Facade;
 use glium::index::PrimitiveType;
 use glium::program::ProgramCreationError;
 use glium::texture::{
-  ClientFormat, MipmapsOption, PixelValue, TextureCreationError, UncompressedUintFormat
+  ClientFormat, MipmapsOption, PixelValue, TextureCreationError, UncompressedFloatFormat
 };
 use glium::texture::pixel_buffer::PixelBuffer;
-use glium::texture::unsigned_texture2d::UnsignedTexture2d;
+use glium::texture::texture2d::Texture2d;
+use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
 use nalgebra::{Diag, Mat4, Vec4};
 
 use gameboy;
 use super::{FrontendError, FrontendResult};
 
-type Texture = UnsignedTexture2d;
+type Texture = Texture2d;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
@@ -121,13 +122,19 @@ impl Renderer {
         vertex: include_str!("shader/vert_140.glsl"),
         fragment: include_str!("shader/frag_140.glsl"),
         outputs_srgb: true
-      }));
+      },
+      110 => {
+        vertex: include_str!("shader/vert_110.glsl"),
+        fragment: include_str!("shader/frag_110.glsl"),
+        outputs_srgb: true
+      }
+    ));
 
     let pixel_buffer = PixelBuffer::new_empty(display, gameboy::SCREEN_WIDTH * gameboy::SCREEN_HEIGHT);
     pixel_buffer.write(&vec![gameboy::Color::Off; pixel_buffer.get_size()]);
 
     let mut texture = try!(Texture::empty_with_format(display,
-                                                      UncompressedUintFormat::U8,
+                                                      UncompressedFloatFormat::U8,
                                                       MipmapsOption::NoMipmap,
                                                       TEXTURE_WIDTH, TEXTURE_HEIGHT));
     upload_pixels(&mut texture, &pixel_buffer);
@@ -157,6 +164,8 @@ impl Renderer {
       matrix: self.matrix,
       palette: self.palette,
       tex: self.texture.sampled()
+        .minify_filter(MinifySamplerFilter::Nearest)
+        .magnify_filter(MagnifySamplerFilter::Nearest)
     };
 
     let params = DrawParameters {

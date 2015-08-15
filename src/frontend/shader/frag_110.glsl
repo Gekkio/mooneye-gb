@@ -13,15 +13,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-#version 140
+#version 110
 
 uniform sampler2D tex;
 uniform mat4 palette;
 
-in vec2 v_tex_coords;
-out vec4 f_color;
+varying vec2 v_tex_coords;
 
 void main() {
-  float color = texture(tex, v_tex_coords).x;
-  f_color = palette[uint(color * 255.0)];
+  float color = texture2D(tex, v_tex_coords).x;
+  gl_FragColor = palette[int(color * 255.0)];
 }
