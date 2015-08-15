@@ -511,7 +511,7 @@ impl Gpu {
       let current_line = self.current_line;
 
       let mut sprites_to_draw: Vec<(usize, &Sprite)> = self.oam.iter()
-        .filter(|sprite| current_line >= sprite.y && (current_line as usize) < (sprite.y + size) as usize)
+        .filter(|sprite| current_line.wrapping_sub(sprite.y) < size)
         .take(10)
         .enumerate()
         .collect();
