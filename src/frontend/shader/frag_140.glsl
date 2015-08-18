@@ -23,5 +23,5 @@ out vec4 f_color;
 
 void main() {
   float color = texture(tex, v_tex_coords).x;
-  f_color = palette[uint(color * 255.0)];
+  f_color = palette[uint(color * 255.0 + 0.5)];
 }
