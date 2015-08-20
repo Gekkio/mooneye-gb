@@ -532,9 +532,9 @@ impl Gpu {
         let mut tile_num = sprite.tile_num as usize;
         let mut line =
           if sprite.flags.contains(SPRITE_FLIPY) {
-            size - (self.current_line - sprite.y) - 1
+            size - current_line.wrapping_sub(sprite.y) - 1
           } else {
-            self.current_line - sprite.y
+            current_line.wrapping_sub(sprite.y)
           };
         if line >= 8 {
           tile_num += 1;
