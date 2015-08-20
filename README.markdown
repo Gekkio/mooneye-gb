@@ -81,12 +81,13 @@ On Windows, also download an SDL2 package containing SDL2.dll, and put it to `ta
 
 ### Other keys
 
-| Function     | Key       |
-| ------------ | --------- |
-| Fast forward | Shift     |
-| Debug break  | Home      |
-| Debug step   | Page Down |
-| Debug run    | End       |
+| Function                   | Key       |
+| -------------------------- | --------- |
+| Fast forward               | Shift     |
+| Debug break                | Home      |
+| Debug step                 | Page Down |
+| Debug run                  | End       |
+| Toggle performance overlay | F2        |
 
 ## Accuracy comparison
 

@@ -31,9 +31,11 @@ use emulation::{EmuTime, MachineCycles, EE_VSYNC};
 use gameboy;
 use machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
+use self::gui::Gui;
 use self::renderer::Renderer;
 
 mod fps;
+mod gui;
 mod renderer;
 
 #[derive(Debug)]
@@ -114,11 +116,16 @@ impl SdlFrontend {
     let start_time = SteadyTime::now();
     let mut last_stats_time = start_time;
 
+    let mut fps;
+    let mut perf;
+
     'main: loop {
       let frame_time = SteadyTime::now();
       fps_counter.update(frame_time);
       if frame_time - last_stats_time > Duration::seconds(2) {
-        println!("FPS: {:.0}, speed: {:.0} %", fps_counter.get_fps(), 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64);
+        fps = fps_counter.get_fps();
+        perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
+        println!("FPS: {:.0}, speed: {:.0} %", fps, perf);
         last_stats_time = frame_time;
       }
       if frame_time - start_time >= duration { break }
@@ -166,6 +173,7 @@ impl SdlFrontend {
     let display =
       try!(sdl_video.window("Mooneye GB", 640, 576).build_glium());
     let mut renderer = try!(Renderer::new(&display));
+    let mut gui = try!(Gui::init(&display));
 
     println!("Initialized renderer with {}", match *display.get_opengl_version() {
       Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
@@ -183,14 +191,19 @@ impl SdlFrontend {
 
     let mut turbo = false;
 
+    let mut fps;
+    let mut perf;
+
     'main: loop {
       let frame_time = SteadyTime::now();
       let delta = frame_time - last_frame;
       last_frame = frame_time;
 
       fps_counter.update(frame_time);
+      fps = fps_counter.get_fps();
+      perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
       if frame_time - last_stats_time > Duration::seconds(2) {
-        println!("FPS: {:.0}, speed: {:.0} %", fps_counter.get_fps(), 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64);
+        println!("FPS: {:.0}, speed: {:.0} %", fps, perf);
         last_stats_time = frame_time;
       }
 
@@ -206,6 +219,9 @@ impl SdlFrontend {
             if keycode == Keycode::LShift && !turbo {
               turbo = true;
               sdl_video.gl_set_swap_interval(0);
+            }
+            if keycode == Keycode::F2 {
+              gui.toggle_perf_overlay();
             }
           },
           Event::KeyUp{keycode: Some(keycode), ..} => {
@@ -258,6 +274,10 @@ impl SdlFrontend {
       let mut target = display.draw();
       target.clear_color(0.0, 0.0, 0.0, 1.0);
       try!(renderer.draw(&mut target));
+      try!(gui.render(&mut target,
+                      delta.num_nanoseconds().unwrap() as f32 / 1_000_000_000.0,
+                      &self.sdl.mouse(),
+                      fps, perf));
       try!(target.finish());
     }
     Ok(())

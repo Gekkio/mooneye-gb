@@ -19,6 +19,8 @@ extern crate bitflags;
 extern crate glium;
 extern crate glium_sdl2;
 extern crate getopts;
+#[macro_use]
+extern crate imgui;
 extern crate nalgebra;
 extern crate num;
 extern crate podio;

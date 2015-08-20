@@ -3,6 +3,7 @@
 *.gb
 *.o
 *.link
+imgui.ini
 /roms
 /target
 /Cargo.lock
