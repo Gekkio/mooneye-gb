@@ -29,7 +29,6 @@ pub fn run_acceptance_test(name: &str) {
   let hardware_config = config::create_hardware_config(Some(&bootrom_path), &cartridge_path).unwrap();
 
   let mut machine = Machine::new(hardware_config);
-  machine.reset();
 
   let max_duration = Duration::seconds(30);
   let start_time = SteadyTime::now();
