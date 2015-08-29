@@ -24,6 +24,10 @@
 .incdir "../common"
 .include "common.s"
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2
+;   fail: CGB, AGB, AGS
+
   di
   ld a, INTR_VBLANK
   ld_ff_a IE

@@ -19,8 +19,9 @@
 ; Therefore, we skip $FF04 (DIV), $FF30-$FF3F (wave ram),
 ; $FF40 (LCDC) and $FF41 (STAT)
 
-; Success verified on DMG, MGB
-; Failure verified on CGB, AGB, AGS
+; Verified results:
+;   pass: DMG, MGB
+;   fail: SGB, SGB2, CGB, AGB, AGS
 
 .incdir "../common"
 .include "common.s"

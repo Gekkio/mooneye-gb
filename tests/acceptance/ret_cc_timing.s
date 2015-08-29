@@ -21,6 +21,10 @@
 ; M = 3: PC pop: memory access for high byte
 ; M = 4: internal delay
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 

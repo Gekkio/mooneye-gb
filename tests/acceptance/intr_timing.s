@@ -34,6 +34,10 @@
 ; So, x=50 is equivalent to the nops 61 case,
 ; and x=51 is equivalent to the nops 62 case
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 
@@ -85,7 +89,6 @@ finish_round2:
   jp test_finish
 
 test_finish:
-  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
   assert_d $00
   assert_e $01

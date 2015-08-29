@@ -20,6 +20,10 @@
 ; same timing as if a long series of NOP instructions were used to wait
 ; for the interrupt
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 

@@ -17,6 +17,10 @@
 ; *Manual test* for sprite priority
 ; See sprite_priority-expected.png for a reference image
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 

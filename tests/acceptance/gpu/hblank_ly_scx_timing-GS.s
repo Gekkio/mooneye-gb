@@ -22,6 +22,10 @@
 ;   (SCX mod 8) = 1-4 => LY increments 50 cycles after STAT interrupt
 ;   (SCX mod 8) = 5-7 => LY increments 49 cycles after STAT interrupt
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2
+;   fail: CGB, AGB, AGS
+
 .incdir "../../common"
 .include "common.s"
 

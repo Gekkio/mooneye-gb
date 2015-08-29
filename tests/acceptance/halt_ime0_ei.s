@@ -19,6 +19,10 @@
 ; If EI is before HALT, the HALT instruction is expected to perform its normal
 ; IME=1 behaviour
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 

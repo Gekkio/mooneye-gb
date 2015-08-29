@@ -20,6 +20,10 @@
 ; M = 2: PC push: memory access for high byte
 ; M = 3: PC push: memory access for low byte
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 
@@ -36,7 +40,6 @@
   run_hiram_test
 
 test_finish:
-  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
   assert_b $81
   assert_c $9E

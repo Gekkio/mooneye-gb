@@ -18,6 +18,10 @@
 ; On DMG the sprite flags have unused bits, but they are still
 ; writable and readable normally
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 
@@ -48,7 +52,6 @@
   jr nz, -
 
 test_finish:
-  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   test_ok
 
 fail_1:

@@ -18,6 +18,10 @@
 ; So, if the interrupt service routine doesn't return,
 ; the instruction after HALT should never get executed
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 
@@ -46,7 +50,6 @@
   test_failure
 
 test_finish:
-  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
   assert_b $00
   jp process_results

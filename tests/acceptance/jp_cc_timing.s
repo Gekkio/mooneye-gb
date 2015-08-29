@@ -20,6 +20,10 @@
 ; M = 2: nn read: memory access for high byte
 ; M = 3: internal delay
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 
@@ -41,7 +45,6 @@
   run_hiram_test
 
 test_finish:
-  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   test_ok
 
 ; test procedure which will be copied to WRAM/OAM

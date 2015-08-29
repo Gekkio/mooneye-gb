@@ -21,6 +21,12 @@ mod fixture;
 fn add_sp_e_timing() { run_acceptance_test("acceptance/add_sp_e_timing") }
 
 #[test]
+fn boot_hwio_G() { run_acceptance_test("acceptance/boot_hwio-G") }
+
+#[test]
+fn boot_regs_dmg() { run_acceptance_test("acceptance/boot_regs-dmg") }
+
+#[test]
 fn call_cc_timing() { run_acceptance_test("acceptance/call_cc_timing") }
 
 #[test]
@@ -33,13 +39,10 @@ fn call_timing() { run_acceptance_test("acceptance/call_timing") }
 fn call_timing2() { run_acceptance_test("acceptance/call_timing2") }
 
 #[test]
-fn di_timing() { run_acceptance_test("acceptance/di_timing") }
+fn di_timing_GS() { run_acceptance_test("acceptance/di_timing-GS") }
 
 #[test]
 fn div_timing() { run_acceptance_test("acceptance/div_timing") }
-
-#[test]
-fn dmg_boot_regs() { run_acceptance_test("acceptance/dmg_boot_regs") }
 
 #[test]
 fn ei_timing() { run_acceptance_test("acceptance/ei_timing") }
@@ -54,7 +57,7 @@ fn halt_ime0_nointr_timing() { run_acceptance_test("acceptance/halt_ime0_nointr_
 fn halt_ime1_timing() { run_acceptance_test("acceptance/halt_ime1_timing") }
 
 #[test]
-fn halt_ime1_timing2() { run_acceptance_test("acceptance/halt_ime1_timing2") }
+fn halt_ime1_timing2_GS() { run_acceptance_test("acceptance/halt_ime1_timing2-GS") }
 
 #[test]
 fn if_ie_registers() { run_acceptance_test("acceptance/if_ie_registers") }
@@ -105,10 +108,10 @@ fn reti_intr_timing() { run_acceptance_test("acceptance/reti_intr_timing") }
 fn rst_timing() { run_acceptance_test("acceptance/rst_timing") }
 
 #[test]
-fn gpu_hblank_ly_scx_timing() { run_acceptance_test("acceptance/gpu/hblank_ly_scx_timing") }
+fn gpu_hblank_ly_scx_timing_GS() { run_acceptance_test("acceptance/gpu/hblank_ly_scx_timing-GS") }
 
 #[test]
-fn gpu_intr_1_2_timing() { run_acceptance_test("acceptance/gpu/intr_1_2_timing") }
+fn gpu_intr_1_2_timing_GS() { run_acceptance_test("acceptance/gpu/intr_1_2_timing-GS") }
 
 #[test]
 fn gpu_intr_2_0_timing() { run_acceptance_test("acceptance/gpu/intr_2_0_timing") }

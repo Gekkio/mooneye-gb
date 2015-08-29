@@ -34,20 +34,15 @@ There's tons of documentation and tons of emulators in the internet, but in the 
 
 All test ROMs are manually run with these devices:
 
-| Device              | Model   | Mainboard    | CPU         |
-| ------------------- | ------- | ------------ | ----------- |
-| Game Boy Pocket     | MGB-001 | MGB-LCPU-01  | CPU MGB     |
-| Game Boy Color      | CGB-001 | CGB-CPU-03   | CPU CGB C   |
-| Game Boy Advance SP | AGS-101 | C/AGT-CPU-01 | CPU AGB B E |
-
-These devices are pending, but have not yet been used to run the entire test suite:
-
-| Device           | Model          | Mainboard    | CPU        |
-| ---------------- | -------------- | ------------ | ---------- |
-| Game Boy         | DMG-01         | DMG-CPU-04   | DMG CPU B  |
-| Game Boy Advance | AGB-001        | AGB-CPU-10   | CPU AGB A  |
-| Super Game Boy   | SNSP-A-SG(UKV) | SGB-R-10     | SGB-CPU-01 |
-| Super Game Boy 2 | SHVC-SGB2-JPN  | SHVC-SGB2-01 | CPU SGB2   |
+| Device              | Model          | Mainboard    | CPU         |
+| ------------------- | -------------- | ------------ | ----------- |
+| Game Boy            | DMG-01         | DMG-CPU-04   | DMG CPU B   |
+| Game Boy Pocket     | MGB-001        | MGB-LCPU-01  | CPU MGB     |
+| Super Game Boy      | SNSP-A-SG(UKV) | SGB-R-10     | SGB-CPU-01  |
+| Super Game Boy 2    | SHVC-SGB2-JPN  | SHVC-SGB2-01 | CPU SGB2    |
+| Game Boy Color      | CGB-001        | CGB-CPU-03   | CPU CGB C   |
+| Game Boy Advance    | AGB-001        | AGB-CPU-10   | CPU AGB A   |
+| Game Boy Advance SP | AGS-101        | C/AGT-CPU-01 | CPU AGB B E |
 
 **For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on CGB/AGB/AGS or emulators emulating those devices.**
 
@@ -116,19 +111,19 @@ Versions used:
 | Test                            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | ------------------------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
 | add sp e timing                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| boot hwio G                     | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| boot regs dmg                   | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | call timing                     | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | call timing2                    | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | call cc_timing                  | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | call cc_timing2                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| di timing                       | :+1:       | :+1: | :+1:     | :x:           | :x:   | :+1: | :+1: |
+| di timing GS                    | :+1:       | :+1: | :+1:     | :x:           | :x:   | :+1: | :+1: |
 | div timing                      | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
-| dmgmgb boot hwio                | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| dmg boot regs                   | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | ei timing                       | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | halt ime0 ei                    | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | halt ime0 nointr_timing         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :x:  |
 | halt ime1 timing                | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
-| halt ime1 timing2               | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :+1: |
+| halt ime1 timing2 GS            | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :+1: |
 | if ie registers                 | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | intr timing                     | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | jp timing                       | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
@@ -145,8 +140,8 @@ Versions used:
 | reti timing                     | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | reti intr timing                | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | rst timing                      | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu hblank ly scx timing        | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu intr 1 2 timing             | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
+| gpu hblank ly scx timing GS     | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
+| gpu intr 1 2 timing GS          | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
 | gpu intr 2 0 timing             | :+1:       | :+1: | :x:      | :x:           | :+1:  | :x:  | :x:  |
 | gpu intr 2 mode0 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | gpu intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
@@ -161,14 +156,44 @@ Versions used:
 
 ### Mooneye GB manual tests
 
-| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| ----------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
-| agb+ boot regs    |            | :x:  |          | :x:           |       | :x:  |      |
-| cgb boot regs     |            | :+1: |          | :x:           |       | :x:  | :+1: |
-| mgb boot regs     |            | :+1: |          | :+1:          |       |      | :+1: |
-| sgb boot regs     |            | :x:  |          | :+1:          |       | :x:  | :+1: |
-| sgb2 boot regs    |            | :x:  |          | :+1:          |       | :x:  |      |
-| sprite priority   | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
+| Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| sprite priority | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
+
+### Mooneye GB misc tests
+
+| Test           | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| -------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| boot hwio C    |            | :+1: |          | :x:           |       | :x:  | :x:  |
+| boot hwio S    |            | :x:  |          | :x:           |       | :x:  | :x:  |
+| boot regs A    |            | :x:  |          | :x:           |       | :x:  |      |
+| boot regs cgb  |            | :+1: |          | :x:           |       | :x:  | :+1: |
+| boot regs mgb  |            | :+1: |          | :+1:          |       |      | :+1: |
+| boot regs sgb  |            | :x:  |          | :+1:          |       | :x:  | :+1: |
+| boot regs sgb2 |            | :x:  |          | :+1:          |       | :x:  |      |
+
+### Test naming
+
+Some tests are expected to pass only a single type of hardware:
+
+* dmg = Game Boy
+* mgb = Game Boy Pocket
+* sgb = Super Game Boy
+* sgb2 = Super Game Boy 2
+* cgb = Game Boy Color
+* agb = Game Boy Advance
+* ags = Game Boy Advance SP
+
+In general, hardware can be divided on to a couple of groups based on their
+behaviour. Some tests are expected to pass on a single or multiple groups:
+
+* G = dmg+mgb
+* S = sgb+sgb2
+* C = cgb+agb+ags
+* A = agb+ags
+
+For example, a test with GS in the name is expected to pass on dmg+mgb +
+sgb+sgb2.
 
 # License
 

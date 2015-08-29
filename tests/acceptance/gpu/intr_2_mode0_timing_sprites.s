@@ -17,6 +17,10 @@
 ; Tests how long does it take to get from STAT=mode2 interrupt to mode0
 ; Includes sprites in various configurations
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../../common"
 .include "common.s"
 

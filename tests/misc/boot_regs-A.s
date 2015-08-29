@@ -14,62 +14,50 @@
 ; You should have received a copy of the GNU General Public License
 ; along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 
-; Tests how long does it take to get from STAT mode=1 interrupt to STAT mode=2 interrupt
-; No sprites, scroll or window.
+; Tests initial register values
 
-.incdir "../../common"
+; Verified results:
+;   pass: AGB, AGS
+;   fail: DMG, MGB, SGB, SGB2, CGB
+
+.incdir "../common"
 .include "common.s"
 
-.macro clear_interrupts
-  xor a
-  ld_ff_a IF
-.endm
+; First, let's check SP since it's not part of the normal save_results
+; mechanism
+.define EXPECTED_SP $FFFE
 
-  di
-  wait_vblank
-  ld hl, STAT
-  ld a, INTR_STAT
-  ld_ff_a IE
+  ld (sp_save), sp
+  ld sp, $FFFE
 
-.macro test_iter ARGS delay
-  call setup_and_wait_mode1
-  nops delay
-  call setup_and_wait_mode2
-.endm
+  push af
 
-  test_iter 5
-  ld d, b
-  test_iter 4
-  ld e, b
+  ld a, (sp_save)
+  cp <EXPECTED_SP
+  jr nz, invalid_sp
+
+  ld a, (sp_save+1)
+  cp >EXPECTED_SP
+  jr nz, invalid_sp
+
+  pop af
+
+; Now, let's check all the other registers
+
   save_results
-  assert_d $14
-  assert_e $15
+  assert_a $11
+  assert_f $00
+  assert_b $01
+  assert_c $00
+  assert_d $00
+  assert_e $08
+  assert_h $00
+  assert_l $7C
   jp process_results
 
-setup_and_wait_mode1:
-  wait_ly $42
-  ld a, %00010000
-  ld_ff_a STAT
-  clear_interrupts
-  ei
+invalid_sp:
+  test_failure_string "INVALID SP VALUE"
 
-  halt
-  nop
-  jp fail_halt
-
-setup_and_wait_mode2:
-  ld a, %00100000
-  ld_ff_a STAT
-  clear_interrupts
-  ei
-  xor a
-  ld b,a
-- inc b
-  jr -
-
-fail_halt:
-  test_failure_string "FAIL: HALT"
-
-.org INTR_VEC_STAT
-  add sp,+2
-  ret
+.ramsection "Test-State" slot 2
+  sp_save dw
+.ends

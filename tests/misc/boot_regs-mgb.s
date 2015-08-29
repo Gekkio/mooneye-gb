@@ -15,7 +15,10 @@
 ; along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 
 ; Tests initial register values
-; !! Unverified !!
+
+; Verified results:
+;   pass: MGB
+;   fail: DMG, SGB, SGB2, CGB, AGB, AGS
 
 .incdir "../common"
 .include "common.s"
@@ -42,14 +45,14 @@
 ; Now, let's check all the other registers
 
   save_results
-  assert_a $01
-  assert_f $00
+  assert_a $FF
+  assert_f $B0
   assert_b $00
-  assert_c $14
+  assert_c $13
   assert_d $00
-  assert_e $00
-  assert_h $C0
-  assert_l $60
+  assert_e $D8
+  assert_h $01
+  assert_l $4D
   jp process_results
 
 invalid_sp:

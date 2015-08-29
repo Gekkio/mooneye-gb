@@ -20,6 +20,10 @@
 ; M = 2: internal delay
 ; M = 3: internal delay
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 
@@ -38,7 +42,6 @@
   run_hiram_test
 
 test_finish:
-  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
   ; Round 1 result
   assert_b $FF

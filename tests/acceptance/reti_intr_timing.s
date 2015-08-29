@@ -16,6 +16,10 @@
 
 ; This tests RETI instruction interrupt enable timing
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../common"
 .include "common.s"
 
@@ -38,7 +42,6 @@
   inc b
 
 test_finish:
-  ; GBP MGB-001 / GBC CGB-001 / GBASP AGS-101 (probably DMG/GBA as well)
   save_results
   assert_b $01
   assert_d $01

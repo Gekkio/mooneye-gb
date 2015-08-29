@@ -17,6 +17,10 @@
 ; Tests how long does it take to get from STAT mode=1 interrupt to STAT mode=2 interrupt
 ; No sprites, scroll or window.
 
+; Verified results:
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
+
 .incdir "../../common"
 .include "common.s"
 
