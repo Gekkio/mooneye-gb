@@ -13,35 +13,4 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use std::convert::From;
-use std::io;
-use std::io::{Write, stderr};
-use std::process;
 
-#[derive(Debug)]
-pub enum ProgramResult {
-  Exit,
-  Error(String)
-}
-
-impl From<io::Error> for ProgramResult {
-  fn from(err: io::Error) -> ProgramResult {
-    ProgramResult::Error(format!("IO error: {}", err))
-  }
-}
-
-impl ProgramResult {
-  pub fn apply(&self) {
-    match *self {
-      ProgramResult::Exit => {
-        process::exit(0);
-      },
-      ProgramResult::Error(ref message) => {
-        let mut stderr = stderr();
-        writeln!(&mut stderr, "{}", message).unwrap();
-
-        process::exit(1);
-      }
-    }
-  }
-}

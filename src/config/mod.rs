@@ -13,31 +13,33 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use podio::ReadPodExt;
+mod bootrom;
+
+use std::env;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::fs::File;
+use std::io;
 use std::io::Read;
 use std::path::Path;
 use std::str;
 
-use gameboy::{
-  BOOTROM_SIZE,
-  ROM_BANK_SIZE
-};
+use gameboy::ROM_BANK_SIZE;
 use util::program_result::ProgramResult;
 
+pub use self::bootrom::{Bootrom, BootromError, BootromType};
+
 pub struct HardwareConfig {
-  pub bootrom: Option<Vec<u8>>,
+  pub bootrom: Option<Bootrom>,
   pub cartridge: CartridgeConfig
 }
 
 impl Debug for HardwareConfig {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    try!(writeln!(f, "Bootrom: {}", match self.bootrom {
-      Some(_) => "yes",
-      None => "no"
-    }));
+    try!(match self.bootrom {
+      Some(ref rom) => writeln!(f, "Bootrom: {}", rom.kind),
+      None => writeln!(f, "Bootrom: no")
+    });
     write!(f, "{:?}", self.cartridge)
   }
 }
@@ -266,17 +268,7 @@ impl CartridgeConfig {
   }
 }
 
-pub fn read_bootrom(path: &Path) -> Result<Vec<u8>, ProgramResult> {
-  let mut file = try!(File::open(path));
-  Ok(try!(file.read_exact(BOOTROM_SIZE)))
-}
-
-pub fn create_hardware_config(bootrom_path: Option<&Path>, cartridge_path: &Path) -> Result<HardwareConfig, ProgramResult> {
-  let mut bootrom = None;
-  for path in bootrom_path.iter() {
-    bootrom = Some(try!(read_bootrom(*path)))
-  }
-
+pub fn create_hardware_config(bootrom: Option<Bootrom>, cartridge_path: &Path) -> Result<HardwareConfig, ProgramResult> {
   let mut cartridge_file = try!(File::open(cartridge_path));
   let mut cartridge_data = vec!();
   try!(cartridge_file.read_to_end(&mut cartridge_data));
@@ -286,4 +278,30 @@ pub fn create_hardware_config(bootrom_path: Option<&Path>, cartridge_path: &Path
     bootrom: bootrom,
     cartridge: cartridge
   })
+}
+
+pub fn find_and_read_bootrom() -> Option<Bootrom> {
+  let mut candidates = vec![];
+
+  if let Ok(cwd) = env::current_dir() {
+    candidates.push(cwd.join("dmg_boot.bin"));
+    candidates.push(cwd.join("mgb_boot.bin"));
+  }
+
+  if let Some(home) = env::home_dir().map(|home| home.join(".mooneye-gb")) {
+    candidates.push(home.join("dmg_boot.bin"));
+    candidates.push(home.join("mgb_boot.bin"));
+  }
+
+  for path in candidates {
+    match Bootrom::from_path(&path) {
+      Err(BootromError::Io(ref e)) if e.kind() == io::ErrorKind::NotFound => (),
+      Err(BootromError::Io(ref e)) =>
+        println!("Warning: Boot rom \"{}\" ({})", path.to_string_lossy(), e),
+      Err(BootromError::Checksum(ref e)) =>
+        println!("Warning: Boot rom \"{}\" ({})", path.to_string_lossy(), e),
+      Ok(bootrom) => return Some(bootrom)
+    }
+  }
+  None
 }

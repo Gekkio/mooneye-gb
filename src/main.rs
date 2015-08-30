@@ -15,32 +15,33 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #[macro_use]
 extern crate bitflags;
+extern crate crc;
+extern crate docopt;
 #[macro_use]
 extern crate glium;
 extern crate glium_sdl2;
-extern crate getopts;
 #[macro_use]
 extern crate imgui;
 extern crate nalgebra;
 extern crate num;
 extern crate podio;
+extern crate rustc_serialize;
 extern crate sdl2;
 extern crate time;
 
 #[cfg(test)]
 extern crate quickcheck;
 
-use std::env;
-use std::fs;
+use docopt::Docopt;
+use std::path::Path;
+use std::process;
 use time::Duration;
 
-use cmdline::CmdLine;
-use config::HardwareConfig;
+use config::{Bootrom, HardwareConfig};
 use frontend::SdlFrontend;
 use machine::Machine;
 use util::program_result::ProgramResult;
 
-mod cmdline;
 mod config;
 mod cpu;
 mod emulation;
@@ -53,47 +54,59 @@ mod util;
 #[cfg(feature = "acceptance_tests")]
 mod acceptance_tests;
 
-fn parse_seconds(text: &str) -> Result<Duration, ProgramResult> {
-  let seconds = try!(text.parse().map_err(
-      |_| ProgramResult::Error(format!("Invalid duration {}", text))
-  ));
-  Ok(Duration::seconds(seconds))
+const USAGE: &'static str = "
+Usage:
+  mooneye-gb [options] <rom>
+  mooneye-gb (-h | --help)
+
+Options:
+  -h, --help                   Help
+  -b=<file>, --bootrom=<file>  Use a boot ROM
+";
+
+#[derive(Debug, RustcDecodable)]
+struct Args {
+  arg_rom: Option<String>,
+  flag_bootrom: Option<String>
 }
 
 pub struct MiscConfig {
   benchmark_duration: Option<Duration>
 }
 
-fn prepare_emulator() -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
-  let cmdline = try!(CmdLine::parse_env_args());
-
-  let home_dir = env::home_dir().map(|home| {
-    home.join(".mooneye-gb")
-  });
-
-  let bootrom_default = home_dir.and_then(|home| {
-    let path = home.join("boot.bin");
-    if fs::metadata(&path).is_ok() { Some(path) } else { None }
-  });
-
+fn prepare_emulator(bootrom: Option<Bootrom>, rom: &Path) -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
   let mut benchmark_duration = None;
-  if let Some(text) = cmdline.benchmark {
-    benchmark_duration = Some(try!(parse_seconds(&text)))
-  }
 
-  let bootrom_path = try!(cmdline.bootrom_path.or(bootrom_default).ok_or(
-      ProgramResult::Error("A Game Boy boot ROM is required to run Mooneye GB".into())));
-  let cartridge_path = cmdline.cartridge_path;
+  if let None = bootrom {
+    return Err(ProgramResult::Error("A Game Boy boot ROM is required to run Mooneye GB".into()));
+  };
 
   let hw_config = try!(
-    config::create_hardware_config(Some(&bootrom_path), &cartridge_path));
+    config::create_hardware_config(bootrom, rom));
 
   Ok((hw_config,
     MiscConfig { benchmark_duration: benchmark_duration }))
 }
 
+
 fn main() {
-  let (hardware_config, misc_config) = match prepare_emulator() {
+  let args: Args =
+    Docopt::new(USAGE)
+    .and_then(|d| d.decode())
+    .unwrap_or_else(|e| e.exit());
+
+  let bootrom =
+    match args.flag_bootrom {
+      Some(path) => Some(Bootrom::from_path(&Path::new(&path)).unwrap_or_else(|err| {
+        println!("Failed to read boot rom from \"{}\" ({})", path, err);
+        process::exit(1)
+      })),
+      _ => config::find_and_read_bootrom()
+    };
+
+  let rom = args.arg_rom.expect("Missing cartridge file");
+
+  let (hardware_config, misc_config) = match prepare_emulator(bootrom, &Path::new(&rom)) {
     Ok(configs) => configs,
     Err(result) => {
       result.apply();
