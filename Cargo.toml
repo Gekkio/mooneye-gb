@@ -27,7 +27,7 @@ features = ["nalgebra"]
 default-features = false
 
 [dependencies.imgui]
-version = "0.0.1"
+version = "0.0.2"
 features = ["glium", "sdl2"]
 
 [dev-dependencies]
