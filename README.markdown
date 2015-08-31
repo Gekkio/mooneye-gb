@@ -89,7 +89,7 @@ On Windows, also download an SDL2 package containing SDL2.dll, and put it to `ta
 Versions used:
 
 * mooneye-gb (master)
-* BGB 1.5.1
+* BGB 1.5.2
 * Gambatte 2015-03-23 (f9fb003)
 * GiiBiiAdvance 2015-05-16 (dbf669a)
 * Higan 0.94
