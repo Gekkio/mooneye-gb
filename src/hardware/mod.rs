@@ -84,8 +84,8 @@ impl OamDma {
 impl Hardware {
   pub fn new(config: HardwareConfig) -> Hardware {
     Hardware {
-      bootrom: Bootrom::new(config.bootrom.map(|x| x.data)),
-      cartridge: Cartridge::new(config.cartridge),
+      bootrom: Bootrom::new(config.0.map(|x| x.data)),
+      cartridge: Cartridge::new(config.1),
       internal_ram: InternalRam::new(),
       gpu: Gpu::new(),
       apu: Apu::new(),

@@ -28,6 +28,7 @@ extern crate podio;
 extern crate rustc_serialize;
 extern crate sdl2;
 extern crate time;
+extern crate url;
 
 #[cfg(test)]
 extern crate quickcheck;
@@ -35,12 +36,9 @@ extern crate quickcheck;
 use docopt::Docopt;
 use std::path::Path;
 use std::process;
-use time::Duration;
 
-use config::{Bootrom, HardwareConfig};
+use config::{Bootrom, Cartridge};
 use frontend::SdlFrontend;
-use machine::Machine;
-use util::program_result::ProgramResult;
 
 mod config;
 mod cpu;
@@ -54,9 +52,11 @@ mod util;
 #[cfg(feature = "acceptance_tests")]
 mod acceptance_tests;
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 const USAGE: &'static str = "
 Usage:
-  mooneye-gb [options] <rom>
+  mooneye-gb [options] [<rom>]
   mooneye-gb (-h | --help)
 
 Options:
@@ -70,25 +70,6 @@ struct Args {
   flag_bootrom: Option<String>
 }
 
-pub struct MiscConfig {
-  benchmark_duration: Option<Duration>
-}
-
-fn prepare_emulator(bootrom: Option<Bootrom>, rom: &Path) -> Result<(HardwareConfig, MiscConfig), ProgramResult> {
-  let mut benchmark_duration = None;
-
-  if let None = bootrom {
-    return Err(ProgramResult::Error("A Game Boy boot ROM is required to run Mooneye GB".into()));
-  };
-
-  let hw_config = try!(
-    config::create_hardware_config(bootrom, rom));
-
-  Ok((hw_config,
-    MiscConfig { benchmark_duration: benchmark_duration }))
-}
-
-
 fn main() {
   let args: Args =
     Docopt::new(USAGE)
@@ -101,32 +82,23 @@ fn main() {
         println!("Failed to read boot rom from \"{}\" ({})", path, err);
         process::exit(1)
       })),
-      _ => config::find_and_read_bootrom()
+      _ => Bootrom::from_default_bootrom()
     };
 
-  let rom = args.arg_rom.expect("Missing cartridge file");
-
-  let (hardware_config, misc_config) = match prepare_emulator(bootrom, &Path::new(&rom)) {
-    Ok(configs) => configs,
-    Err(result) => {
-      result.apply();
-      return;
-    }
-  };
-
-  println!("{:?}", hardware_config);
+  let cartridge =
+    args.arg_rom.map(|path| {
+      Cartridge::from_path(&Path::new(&path)).unwrap_or_else(|err| {
+        println!("Failed to read rom from \"{}\" ({})", path, err);
+        process::exit(1)
+      })
+    });
 
   let frontend = match SdlFrontend::init() {
     Err(error) => panic!("{}", error),
     Ok(frontend) => frontend
   };
-  let machine = Machine::new(hardware_config);
 
-  let result = match misc_config.benchmark_duration {
-    Some(duration) => frontend.main_loop_benchmark(machine, duration),
-    None => frontend.main_loop(machine)
-  };
-
+  let result = frontend.main(bootrom, cartridge);
   if let Err(error) = result {
     panic!("{}", error);
   }

@@ -58,7 +58,13 @@ The emulator is runnable on Android, but cross-compiling and packaging is a huge
 
 ## Running the emulator
 
-1. Acquire a Game Boy bootrom, and put it to `$HOME/.mooneye-gb/boot.bin`
+### GUI
+
+1. `cargo run --release`
+2. Follow the instructions
+
+### Command-line
+1. Acquire a Game Boy bootrom, and put it to `$HOME/.mooneye-gb/dmg_boot.bin`
 2. `cargo build --release`
 3. `cargo run --release -- PATH_TO_GAMEBOY_ROM`
 

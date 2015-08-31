@@ -19,6 +19,7 @@ podio = "0.1"
 rustc-serialize = "0.3"
 sdl2 = "0.7"
 time = "0.1"
+url = "0.2"
 
 [dependencies.glium]
 version = "0.8"

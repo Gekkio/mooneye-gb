@@ -13,13 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-
 use crc::crc32;
 use podio::ReadPodExt;
 use std::convert::From;
+use std::env;
 use std::fmt;
+use std::fs;
 use std::fs::File;
 use std::io;
+use std::io::Write;
 use std::path::Path;
 
 use gameboy::BOOTROM_SIZE;
@@ -47,6 +49,50 @@ impl Bootrom {
       data: data,
       kind: kind
     })
+  }
+  pub fn from_default_bootrom() -> Option<Bootrom> {
+    let mut candidates = vec![];
+
+    if let Ok(cwd) = env::current_dir() {
+      candidates.push(cwd.join("dmg_boot.bin"));
+      candidates.push(cwd.join("mgb_boot.bin"));
+    }
+
+    if let Some(home) = env::home_dir().map(|home| home.join(".mooneye-gb")) {
+      candidates.push(home.join("dmg_boot.bin"));
+      candidates.push(home.join("mgb_boot.bin"));
+    }
+
+    for path in candidates {
+      match Bootrom::from_path(&path) {
+        Err(BootromError::Io(ref e)) if e.kind() == io::ErrorKind::NotFound => (),
+        Err(BootromError::Io(ref e)) =>
+          println!("Warning: Boot rom \"{}\" ({})", path.to_string_lossy(), e),
+        Err(BootromError::Checksum(ref e)) =>
+          println!("Warning: Boot rom \"{}\" ({})", path.to_string_lossy(), e),
+        Ok(bootrom) => return Some(bootrom)
+      }
+    }
+    None
+  }
+  pub fn save_to_home(&self) -> Result<(), io::Error> {
+    if let Some(home) = env::home_dir().map(|home| home.join(".mooneye-gb")) {
+      match fs::create_dir(&home) {
+        Err(e) => {
+          if e.kind() != io::ErrorKind::AlreadyExists {
+            return Err(e);
+          }
+        },
+        _ => ()
+      }
+      let path = home.join(match self.kind {
+        BootromType::Dmg => "dmg_boot.bin",
+        BootromType::Mgb => "mgb_boot.bin"
+      });
+      let mut file = try!(File::create(&path));
+      return file.write_all(&self.data)
+    }
+    Ok(())
   }
 }
 

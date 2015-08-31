@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use glium::{Api, GliumCreationError, Surface, SwapBuffersError, Version};
-use glium_sdl2::DisplayBuild;
+use glium_sdl2::{Display, DisplayBuild};
 use sdl2;
-use sdl2::{Sdl, EventPump};
+use sdl2::{Sdl, EventPump, VideoSubsystem};
 use sdl2::controller::{Axis, Button};
 use sdl2::event::{Event, WindowEventId};
 use sdl2::keyboard::Keycode;
@@ -24,9 +24,11 @@ use sdl2::video::gl_attr::GLAttr;
 use std::convert::From;
 use std::error::Error;
 use std::fmt;
-use std::fmt::Display;
+use std::path::PathBuf;
 use time::{Duration, SteadyTime};
+use url::Url;
 
+use config::{Bootrom, Cartridge, HardwareConfig};
 use emulation::{EmuTime, MachineCycles, EE_VSYNC};
 use gameboy;
 use machine::{Machine, PerfCounter};
@@ -45,7 +47,30 @@ pub enum GbKey {
 
 pub struct SdlFrontend {
   sdl: Sdl,
-  event_pump: EventPump
+  sdl_video: VideoSubsystem,
+  event_pump: EventPump,
+  display: Display,
+  gui: Gui,
+  renderer: Renderer
+}
+
+enum FrontendState {
+  WaitBootrom(Option<Cartridge>),
+  WaitRom(Option<Bootrom>),
+  InGame(HardwareConfig),
+  Exit
+}
+
+impl FrontendState {
+  pub fn from_roms(bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> FrontendState {
+    use self::FrontendState::*;
+    match (bootrom, cartridge) {
+      (Some(bootrom), Some(cartridge)) => InGame((Some(bootrom), cartridge)),
+      (None, Some(cartridge)) => WaitBootrom(Some(cartridge)),
+      (Some(bootrom), None) => WaitRom(Some(bootrom)),
+      _ => WaitBootrom(None)
+    }
+  }
 }
 
 #[derive(Clone, Debug)]
@@ -83,7 +108,7 @@ impl Error for FrontendError {
   }
 }
 
-impl Display for FrontendError {
+impl fmt::Display for FrontendError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
       FrontendError::Sdl(ref msg) => f.write_str(msg),
@@ -92,143 +117,177 @@ impl Display for FrontendError {
   }
 }
 
+struct FrameTimes {
+  last_time: SteadyTime
+}
+
+impl FrameTimes {
+  pub fn new() -> FrameTimes {
+    let now = SteadyTime::now();
+    FrameTimes {
+      last_time: now
+    }
+  }
+  pub fn update(&mut self) -> Duration {
+    let now = SteadyTime::now();
+    let delta = now - self.last_time;
+    self.last_time = now;
+    delta
+  }
+}
+
 impl SdlFrontend {
   pub fn init() -> FrontendResult<SdlFrontend> {
     let sdl = try!(sdl2::init());
-    let event_pump = try!(sdl.event_pump());
-    Ok(SdlFrontend {
-      sdl: sdl,
-      event_pump: event_pump
-    })
-  }
-  pub fn main_loop_benchmark(mut self, mut machine: Machine, duration: Duration) -> FrontendResult<()> {
-    let sdl_video = try!(self.sdl.video());
+    let sdl_video = try!(sdl.video());
     configure_gl_attr(&mut sdl_video.gl_attr());
+
+    let event_pump = try!(sdl.event_pump());
 
     let display =
       try!(sdl_video.window("Mooneye GB", 640, 576).opengl().position_centered().build_glium());
-    let mut renderer = try!(Renderer::new(&display));
-
-    let mut fps_counter = FpsCounter::new();
-    let mut perf_counter = PerfCounter::new();
-
-    let mut emu_time = EmuTime::zero();
-    let start_time = SteadyTime::now();
-    let mut last_stats_time = start_time;
-
-    let mut fps;
-    let mut perf;
-
-    'main: loop {
-      let frame_time = SteadyTime::now();
-      fps_counter.update(frame_time);
-      if frame_time - last_stats_time > Duration::seconds(2) {
-        fps = fps_counter.get_fps();
-        perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
-        println!("FPS: {:.0}, speed: {:.0} %", fps, perf);
-        last_stats_time = frame_time;
-      }
-      if frame_time - start_time >= duration { break }
-
-      for event in self.event_pump.poll_iter() {
-        match event {
-          Event::Quit{..} => break 'main,
-          Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
-          Event::Window { win_event_id: WindowEventId::SizeChanged, ..} => {
-            renderer.update_dimensions(&display);
-          },
-          _ => ()
-        }
-      }
-
-      const PULSE_CYCLES: MachineCycles = MachineCycles(((gameboy::CPU_SPEED_HZ / 60) / 4) as u32);
-      let target_time = emu_time + PULSE_CYCLES;
-      loop {
-        let (events, end_time) = machine.emulate(target_time);
-
-        if events.contains(EE_VSYNC) {
-          renderer.update_pixels(machine.screen_buffer());
-        }
-
-        perf_counter.update(end_time - emu_time, frame_time);
-        if end_time >= target_time {
-          emu_time = end_time;
-          break;
-        }
-      }
-
-      let mut target = display.draw();
-      target.clear_color(0.0, 0.0, 0.0, 1.0);
-      try!(renderer.draw(&mut target));
-      try!(target.finish());
-    }
-    Ok(())
-  }
-  pub fn main_loop(mut self, mut machine: Machine) -> FrontendResult<()> {
-    let sdl_video = try!(self.sdl.video());
-    configure_gl_attr(&mut sdl_video.gl_attr());
-
-    let sdl_game_controller = try!(self.sdl.game_controller());
-
-    let display =
-      try!(sdl_video.window("Mooneye GB", 640, 576).build_glium());
-    let mut renderer = try!(Renderer::new(&display));
-    let mut gui = try!(Gui::init(&display));
 
     println!("Initialized renderer with {}", match *display.get_opengl_version() {
       Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
       Version(Api::GlEs, major, minor) => format!("OpenGL ES {}.{}", major, minor)
     });
 
+    let renderer = try!(Renderer::new(&display));
+    let gui = try!(Gui::init(&display));
+
+    Ok(SdlFrontend {
+      sdl: sdl,
+      sdl_video: sdl_video,
+      event_pump: event_pump,
+      display: display,
+      gui: gui,
+      renderer: renderer
+    })
+  }
+  pub fn main(mut self, bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> FrontendResult<()> {
+    let mut state = FrontendState::from_roms(bootrom, cartridge);
+    loop {
+      state =
+        match state {
+          FrontendState::WaitBootrom(cartridge) => try!(self.main_wait_bootrom(cartridge)),
+          FrontendState::WaitRom(bootrom) => try!(self.main_wait_rom(bootrom)),
+          FrontendState::InGame(config) => try!(self.main_in_game(config)),
+          FrontendState::Exit => break
+        }
+    }
+    Ok(())
+  }
+  fn main_wait_bootrom(&mut self, cartridge: Option<Cartridge>) -> FrontendResult<FrontendState> {
+    self.sdl_video.gl_set_swap_interval(1);
+    let mut times = FrameTimes::new();
+
+    let mut scene = gui::WaitBootromScene::default();
+
+    'main: loop {
+      let delta = times.update();
+
+      for event in self.event_pump.poll_iter() {
+        match event {
+          Event::Quit{..} => break 'main,
+          Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
+          Event::DropFile{filename, ..} => {
+            let result = resolve_sdl_filename(filename)
+              .and_then(|path| Bootrom::from_path(&path).map_err(|e| format!("{}", e)));
+            match result {
+              Ok(bootrom) => {
+                if let Err(error) = bootrom.save_to_home() {
+                  println!("Failed to save boot rom: {}", error);
+                }
+                return Ok(FrontendState::from_roms(Some(bootrom), cartridge))
+              },
+              Err(e) => scene.set_error(format!("{}", e))
+            };
+          },
+          _ => ()
+        }
+      }
+      let mut target = self.display.draw();
+      target.clear_color(1.0, 1.0, 1.0, 1.0);
+      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
+      try!(target.finish());
+    }
+    Ok(FrontendState::Exit)
+  }
+  fn main_wait_rom(&mut self, bootrom: Option<Bootrom>) -> FrontendResult<FrontendState> {
+    self.sdl_video.gl_set_swap_interval(1);
+    let mut times = FrameTimes::new();
+
+    let mut scene = gui::WaitRomScene::new();
+
+    'main: loop {
+      let delta = times.update();
+
+      for event in self.event_pump.poll_iter() {
+        match event {
+          Event::Quit{..} => break 'main,
+          Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
+          Event::DropFile{filename, ..} => {
+            let result = resolve_sdl_filename(filename)
+              .and_then(|path| Cartridge::from_path(&path));
+            match result {
+              Ok(cartridge) => return Ok(FrontendState::from_roms(bootrom, Some(cartridge))),
+              Err(e) => scene.set_error(format!("{}", e))
+            };
+          },
+          _ => ()
+        }
+      }
+      let mut target = self.display.draw();
+      target.clear_color(1.0, 1.0, 1.0, 1.0);
+      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
+      try!(target.finish());
+    }
+    Ok(FrontendState::Exit)
+  }
+  fn main_in_game(&mut self, config: HardwareConfig) -> FrontendResult<FrontendState> {
+    let mut machine = Machine::new(config);
+    let sdl_game_controller = try!(self.sdl.game_controller());
+
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
+
+    let mut scene = gui::InGameScene::default();
 
     let mut emu_time = EmuTime::zero();
     let mut controllers = vec![];
 
-    let mut last_frame = SteadyTime::now();
-    let mut last_stats_time = last_frame;
-
     let mut turbo = false;
-
-    let mut fps;
-    let mut perf;
+    let mut times = FrameTimes::new();
 
     'main: loop {
-      let frame_time = SteadyTime::now();
-      let delta = frame_time - last_frame;
-      last_frame = frame_time;
+      let delta = times.update();
 
-      fps_counter.update(frame_time);
-      fps = fps_counter.get_fps();
-      perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
-      if frame_time - last_stats_time > Duration::seconds(2) {
-        println!("FPS: {:.0}, speed: {:.0} %", fps, perf);
-        last_stats_time = frame_time;
-      }
+      fps_counter.update(times.last_time);
+      scene.fps = fps_counter.get_fps();
+      scene.perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
 
       for event in self.event_pump.poll_iter() {
         match event {
           Event::Quit{..} => break 'main,
           Event::Window { win_event_id: WindowEventId::SizeChanged, ..} => {
-            renderer.update_dimensions(&display);
+            self.renderer.update_dimensions(&self.display);
           },
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} => {
             if let Some(key) = map_keycode(keycode) { machine.key_down(key) }
             if keycode == Keycode::LShift && !turbo {
               turbo = true;
-              sdl_video.gl_set_swap_interval(0);
+              self.sdl_video.gl_set_swap_interval(0);
             }
             if keycode == Keycode::F2 {
-              gui.toggle_perf_overlay();
+              scene.toggle_perf_overlay();
             }
           },
           Event::KeyUp{keycode: Some(keycode), ..} => {
             if let Some(key) = map_keycode(keycode) { machine.key_up(key) }
             if keycode == Keycode::LShift && turbo {
               turbo = false;
-              sdl_video.gl_set_swap_interval(1);
+              self.sdl_video.gl_set_swap_interval(1);
             }
           },
           Event::ControllerDeviceAdded{which: id, ..} => {
@@ -261,26 +320,23 @@ impl SdlFrontend {
         let (events, end_time) = machine.emulate(target_time);
 
         if events.contains(EE_VSYNC) {
-          renderer.update_pixels(machine.screen_buffer());
+          self.renderer.update_pixels(machine.screen_buffer());
         }
 
         if end_time >= target_time {
-          perf_counter.update(end_time - emu_time, frame_time);
+          perf_counter.update(end_time - emu_time, times.last_time);
           emu_time = end_time;
           break;
         }
       }
 
-      let mut target = display.draw();
+      let mut target = self.display.draw();
       target.clear_color(0.0, 0.0, 0.0, 1.0);
-      try!(renderer.draw(&mut target));
-      try!(gui.render(&mut target,
-                      delta.num_nanoseconds().unwrap() as f32 / 1_000_000_000.0,
-                      &self.sdl.mouse(),
-                      fps, perf));
+      try!(self.renderer.draw(&mut target));
+      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
       try!(target.finish());
     }
-    Ok(())
+    Ok(FrontendState::Exit)
   }
 }
 
@@ -330,6 +386,13 @@ fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
     },
     _ => None
   }
+}
+
+fn resolve_sdl_filename(filename: String) -> Result<PathBuf, String> {
+  let mut url = "file://".to_owned();
+  url.push_str(&filename);
+  Url::parse(&url).map_err(|e| format!("{}", e))
+    .and_then(|url| url.to_file_path().map_err(|_| "Failed to parse path".to_owned()))
 }
 
 #[cfg(not(target_os = "macos"))]

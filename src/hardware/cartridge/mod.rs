@@ -15,10 +15,8 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::iter;
 
-use config::{
-  CartridgeConfig,
-  CartridgeType
-};
+use config;
+use config::CartridgeType;
 use gameboy::{
   RAM_BANK_SIZE, ROM_BANK_SIZE
 };
@@ -57,7 +55,7 @@ pub struct Cartridge {
 }
 
 impl Cartridge {
-  pub fn new(config: CartridgeConfig) -> Cartridge {
+  pub fn new(config: config::Cartridge) -> Cartridge {
     let mbc = Mbc::from_cartridge_type(config.cartridge_type);
     let ram_size = match mbc {
       Mbc::Mbc2 => 512,
