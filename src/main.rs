@@ -54,7 +54,8 @@ mod acceptance_tests;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-const USAGE: &'static str = "
+const USAGE: &'static str = concat!("Mooneye GB v", env!("CARGO_PKG_VERSION"), "
+
 Usage:
   mooneye-gb [options] [<rom>]
   mooneye-gb (-h | --help)
@@ -62,7 +63,7 @@ Usage:
 Options:
   -h, --help                   Help
   -b=<file>, --bootrom=<file>  Use a boot ROM
-";
+");
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
