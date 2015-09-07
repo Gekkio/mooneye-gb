@@ -25,6 +25,7 @@ use std::convert::From;
 use std::error::Error;
 use std::fmt;
 use std::path::PathBuf;
+use std::thread;
 use time::{Duration, SteadyTime};
 use url::Url;
 
@@ -51,7 +52,8 @@ pub struct SdlFrontend {
   event_pump: EventPump,
   display: Display,
   gui: Gui,
-  renderer: Renderer
+  renderer: Renderer,
+  times: FrameTimes
 }
 
 enum FrontendState {
@@ -118,21 +120,37 @@ impl fmt::Display for FrontendError {
 }
 
 struct FrameTimes {
-  last_time: SteadyTime
+  frame_duration: Duration,
+  last_time: SteadyTime,
+  target_time: SteadyTime
 }
 
 impl FrameTimes {
-  pub fn new() -> FrameTimes {
+  pub fn new(frame_duration: Duration) -> FrameTimes {
     let now = SteadyTime::now();
     FrameTimes {
-      last_time: now
+      frame_duration: frame_duration,
+      last_time: now,
+      target_time: now + frame_duration
     }
+  }
+  pub fn reset(&mut self) {
+    let now = SteadyTime::now();
+    self.last_time = now;
+    self.target_time = now + self.frame_duration;
   }
   pub fn update(&mut self) -> Duration {
     let now = SteadyTime::now();
     let delta = now - self.last_time;
     self.last_time = now;
+    self.target_time = self.target_time + self.frame_duration;
     delta
+  }
+  pub fn limit(&self) {
+    let now = SteadyTime::now();
+    if now < self.target_time {
+      thread::sleep_ms((self.target_time - now).num_milliseconds() as u32);
+    }
   }
 }
 
@@ -161,7 +179,8 @@ impl SdlFrontend {
       event_pump: event_pump,
       display: display,
       gui: gui,
-      renderer: renderer
+      renderer: renderer,
+      times: FrameTimes::new(Duration::seconds(1) / 60)
     })
   }
   pub fn main(mut self, bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> FrontendResult<()> {
@@ -179,12 +198,13 @@ impl SdlFrontend {
   }
   fn main_wait_bootrom(&mut self, cartridge: Option<Cartridge>) -> FrontendResult<FrontendState> {
     self.sdl_video.gl_set_swap_interval(1);
-    let mut times = FrameTimes::new();
 
     let mut scene = gui::WaitBootromScene::default();
 
+    self.times.reset();
+
     'main: loop {
-      let delta = times.update();
+      let delta = self.times.update();
 
       for event in self.event_pump.poll_iter() {
         match event {
@@ -210,17 +230,20 @@ impl SdlFrontend {
       target.clear_color(1.0, 1.0, 1.0, 1.0);
       try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
       try!(target.finish());
+
+      self.times.limit();
     }
     Ok(FrontendState::Exit)
   }
   fn main_wait_rom(&mut self, bootrom: Option<Bootrom>) -> FrontendResult<FrontendState> {
     self.sdl_video.gl_set_swap_interval(1);
-    let mut times = FrameTimes::new();
 
     let mut scene = gui::WaitRomScene::new();
 
+    self.times.reset();
+
     'main: loop {
-      let delta = times.update();
+      let delta = self.times.update();
 
       for event in self.event_pump.poll_iter() {
         match event {
@@ -257,12 +280,12 @@ impl SdlFrontend {
     let mut controllers = vec![];
 
     let mut turbo = false;
-    let mut times = FrameTimes::new();
+    self.times.reset();
 
     'main: loop {
-      let delta = times.update();
+      let delta = self.times.update();
 
-      fps_counter.update(times.last_time);
+      fps_counter.update(self.times.last_time);
       scene.fps = fps_counter.get_fps();
       scene.perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
 
@@ -287,6 +310,7 @@ impl SdlFrontend {
             if let Some(key) = map_keycode(keycode) { machine.key_up(key) }
             if keycode == Keycode::LShift && turbo {
               turbo = false;
+              self.times.reset();
               self.sdl_video.gl_set_swap_interval(1);
             }
           },
@@ -324,7 +348,7 @@ impl SdlFrontend {
         }
 
         if end_time >= target_time {
-          perf_counter.update(end_time - emu_time, times.last_time);
+          perf_counter.update(end_time - emu_time, self.times.last_time);
           emu_time = end_time;
           break;
         }
@@ -335,6 +359,10 @@ impl SdlFrontend {
       try!(self.renderer.draw(&mut target));
       try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
       try!(target.finish());
+
+      if !turbo {
+        self.times.limit();
+      }
     }
     Ok(FrontendState::Exit)
   }
