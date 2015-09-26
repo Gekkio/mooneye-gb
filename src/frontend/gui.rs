@@ -14,7 +14,7 @@ impl From<RendererError> for FrontendError {
   }
 }
 
-trait Scene {
+trait Screen {
   fn render(&mut self, ui: &Ui);
 }
 
@@ -34,16 +34,16 @@ impl Gui {
       renderer: renderer
     })
   }
-  pub fn render<S: Surface, T: Scene>(&mut self, surface: &mut S,
+  pub fn render<S: Surface, T: Screen>(&mut self, surface: &mut S,
                                       delta: Duration, mouse: &MouseUtil,
-                                      scene: &mut T) -> FrontendResult<()> {
+                                      screen: &mut T) -> FrontendResult<()> {
     let delta_s = delta.num_nanoseconds().unwrap() as f32 / 1_000_000_000.0;
     let (width, height) = surface.get_dimensions();
     self.imgui.update_mouse(mouse);
 
     {
       let ui = self.imgui.frame(width, height, delta_s);
-      scene.render(&ui);
+      screen.render(&ui);
       try!(self.renderer.render(surface, ui));
     }
 
@@ -52,17 +52,17 @@ impl Gui {
 }
 
 #[derive(Default)]
-pub struct WaitBootromScene {
+pub struct WaitBootromScreen {
   error: Option<ImStr<'static>>
 }
 
-impl WaitBootromScene {
+impl WaitBootromScreen {
   pub fn set_error(&mut self, text: String) {
     self.error = Some(text.into());
   }
 }
 
-impl Scene for WaitBootromScene {
+impl Screen for WaitBootromScreen {
   fn render(&mut self, ui: &Ui) {
     ui.window()
       .name(im_str!("Help overlay"))
@@ -85,14 +85,14 @@ impl Scene for WaitBootromScene {
   }
 }
 
-pub struct WaitRomScene {
+pub struct WaitRomScreen {
   title: ImStr<'static>,
   error: Option<ImStr<'static>>
 }
 
-impl WaitRomScene {
-  pub fn new() -> WaitRomScene {
-    WaitRomScene {
+impl WaitRomScreen {
+  pub fn new() -> WaitRomScreen {
+    WaitRomScreen {
       title: im_str!("Mooneye GB v{}", ::VERSION),
       error: None
     }
@@ -102,7 +102,7 @@ impl WaitRomScene {
   }
 }
 
-impl Scene for WaitRomScene {
+impl Screen for WaitRomScreen {
   fn render(&mut self, ui: &Ui) {
     ui.window()
       .name(im_str!("Help overlay"))
@@ -125,19 +125,19 @@ impl Scene for WaitRomScene {
 }
 
 #[derive(Default)]
-pub struct InGameScene {
+pub struct InGameScreen {
   pub fps: f64,
   pub perf: f64,
   show_perf_overlay: bool
 }
 
-impl InGameScene {
+impl InGameScreen {
   pub fn toggle_perf_overlay(&mut self) {
     self.show_perf_overlay = !self.show_perf_overlay;
   }
 }
 
-impl Scene for InGameScene {
+impl Screen for InGameScreen {
   fn render(&mut self, ui: &Ui) {
     if self.show_perf_overlay {
       ui.window()

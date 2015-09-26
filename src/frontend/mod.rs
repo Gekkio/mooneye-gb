@@ -199,7 +199,7 @@ impl SdlFrontend {
   fn main_wait_bootrom(&mut self, cartridge: Option<Cartridge>) -> FrontendResult<FrontendState> {
     self.sdl_video.gl_set_swap_interval(1);
 
-    let mut scene = gui::WaitBootromScene::default();
+    let mut screen = gui::WaitBootromScreen::default();
 
     self.times.reset();
 
@@ -220,7 +220,7 @@ impl SdlFrontend {
                 }
                 return Ok(FrontendState::from_roms(Some(bootrom), cartridge))
               },
-              Err(e) => scene.set_error(format!("{}", e))
+              Err(e) => screen.set_error(format!("{}", e))
             };
           },
           _ => ()
@@ -228,7 +228,7 @@ impl SdlFrontend {
       }
       let mut target = self.display.draw();
       target.clear_color(1.0, 1.0, 1.0, 1.0);
-      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
+      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut screen));
       try!(target.finish());
 
       self.times.limit();
@@ -238,7 +238,7 @@ impl SdlFrontend {
   fn main_wait_rom(&mut self, bootrom: Option<Bootrom>) -> FrontendResult<FrontendState> {
     self.sdl_video.gl_set_swap_interval(1);
 
-    let mut scene = gui::WaitRomScene::new();
+    let mut screen = gui::WaitRomScreen::new();
 
     self.times.reset();
 
@@ -254,7 +254,7 @@ impl SdlFrontend {
               .and_then(|path| Cartridge::from_path(&path));
             match result {
               Ok(cartridge) => return Ok(FrontendState::from_roms(bootrom, Some(cartridge))),
-              Err(e) => scene.set_error(format!("{}", e))
+              Err(e) => screen.set_error(format!("{}", e))
             };
           },
           _ => ()
@@ -262,7 +262,7 @@ impl SdlFrontend {
       }
       let mut target = self.display.draw();
       target.clear_color(1.0, 1.0, 1.0, 1.0);
-      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
+      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut screen));
       try!(target.finish());
     }
     Ok(FrontendState::Exit)
@@ -274,7 +274,7 @@ impl SdlFrontend {
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
 
-    let mut scene = gui::InGameScene::default();
+    let mut screen = gui::InGameScreen::default();
 
     let mut emu_time = EmuTime::zero();
     let mut controllers = vec![];
@@ -286,8 +286,8 @@ impl SdlFrontend {
       let delta = self.times.update();
 
       fps_counter.update(self.times.last_time);
-      scene.fps = fps_counter.get_fps();
-      scene.perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
+      screen.fps = fps_counter.get_fps();
+      screen.perf = 100.0 * perf_counter.get_cps() / gameboy::CPU_SPEED_HZ as f64;
 
       for event in self.event_pump.poll_iter() {
         match event {
@@ -303,7 +303,7 @@ impl SdlFrontend {
               self.sdl_video.gl_set_swap_interval(0);
             }
             if keycode == Keycode::F2 {
-              scene.toggle_perf_overlay();
+              screen.toggle_perf_overlay();
             }
           },
           Event::KeyUp{keycode: Some(keycode), ..} => {
@@ -357,7 +357,7 @@ impl SdlFrontend {
       let mut target = self.display.draw();
       target.clear_color(0.0, 0.0, 0.0, 1.0);
       try!(self.renderer.draw(&mut target));
-      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut scene));
+      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut screen));
       try!(target.finish());
 
       if !turbo {
