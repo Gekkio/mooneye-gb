@@ -93,7 +93,7 @@ pub struct WaitRomScene {
 impl WaitRomScene {
   pub fn new() -> WaitRomScene {
     WaitRomScene {
-      title: im_str!("Mooneye-GB v{}", ::VERSION),
+      title: im_str!("Mooneye GB v{}", ::VERSION),
       error: None
     }
   }
