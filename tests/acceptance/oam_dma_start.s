@@ -1,0 +1,180 @@
+; This file is part of Mooneye GB.
+; Copyright (C) 2014-2015 Joonas Javanainen <joonas.javanainen@gmail.com>
+;
+; Mooneye GB is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+;
+; Mooneye GB is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+
+; This tests what happens in the first few cycles of OAM DMA.
+; Also, when OAM DMA is restarted while a previous one is running, the previous one
+; is not immediately stopped.
+
+; Expected timing (fresh DMA):
+; M = 0: write to $FF46 happens
+; M = 1: nothing (OAM still accessible)
+; M = 2: new DMA starts, OAM reads will return $FF
+
+; Expected timing (restarted DMA):
+; M = 0: write to $FF46 happens. Previous DMA is running (OAM *not* accessible)
+; M = 1: previous DMA is running (OAM *not* accessible)
+; M = 2: new DMA starts, OAM reads will return $FF
+
+; Verified results:
+;   pass: DMG, MGB, CGB, AGB, AGS
+;   fail: -
+
+.incdir "../common"
+.include "common.s"
+
+.macro wait_dma_finish
+  ld a, 40
+- dec a
+  jr nz, -
+.endm
+
+  di
+  wait_vblank
+  disable_lcd
+
+  ld hl, VRAM
+  ld bc, $A0
+  ld a, $D7   ; RST $10
+  call memset
+
+test_round1:
+  ld hl, vector_10
+  ld a, <fail_round1
+  ld (hl-), a
+  ld a, >fail_round1
+
+  ld hl, vector_38
+  ld a, <finish_round1
+  ld (hl+), a
+  ld a, >finish_round1
+  ld (hl+), a
+
+  ld hl, OAM
+  ld bc, $A0
+  ld a, $04   ; INC B
+  call memset
+
+  ld hl, OAM - 1
+  ld a, $77   ; LD (HL), A
+  ld (hl), a
+
+  enable_lcd
+  wait_vblank
+
+  ld b, $00
+  ld a, $80
+  ld hl, DMA
+
+  ; This is what we end up executing
+  ; $FDFF: LD (HL), A
+  ; $FE00: INC B
+  ; $FE01: INC B <-- this will be replaced by RST $38
+  jp OAM - 1
+
+fail_round1:
+  test_failure_string "FAIL: ROUND 1 RST $10"
+
+finish_round1:
+  ld a, (OAM)
+  ld (round1_oam), a
+  ld a, b
+  ld (round1_b), a
+
+test_round2:
+  wait_vblank
+  disable_lcd
+
+  ld hl, vector_10
+  ld a, <fail_round2
+  ld (hl-), a
+  ld a, >fail_round2
+
+  ld hl, vector_38
+  ld a, <finish_round2
+  ld (hl+), a
+  ld a, >finish_round2
+  ld (hl+), a
+
+  ld hl, OAM
+  ld bc, $A0
+  ld a, $04   ; INC B
+  call memset
+
+  ld hl, OAM - 2
+  ld a, $77   ; LD (HL), A
+  ld (hl+), a
+  ld a, $77   ; LD (HL), A
+  ld (hl), a
+
+  enable_lcd
+  wait_vblank
+
+  ld b, $00
+  ld a, $80
+  ld hl, DMA
+
+  ; This is what we end up executing
+  ; $FDFE: LD (HL), A
+  ; $FDFF: LD (HL), A
+  ; $FE00: INC B <-- this will be replaced by RST $38
+  jp OAM - 2
+
+fail_round2:
+  test_failure_string "FAIL: ROUND 2 RST $10"
+
+finish_round2:
+  ld a, (OAM)
+  ld d, a
+  ld e, b
+
+test_finish:
+  ld a, (round1_oam)
+  ld b, a
+  ld a, (round1_b)  
+  ld c, a
+  save_results
+  assert_b $D7
+  assert_c $01
+  assert_d $D7
+  assert_e $00
+  jp process_results
+
+.org $10
+  wait_dma_finish
+  ld hl, vector_10
+  ld a, (hl+)
+  ld e, a
+  ld a, (hl+)
+  ld h, a
+  ld l, e
+  jp hl
+
+.org $38
+  wait_dma_finish
+  ld hl, vector_38
+  ld a, (hl+)
+  ld e, a
+  ld a, (hl+)
+  ld h, a
+  ld l, e
+  jp hl
+
+.ramsection "Test-State" slot 2
+  vector_10 dw
+  vector_38 dw
+  round1_oam db
+  round1_b db
+.ends

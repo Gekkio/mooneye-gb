@@ -137,6 +137,7 @@ Versions used:
 | ld hl sp e timing               | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | oam bits                        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | oam dma_restart                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| oam dma start                   | :x:        | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | oam dma timing                  | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | pop timing                      | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | push timing                     | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
