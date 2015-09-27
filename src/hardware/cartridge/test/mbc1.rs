@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use config::{CartridgeConfig, CartridgeRamSize, CartridgeRomSize, CartridgeType};
+use config;
+use config::{CartridgeRamSize, CartridgeRomSize, CartridgeType};
 use hardware::cartridge::Cartridge;
 
 #[test]
@@ -27,12 +28,12 @@ fn test_mbc1() {
     }
   }
 
-  let config = CartridgeConfig {
+  let config = config::Cartridge {
+    data: data,
     title: "TEST".into(),
     cartridge_type: CartridgeType::Mbc1,
     rom_size: CartridgeRomSize::RomBanks4,
     ram_size: CartridgeRamSize::NoRam,
-    data: data
   };
   let mut cart = Cartridge::new(config);
 

@@ -23,10 +23,13 @@ use gameboy;
 use machine::Machine;
 
 pub fn run_acceptance_test(name: &str) {
-  let bootrom_path = env::home_dir().unwrap().join(".mooneye-gb").join("boot.bin");
+  let bootrom = config::Bootrom::from_default_bootrom().expect("No boot ROM found");
+
   let test_name = format!("tests/build/{}.gb", name);
   let cartridge_path = PathBuf::from(&test_name);
-  let hardware_config = config::create_hardware_config(Some(&bootrom_path), &cartridge_path).unwrap();
+  let cartridge = config::Cartridge::from_path(&cartridge_path).unwrap();
+
+  let hardware_config = (Some(bootrom), cartridge);
 
   let mut machine = Machine::new(hardware_config);
 
