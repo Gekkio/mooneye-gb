@@ -5,15 +5,15 @@ dependencies = [
  "bitflags 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "crc 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "docopt 0.6.72 (registry+https://github.com/rust-lang/crates.io-index)",
- "glium 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "glium_sdl2 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "imgui 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glium 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glium_sdl2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "imgui 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.2.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "podio 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "quickcheck 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.37 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -36,13 +36,35 @@ dependencies = [
 ]
 
 [[package]]
-name = "bitflags"
-version = "0.2.1"
+name = "backtrace"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "backtrace-sys 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "dbghelp-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "debug-builders 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "kernel32-sys 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "backtrace-sys"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "bitflags"
 version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "cfg-if"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -52,6 +74,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "lazy_static 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "dbghelp-sys"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "winapi 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "debug-builders"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "docopt"
@@ -92,9 +128,10 @@ dependencies = [
 
 [[package]]
 name = "glium"
-version = "0.8.7"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
+ "backtrace 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "gl_common 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "gl_generator 0.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "khronos_api 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -106,34 +143,33 @@ dependencies = [
 
 [[package]]
 name = "glium_sdl2"
-version = "0.5.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "glium 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glium 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "imgui"
-version = "0.0.2"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "glium 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "imgui-sys 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glium 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "imgui-sys 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "imgui-sys"
-version = "0.0.2"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gcc 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "glium 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glium 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -247,10 +283,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "sdl2"
-version = "0.7.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "bitflags 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",

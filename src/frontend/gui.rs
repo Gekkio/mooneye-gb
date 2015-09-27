@@ -39,7 +39,15 @@ impl Gui {
                                       screen: &mut T) -> FrontendResult<()> {
     let delta_s = delta.num_nanoseconds().unwrap() as f32 / 1_000_000_000.0;
     let (width, height) = surface.get_dimensions();
-    self.imgui.update_mouse(mouse);
+    let (mouse_state, mouse_x, mouse_y) = mouse.mouse_state();
+    self.imgui.set_mouse_down(&[
+      mouse_state.left(),
+      mouse_state.right(),
+      mouse_state.middle(),
+      mouse_state.x1(),
+      mouse_state.x2()
+    ]);
+    self.imgui.set_mouse_pos(mouse_x as f32, mouse_y as f32);
 
     {
       let ui = self.imgui.frame(width, height, delta_s);

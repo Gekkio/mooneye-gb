@@ -83,14 +83,14 @@ pub enum FrontendError {
 
 pub type FrontendResult<T> = Result<T, FrontendError>;
 
-impl From<String> for FrontendError {
-  fn from(e: String) -> FrontendError {
-    FrontendError::Sdl(e)
+impl From<sdl2::ErrorMessage> for FrontendError {
+  fn from(e: sdl2::ErrorMessage) -> FrontendError {
+    FrontendError::Sdl(format!("{:?}", e))
   }
 }
 
-impl From<GliumCreationError<String>> for FrontendError {
-  fn from(e: GliumCreationError<String>) -> FrontendError {
+impl From<GliumCreationError<sdl2::ErrorMessage>> for FrontendError {
+  fn from(e: GliumCreationError<sdl2::ErrorMessage>) -> FrontendError {
     FrontendError::Renderer(format!("{:?}", e))
   }
 }

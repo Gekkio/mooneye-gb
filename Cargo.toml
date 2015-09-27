@@ -12,23 +12,23 @@ acceptance_tests = []
 bitflags = "0.3"
 crc = "1.2"
 docopt = "0.6"
-glium_sdl2 = "0.5"
+glium_sdl2 = "0.7"
 nalgebra = "0.2"
 num = "0.1"
 podio = "0.1"
 rustc-serialize = "0.3"
-sdl2 = "0.7"
+sdl2 = "0.9"
 time = "0.1"
 url = "0.2"
 
 [dependencies.glium]
-version = "0.8"
+version = "0.9"
 features = ["nalgebra"]
 default-features = false
 
 [dependencies.imgui]
-version = "0.0.2"
-features = ["glium", "sdl2"]
+version = "0.0.3"
+features = ["glium"]
 
 [dev-dependencies]
 quickcheck = "0.2"
