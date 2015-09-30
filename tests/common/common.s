@@ -57,7 +57,7 @@ _delay_long_time_\@:
 
 .macro halt_execution
   .ifdef ACCEPTANCE_TEST
-    debug
+    .db $ED ; Magic undefined opcode
   .endif
 - nop
   jr -
