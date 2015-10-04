@@ -374,6 +374,9 @@ impl Gpu {
         if self.stat.contains(STAT_VBLANK_INT) {
           irq.request_interrupt(Interrupt::LcdStat);
         }
+        if self.stat.contains(STAT_ACCESS_OAM_INT) {
+          irq.request_interrupt(Interrupt::LcdStat);
+        }
       },
       _ => ()
     }

@@ -154,6 +154,7 @@ Versions used:
 | gpu intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | gpu intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | gpu intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
+| gpu vblank stat intr G          | :+1:       | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
 
 ### Mooneye GB emulator-only tests
 
@@ -169,15 +170,16 @@ Versions used:
 
 ### Mooneye GB misc tests
 
-| Test           | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| -------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
-| boot hwio C    |            | :+1: |          | :x:           |       | :x:  | :x:  |
-| boot hwio S    |            | :x:  |          | :x:           |       | :x:  | :x:  |
-| boot regs A    |            | :x:  |          | :x:           |       | :x:  |      |
-| boot regs cgb  |            | :+1: |          | :x:           |       | :x:  | :+1: |
-| boot regs mgb  |            | :+1: |          | :+1:          |       |      | :+1: |
-| boot regs sgb  |            | :x:  |          | :+1:          |       | :x:  | :+1: |
-| boot regs sgb2 |            | :x:  |          | :+1:          |       | :x:  |      |
+| Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| ----------------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| boot hwio C             |            | :+1: |          | :x:           |       | :x:  | :x:  |
+| boot hwio S             |            | :x:  |          | :x:           |       | :x:  | :x:  |
+| boot regs A             |            | :x:  |          | :x:           |       | :x:  |      |
+| boot regs cgb           |            | :+1: |          | :x:           |       | :x:  | :+1: |
+| boot regs mgb           |            | :+1: |          | :+1:          |       |      | :+1: |
+| boot regs sgb           |            | :x:  |          | :+1:          |       | :x:  | :+1: |
+| boot regs sgb2          |            | :x:  |          | :+1:          |       | :x:  |      |
+| gpu vblank stat intr CA |            | :x:  |          | :x:           |       | :x:  |      |
 
 ### Test naming
 
