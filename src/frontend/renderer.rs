@@ -17,7 +17,7 @@ use glium;
 use glium::{DrawError, DrawParameters, IndexBuffer, Program, VertexBuffer, Surface};
 use glium::backend::Facade;
 use glium::index::PrimitiveType;
-use glium::program::ProgramCreationError;
+use glium::program::ProgramChooserCreationError;
 use glium::texture::{
   ClientFormat, MipmapsOption, PixelValue, TextureCreationError, UncompressedFloatFormat
 };
@@ -61,8 +61,8 @@ impl From<glium::index::BufferCreationError> for FrontendError {
   }
 }
 
-impl From<ProgramCreationError> for FrontendError {
-  fn from(e: ProgramCreationError) -> FrontendError {
+impl From<ProgramChooserCreationError> for FrontendError {
+  fn from(e: ProgramChooserCreationError) -> FrontendError {
     FrontendError::Renderer(format!("{:?}", e))
   }
 }
