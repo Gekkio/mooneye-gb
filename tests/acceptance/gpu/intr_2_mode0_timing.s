@@ -26,11 +26,11 @@
 
 .macro clear_interrupts
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
 .endm
 
 .macro wait_mode ARGS mode
-- ld_a_ff STAT
+- ldh a, (<STAT)
   and $03
   cp mode
   jr nz, -
@@ -51,7 +51,7 @@
 
   ld hl, STAT
   ld a, INTR_STAT
-  ld_ff_a IE
+  ldh (<IE), a
   test_iter 46
   ld d, b
   test_iter 45
@@ -66,7 +66,7 @@ setup_and_wait_mode2:
   wait_mode $00
   wait_mode $03
   ld a, %00100000
-  ld_ff_a STAT
+  ldh (<STAT), a
   clear_interrupts
   ei
 

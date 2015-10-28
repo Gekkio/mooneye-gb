@@ -28,9 +28,9 @@
 
 .macro halt_until ARGS intr
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
   ld a, intr
-  ld_ff_a IE
+  ldh (<IE), a
 
   ei
   halt
@@ -64,12 +64,12 @@ test_round1:
   wait_ly 143
 
   nops 54
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt_until INTR_VBLANK
 
 finish_round1:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld (round1), a
 
   ld hl, intr_vec_vblank
@@ -94,12 +94,12 @@ test_round2:
   wait_ly 143
 
   nops 55
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt_until INTR_VBLANK
 
 finish_round2:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld (round2), a
 
   ld hl, intr_vec_vblank
@@ -111,7 +111,7 @@ finish_round2:
   ld (hl), a
 
   ld a, $20
-  ld_ff_a STAT
+  ldh (<STAT), a
 
   halt_until INTR_VBLANK
 
@@ -127,12 +127,12 @@ test_round3:
   wait_ly 143
 
   nops 53
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt_until INTR_STAT
 
 finish_round3:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld (round3), a
 
   ld hl, intr_vec_vblank
@@ -157,12 +157,12 @@ test_round4:
   wait_ly 143
 
   nops 54
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt_until INTR_STAT
 
 finish_round4:
-  ld_a_ff DIV
+  ldh a, (<DIV)
 
 test_finish:
   ld e, a

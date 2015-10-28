@@ -30,12 +30,12 @@
 
   di
   ld a, INTR_VBLANK
-  ld_ff_a IE
+  ldh (<IE), a
 
   ld hl, test_round1
   wait_vblank
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
   ei
 
   halt
@@ -57,7 +57,7 @@ finish_round1:
   ld hl, test_round2
   wait_vblank
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
   ei
 
   halt

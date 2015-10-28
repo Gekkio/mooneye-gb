@@ -33,15 +33,15 @@
 
   ; Enable timer interrupt
   ld a, INTR_TIMER
-  ld_ff_a IE, a
+  ldh (<IE), a
 
   ; TIMA = $F0
   ld a, $F0
-  ld_ff_a TIMA, a
+  ldh (<TIMA), a
 
   ; Start timer at 262144 Hz
   ld a, $05
-  ld_ff_a TAC, a
+  ldh (<TAC), a
 
   halt
   ; This should never get executed

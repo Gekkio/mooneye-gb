@@ -29,12 +29,12 @@
 
 .macro clear_IF
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
 .endm
 
 .macro enable_IE_vblank
   ld a, INTR_VBLANK
-  ld_ff_a IE
+  ldh (<IE), a
 .endm
 
   di
@@ -56,7 +56,7 @@ test_round1:
 
   nops 12
   xor a
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   delay_long_time 2502
   nops 7
@@ -65,7 +65,7 @@ test_round1:
   jp fail_round1
 
 finish_round1:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld d, a
 
   clear_IF
@@ -83,7 +83,7 @@ test_round2:
 
   nops 11
   xor a
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   delay_long_time 2502
   nops 8
@@ -92,7 +92,7 @@ test_round2:
   jp fail_round2
 
 finish_round2:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld e, a
 
   clear_IF
@@ -110,14 +110,14 @@ test_round3:
 
   nops 12
   xor a
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt
   nop
   jp fail_round3
 
 finish_round3:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld b, a
 
   clear_IF
@@ -135,14 +135,14 @@ test_round4:
 
   nops 11
   xor a
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt
   nop
   jp fail_round4
 
 finish_round4:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld c, a
   save_results
   assert_b $11

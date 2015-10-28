@@ -26,11 +26,11 @@
 
 .macro clear_interrupts
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
 .endm
 
 .macro wait_mode ARGS mode
-- ld_a_ff STAT
+- ldh a, (<STAT)
   and $03
   cp mode
   jr nz, -
@@ -44,7 +44,7 @@
 
   enable_lcd
   ld a, INTR_STAT
-  ld_ff_a IE
+  ldh (<IE), a
 
 .macro testcase
   ld a, \@
@@ -225,7 +225,7 @@ testcase_round_a:
 testcase_round_a_ret:
   ld b, $00
 - inc b
-  ld_a_ff STAT
+  ldh a, (<STAT)
   and $03
   jr nz, -
   ld a, b
@@ -243,7 +243,7 @@ testcase_round_b:
 testcase_round_b_ret:
   ld b, $00
 - inc b
-  ld_a_ff STAT
+  ldh a, (<STAT)
   and $03
   jr nz, -
   ld a, b
@@ -292,7 +292,7 @@ setup_and_wait_mode2:
   wait_mode $00
   wait_mode $03
   ld a, %00100000
-  ld_ff_a STAT
+  ldh (<STAT), a
   clear_interrupts
   ei
 

@@ -31,21 +31,21 @@
 
 .macro clear_interrupts
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
 .endm
 
 .macro scroll_x ARGS value
   ld a, value
-  ld_ff_a SCX
+  ldh (<SCX), a
 .endm
 
   di
   wait_vblank
   ld hl, LY
   ld a, $08
-  ld_ff_a STAT
+  ldh (<STAT), a
   ld a, INTR_STAT
-  ld_ff_a IE
+  ldh (<IE), a
 
 .macro perform_test ARGS scanline delay_a delay_b
   ld d, scanline - 1
@@ -103,7 +103,7 @@
 
 test_fail:
   ld b, a
-  ld_a_ff SCX
+  ldh a, (<SCX)
   save_results
   ; A = SCX
   ; B = LY value
@@ -117,7 +117,7 @@ standard_delay:
 
 setup_and_wait:
   wait_vblank
-- ld_a_ff LY
+- ldh a, (<LY)
   cp d
   jr nz, -
   clear_interrupts

@@ -32,7 +32,7 @@ $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
 	@mkdir -p $(dir $<)
-	@cd $(dir $<) && $(WLALINK) $(notdir $<) $(abspath $@)
+	@cd $(dir $<) && $(WLALINK) -S $(notdir $<) $(abspath $@)
 	@echo --- $(notdir $(basename $@))
 
 clean:

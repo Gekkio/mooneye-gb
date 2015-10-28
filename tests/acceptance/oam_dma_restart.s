@@ -43,7 +43,7 @@ hiram_test:
   ld b, 40
   start_oam_dma $80
   nops 7
-  ld_ff_a DMA
+  ldh (<DMA), a
 - dec b
   jr nz, -
 
@@ -55,7 +55,7 @@ hiram_test:
   ld b, 40
   start_oam_dma $80
   nops 7
-  ld_ff_a DMA
+  ldh (<DMA), a
 - dec b
   jr nz, -
   nops 1

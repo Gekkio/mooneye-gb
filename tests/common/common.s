@@ -14,15 +14,6 @@
 ; You should have received a copy of the GNU General Public License
 ; along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 
-.memorymap
-  defaultslot 1
-  slot 0 start $0000 size $4000
-  slot 1 start $4000 size $4000
-  slot 2 start $C000 size $1000
-  slot 3 start $D000 size $1000
-  slot 4 start $A000 size $1000
-.endme
-
 .include "hardware.s"
 
 ; --- Macros ---
@@ -86,7 +77,7 @@ _delay_long_time_\@:
 
 .macro wait_ly ARGS value
 _wait_ly_\@:
-  ld_a_ff LY
+  ldh a, (<LY)
   cp value
   jr nz, _wait_ly_\@
 .endm
@@ -179,7 +170,7 @@ _wait_ly_\@:
 .macro start_oam_dma ARGS address
   wait_vblank
   ld a, address
-  ld_ff_a DMA
+  ldh (<DMA), a
 .endm
 
 .macro test_failure
@@ -361,10 +352,10 @@ _test_ok_cb_\@:
 
   reset_screen:
     xor a
-    ld_ff_a SCY
-    ld_ff_a SCX
+    ldh (<SCY), a
+    ldh (<SCX), a
     ld a, $FC
-    ld_ff_a BGP
+    ldh (<BGP), a
 
     call clear_vram
     ret

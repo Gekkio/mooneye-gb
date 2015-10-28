@@ -28,12 +28,12 @@
 
 .macro clear_IF
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
 .endm
 
 .macro enable_IE_vblank
   ld a, INTR_VBLANK
-  ld_ff_a IE
+  ldh (<IE), a
 .endm
 
   di

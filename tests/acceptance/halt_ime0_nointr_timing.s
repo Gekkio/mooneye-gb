@@ -29,12 +29,12 @@
 
 .macro clear_IF
   xor a
-  ld_ff_a IF
+  ldh (<IF), a
 .endm
 
 .macro enable_IE_vblank
   ld a, INTR_VBLANK
-  ld_ff_a IE
+  ldh (<IE), a
 .endm
 
   di
@@ -55,13 +55,13 @@ test_round1:
 
   nops 13
   xor a
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt
   nops 6 ; Equivalent to interrupt + JP HL in the IME=1 case
 
 finish_round1:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld d, a
 
   clear_IF
@@ -78,13 +78,13 @@ test_round2:
 
   nops 12
   xor a
-  ld_ff_a DIV
+  ldh (<DIV), a
 
   halt
   nops 6 ; Equivalent to interrupt + JP HL in the IME=1 case
 
 finish_round2:
-  ld_a_ff DIV
+  ldh a, (<DIV)
   ld e, a
   save_results
   assert_d $11

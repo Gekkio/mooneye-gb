@@ -44,7 +44,7 @@
   ld bc, DIV
 
   ld a, INTR_SERIAL
-  ld_ff_a IE
+  ldh (<IE), a
 
 .macro reset_div
   xor a
@@ -53,7 +53,7 @@
 
 .macro trigger_intr
   ld a, $08
-  ld_ff_a IF
+  ldh (<IF), a
 .endm
 
 test_round1:
