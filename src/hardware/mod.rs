@@ -118,7 +118,7 @@ impl Hardware {
     self.oam_dma.active = true;
     self.oam_dma.end_time = time + MachineCycles(162);
     let addr = (value as u16) << 8;
-    for i in (0..0xa0) {
+    for i in 0..0xa0 {
       let value = self.read_internal(time, addr + i);
       self.gpu.write_oam(i, value);
     }

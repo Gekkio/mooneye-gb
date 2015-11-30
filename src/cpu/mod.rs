@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-use emulation::{EmuTime, EmuEvents, EE_DEBUG_OP};
+use emulation::{EmuTime, EE_DEBUG_OP};
 use gameboy::{HiramData, HIRAM_EMPTY};
 use hardware::Bus;
 use cpu::disasm::{DisasmStr, ToDisasmStr};

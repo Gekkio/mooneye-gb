@@ -451,7 +451,7 @@ impl Gpu {
 
       let y = self.current_line.wrapping_add(self.scroll_y);
       let row = (y / 8) as usize;
-      for i in (0..gameboy::SCREEN_WIDTH) {
+      for i in 0..gameboy::SCREEN_WIDTH {
         let x = (i as u8).wrapping_add(self.scroll_x);
         let col = (x / 8) as usize;
         let raw_tile_num = tile_map[row * 32 + col];
@@ -482,7 +482,7 @@ impl Gpu {
 
       let y = self.current_line - self.window_y;
       let row = (y / 8) as usize;
-      for i in ((window_x as usize)..gameboy::SCREEN_WIDTH) {
+      for i in (window_x as usize)..gameboy::SCREEN_WIDTH {
         let mut x = (i as u8).wrapping_add(self.scroll_x);
         if x >= window_x {
           x = i as u8 - window_x;

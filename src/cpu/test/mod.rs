@@ -86,7 +86,7 @@ fn test_disasm_all_opcodes() {
   let bus = TestHardware::from_memory(vec![0x00, 0x00, 0x00]);
   let mut cpu = Cpu::new(bus);
 
-  for op in (0..0xff) {
+  for op in 0..0xff {
     cpu.hardware.memory[0] = op as u8;
     if op != 0xcb {
       cpu.regs.pc = 0x00;
