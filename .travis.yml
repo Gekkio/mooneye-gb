@@ -6,10 +6,8 @@ rust:
 matrix:
   allow_failures:
     - rust: nightly
-env:
-  global:
-    - LD_LIBRARY_PATH: $HOME/sdl2/lib
-    - LD_RUN_PATH: $HOME/sdl2/lib
+before_script:
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/sdl2/lib
 install:
   - curl -O http://www.libsdl.org/release/SDL2-2.0.0.tar.gz
   - tar -xzvf SDL2-2.0.0.tar.gz
