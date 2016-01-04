@@ -2,6 +2,8 @@
 
 Mooneye GB is a Game Boy emulator written in Rust.
 
+[![Build Status](https://travis-ci.org/Gekkio/mooneye-gb.svg?branch=master)](https://travis-ci.org/Gekkio/mooneye-gb)
+
 The main goals of this project are accuracy and documentation. Some existing emulators are very accurate (Gambatte, BGB >= 1.5) but are not documented very clearly, so they are not that good references for emulator developers. I want this project to document as clearly as possible *why* certain behaviour is emulated in a certain way. This also means writing a lot of test ROMs to figure out corner cases and precise behaviour on real hardware.
 
 Non-goals:
