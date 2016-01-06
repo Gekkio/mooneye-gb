@@ -210,6 +210,7 @@ behaviour. Some tests are expected to pass on a single or multiple groups:
 For example, a test with GS in the name is expected to pass on dmg+mgb +
 sgb+sgb2.
 
-# License
+# License and copyright
 
 Mooneye GB is licensed under GPLv3+.
+Copyright (C) 2014-2016 Joonas Javanainen <joonas.javanainen@gmail.com>

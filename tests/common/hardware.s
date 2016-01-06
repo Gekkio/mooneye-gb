@@ -1,5 +1,5 @@
 ; This file is part of Mooneye GB.
-; Copyright (C) 2014-2015 Joonas Javanainen <joonas.javanainen@gmail.com>
+; Copyright (C) 2014-2016 Joonas Javanainen <joonas.javanainen@gmail.com>
 ;
 ; Mooneye GB is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
