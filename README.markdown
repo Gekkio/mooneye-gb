@@ -102,7 +102,7 @@ Versions used:
 * BGB 1.5.2
 * Gambatte 2015-03-23 (f9fb003)
 * GiiBiiAdvance 2015-05-16 (dbf669a)
-* Higan 0.94
+* Higan 0.96 (in Game Boy mode, except for SGB/SGB2-specific test ROMs)
 * KiGB 2.05
 * MESS 0.163
 
@@ -110,7 +110,7 @@ Versions used:
 
 | Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | ----------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
-| cpu instrs        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
+| cpu instrs        | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | dmg sound 2       | :x:        | :+1: | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | instr timing      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
 | mem timing 2      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
@@ -127,7 +127,7 @@ Versions used:
 | call timing2                    | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | call cc_timing                  | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | call cc_timing2                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| di timing GS                    | :+1:       | :+1: | :+1:     | :x:           | :x:   | :+1: | :+1: |
+| di timing GS                    | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :+1: | :+1: |
 | div timing                      | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | ei timing                       | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | halt ime0 ei                    | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
@@ -179,12 +179,12 @@ Versions used:
 | Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | ----------------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
 | boot hwio C             |            | :+1: |          | :x:           |       | :x:  | :x:  |
-| boot hwio S             |            | :x:  |          | :x:           |       | :x:  | :x:  |
+| boot hwio S             |            | :x:  |          | :x:           | :x:   | :x:  | :x:  |
 | boot regs A             |            | :x:  |          | :x:           |       | :x:  |      |
 | boot regs cgb           |            | :+1: |          | :x:           |       | :x:  | :+1: |
 | boot regs mgb           |            | :+1: |          | :+1:          |       |      | :+1: |
-| boot regs sgb           |            | :x:  |          | :+1:          |       | :x:  | :+1: |
-| boot regs sgb2          |            | :x:  |          | :+1:          |       | :x:  |      |
+| boot regs sgb           |            | :x:  |          | :+1:          | :+1:  | :x:  | :+1: |
+| boot regs sgb2          |            | :x:  |          | :+1:          | :x:   | :x:  |      |
 | gpu vblank stat intr CA |            | :x:  |          | :x:           |       | :x:  |      |
 
 ### Test naming
