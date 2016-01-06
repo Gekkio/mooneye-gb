@@ -60,12 +60,6 @@ fn halt_ime1_timing() { run_acceptance_test("acceptance/halt_ime1_timing") }
 fn halt_ime1_timing2_gs() { run_acceptance_test("acceptance/halt_ime1_timing2-GS") }
 
 #[test]
-fn ie_bits() { run_acceptance_test("acceptance/ie_bits") }
-
-#[test]
-fn if_bits() { run_acceptance_test("acceptance/if_bits") }
-
-#[test]
 fn if_ie_registers() { run_acceptance_test("acceptance/if_ie_registers") }
 
 #[test]
@@ -79,9 +73,6 @@ fn jp_timing() { run_acceptance_test("acceptance/jp_timing") }
 
 #[test]
 fn ld_hl_sp_e_timing() { run_acceptance_test("acceptance/ld_hl_sp_e_timing") }
-
-#[test]
-fn oam_bits() { run_acceptance_test("acceptance/oam_bits") }
 
 #[test]
 fn oam_dma_restart() { run_acceptance_test("acceptance/oam_dma_restart") }
@@ -112,6 +103,15 @@ fn reti_intr_timing() { run_acceptance_test("acceptance/reti_intr_timing") }
 
 #[test]
 fn rst_timing() { run_acceptance_test("acceptance/rst_timing") }
+
+#[test]
+fn bits_mem_oam() { run_acceptance_test("acceptance/bits/mem_oam") }
+
+#[test]
+fn bits_reg_0f_if() { run_acceptance_test("acceptance/bits/reg_0f_if") }
+
+#[test]
+fn bits_reg_ff_ie() { run_acceptance_test("acceptance/bits/reg_ff_ie") }
 
 #[test]
 fn gpu_hblank_ly_scx_timing_gs() { run_acceptance_test("acceptance/gpu/hblank_ly_scx_timing-GS") }

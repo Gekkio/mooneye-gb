@@ -118,51 +118,66 @@ Versions used:
 
 ### Mooneye GB acceptance tests
 
-| Test                            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| ------------------------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
-| add sp e timing                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| boot hwio G                     | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| boot regs dmg                   | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| call timing                     | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| call timing2                    | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| call cc_timing                  | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| call cc_timing2                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| di timing GS                    | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :+1: | :+1: |
-| div timing                      | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
-| ei timing                       | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| halt ime0 ei                    | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| halt ime0 nointr_timing         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :x:  |
-| halt ime1 timing                | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
-| halt ime1 timing2 GS            | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :+1: |
-| ie bits                         | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :+1: | :x:  |
-| if bits                         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
-| if ie registers                 | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
-| intr timing                     | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
-| jp timing                       | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| jp cc timing                    | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| ld hl sp e timing               | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| oam bits                        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| oam dma_restart                 | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| oam dma start                   | :x:        | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| oam dma timing                  | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| pop timing                      | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :x:  | :+1: |
-| push timing                     | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| rapid di ei                     | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| ret timing                      | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| ret cc timing                   | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| reti timing                     | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
-| reti intr timing                | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| rst timing                      | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu hblank ly scx timing GS     | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu intr 1 2 timing GS          | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| gpu intr 2 0 timing             | :+1:       | :+1: | :x:      | :x:           | :+1:  | :x:  | :x:  |
-| gpu intr 2 mode0 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
-| timer div write                 | :x:        | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
-| timer rapid toggle              | :x:        | :x:  | :x:      | :+1:          | :x:   | :x:  | :+1: |
+| Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| ----------------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
+| add sp e timing         | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| boot hwio G             | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| boot regs dmg           | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| call timing             | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| call timing2            | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| call cc_timing          | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| call cc_timing2         | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| di timing GS            | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :+1: | :+1: |
+| div timing              | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
+| ei timing               | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| halt ime0 ei            | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| halt ime0 nointr_timing | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :x:  |
+| halt ime1 timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
+| halt ime1 timing2 GS    | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :+1: |
+| if ie registers         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
+| intr timing             | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
+| jp timing               | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| jp cc timing            | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| ld hl sp e timing       | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| oam dma_restart         | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| oam dma start           | :x:        | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| oam dma timing          | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| pop timing              | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :x:  | :+1: |
+| push timing             | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
+| rapid di ei             | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| ret timing              | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| ret cc timing           | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| reti timing             | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| reti intr timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| rst timing              | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
+
+#### Bits (unusable bits in memory and registers)
+
+| Test      | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| --------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
+| mem oam   | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| reg 0f if | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
+| reg ff ie | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :+1: | :x:  |
+
+#### GPU
+
+| Test                        | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| --------------------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
+| hblank ly scx timing GS     | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
+| intr 1 2 timing GS          | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
+| intr 2 0 timing             | :+1:       | :+1: | :x:      | :x:           | :+1:  | :x:  | :x:  |
+| intr 2 mode0 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
+| intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
+| intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
+| intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
+| vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
+
+#### Timer
+
+| Test         | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| ------------ | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
+| div write    | :x:        | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
+| rapid toggle | :x:        | :x:  | :x:      | :+1:          | :x:   | :x:  | :+1: |
 
 ### Mooneye GB emulator-only tests
 

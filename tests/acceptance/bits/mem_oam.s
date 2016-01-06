@@ -22,7 +22,7 @@
 ;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
 ;   fail: -
 
-.incdir "../common"
+.incdir "../../common"
 .include "common.s"
 
   di
