@@ -164,7 +164,7 @@ Versions used:
 | Test                        | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | --------------------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
 | hblank ly scx timing GS     | :+1:       | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| intr 1 2 timing GS          | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
+| intr 1 2 timing GS          | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :+1: |
 | intr 2 0 timing             | :+1:       | :+1: | :x:      | :x:           | :+1:  | :x:  | :x:  |
 | intr 2 mode0 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
