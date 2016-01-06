@@ -158,7 +158,7 @@ Versions used:
 | gpu intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | gpu intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | gpu intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
-| gpu vblank stat intr G          | :+1:       | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
+| gpu vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
 | timer div write                 | :x:        | :+1: | :x:      | :+1:          | :x:   | :x:  | :x:  |
 | timer rapid toggle              | :x:        | :x:  | :x:      | :+1:          | :x:   | :x:  | :+1: |
 

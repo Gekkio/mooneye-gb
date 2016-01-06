@@ -20,7 +20,7 @@
 ; Expected behaviour: vblank and stat_m2_144 are triggered at the same time
 
 ; Verified results:
-;   pass: DMG, MGB
+;   pass: DMG, MGB, SGB, SGB2
 ;   fail: CGB, AGB, AGS
 
 .incdir "../../common"

@@ -29,7 +29,7 @@
 ; M = 2: new DMA starts, OAM reads will return $FF
 
 ; Verified results:
-;   pass: DMG, MGB, CGB, AGB, AGS
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
 ;   fail: -
 
 .incdir "../common"
