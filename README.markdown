@@ -134,6 +134,8 @@ Versions used:
 | halt ime0 nointr_timing         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :x:  |
 | halt ime1 timing                | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
 | halt ime1 timing2 GS            | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :+1: |
+| ie bits                         | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :+1: | :x:  |
+| if bits                         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | if ie registers                 | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | intr timing                     | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
 | jp timing                       | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |

@@ -28,13 +28,15 @@ impl Irq {
     }
   }
   pub fn get_interrupt_flag(&self) -> u8 {
-    self.int_flag.bits | INT_UNUSED_MASK
+    const IF_UNUSED_MASK: u8 = (1 << 5) | (1 << 6) | (1 << 7);
+
+    self.int_flag.bits | IF_UNUSED_MASK
   }
   pub fn get_interrupt_enable(&self) -> u8 {
-    self.int_enable.bits | INT_UNUSED_MASK
+    self.int_enable.bits
   }
   pub fn set_interrupt_flag(&mut self, value: u8) {
-    self.int_flag = InterruptType::from_bits_truncate(value);
+    self.int_flag = InterruptType::from_bits_truncate(value) & IF_USABLE;
   }
   pub fn set_interrupt_enable(&mut self, value: u8) {
     self.int_enable = InterruptType::from_bits_truncate(value);
@@ -82,8 +84,6 @@ impl Interrupt {
   }
 }
 
-const INT_UNUSED_MASK: u8 = (1 << 5) | (1 << 6) | (1 << 7);
-
 bitflags!(
   flags InterruptType: u8 {
     const INT_VBLANK = Interrupt::VBlank as u8,
@@ -91,6 +91,10 @@ bitflags!(
     const INT_TIMER_OVERFLOW = Interrupt::TimerOverflow as u8,
     const INT_SERIAL_IO_DONE = Interrupt::SerialIoDone as u8,
     const INT_JOYPAD = Interrupt::Joypad as u8,
+    const IF_USABLE =
+      INT_VBLANK.bits | INT_LCDSTAT.bits | INT_TIMER_OVERFLOW.bits |
+      INT_SERIAL_IO_DONE.bits | INT_JOYPAD.bits,
+    const IE_USABLE = 0xff
   }
 );
 

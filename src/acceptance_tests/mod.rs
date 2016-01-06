@@ -60,6 +60,12 @@ fn halt_ime1_timing() { run_acceptance_test("acceptance/halt_ime1_timing") }
 fn halt_ime1_timing2_gs() { run_acceptance_test("acceptance/halt_ime1_timing2-GS") }
 
 #[test]
+fn ie_bits() { run_acceptance_test("acceptance/ie_bits") }
+
+#[test]
+fn if_bits() { run_acceptance_test("acceptance/if_bits") }
+
+#[test]
 fn if_ie_registers() { run_acceptance_test("acceptance/if_ie_registers") }
 
 #[test]
