@@ -108,10 +108,10 @@ fn rst_timing() { run_acceptance_test("acceptance/rst_timing") }
 fn bits_mem_oam() { run_acceptance_test("acceptance/bits/mem_oam") }
 
 #[test]
-fn bits_reg_0f_if() { run_acceptance_test("acceptance/bits/reg_0f_if") }
+fn bits_reg_f() { run_acceptance_test("acceptance/bits/reg_f") }
 
 #[test]
-fn bits_reg_ff_ie() { run_acceptance_test("acceptance/bits/reg_ff_ie") }
+fn bits_unused_hwio_gs() { run_acceptance_test("acceptance/bits/unused_hwio-GS") }
 
 #[test]
 fn gpu_hblank_ly_scx_timing_gs() { run_acceptance_test("acceptance/gpu/hblank_ly_scx_timing-GS") }

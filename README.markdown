@@ -153,11 +153,11 @@ Versions used:
 
 #### Bits (unusable bits in memory and registers)
 
-| Test      | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| --------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
-| mem oam   | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| reg 0f if | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
-| reg ff ie | :+1:       | :x:  | :+1:     | :+1:          | :x:   | :+1: | :x:  |
+| Test           | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| -------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
+| mem oam        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| reg f          | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
+| unused_hwio GS | :+1:       | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 
 #### GPU
 

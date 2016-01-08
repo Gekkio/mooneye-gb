@@ -14,10 +14,7 @@
 ; You should have received a copy of the GNU General Public License
 ; along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 
-; This test checks that the IF register unused bits return 1
-;
-; The IF register is a 5-bit register, and the upper 3 bits return
-; 1 when read.
+; This test checks that bottom 4 bits of the F register always return 0
 
 ; Verified results:
 ;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
@@ -27,21 +24,25 @@
 .include "common.s"
 
   di
+  ld sp, $FFFE
 
 ; Write all 1s (= $FF)
-  ld a, $FF
-  ldh (<IF), a
-  ldh a, (<IF)
-  ld b, a
+  ld e, $FF
+  push de
+  pop af
+  push af
 
 ; Write all 0s (= $00)
-  ld a, $00
-  ldh (<IF), a
-  ldh a, (<IF)
-  ld c, a
+  ld e, $00
+  push de
+  pop af
+  push af
+
+  pop de
+  pop bc
 
 test_finish:
   save_results
-  assert_b $FF
-  assert_c $E0
+  assert_c $F0
+  assert_e $00
   jp process_results
