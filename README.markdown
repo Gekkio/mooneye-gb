@@ -193,16 +193,27 @@ Versions used:
 
 ### Mooneye GB misc tests
 
-| Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| ----------------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
-| boot hwio C             |            | :+1: |          | :x:           |       | :x:  | :x:  |
-| boot hwio S             |            | :x:  |          | :x:           | :x:   | :x:  | :x:  |
-| boot regs A             |            | :x:  |          | :x:           |       | :x:  |      |
-| boot regs cgb           |            | :+1: |          | :x:           |       | :x:  | :+1: |
-| boot regs mgb           |            | :+1: |          | :+1:          |       |      | :+1: |
-| boot regs sgb           |            | :x:  |          | :+1:          | :+1:  | :x:  | :+1: |
-| boot regs sgb2          |            | :x:  |          | :+1:          | :x:   | :x:  |      |
-| gpu vblank stat intr CA |            | :x:  |          | :x:           |       | :x:  |      |
+| Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| boot hwio CA    |            | :+1: |          | :x:           |       | :x:  | :x:  |
+| boot hwio S     |            | :x:  |          | :x:           | :x:   | :x:  | :x:  |
+| boot regs A     |            | :x:  |          | :x:           |       | :x:  |      |
+| boot regs cgb   |            | :+1: |          | :x:           |       | :x:  | :+1: |
+| boot regs mgb   |            | :+1: |          | :+1:          |       |      | :+1: |
+| boot regs sgb   |            | :x:  |          | :+1:          | :+1:  | :x:  | :+1: |
+| boot regs sgb2  |            | :x:  |          | :+1:          | :x:   | :x:  |      |
+
+#### Bits
+
+| Test           | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| -------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| unused hwio CA |            | :x:  |          | :x:           |       | :x:  | :x:  |
+
+#### GPU
+
+| Test                | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| ------------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| vblank stat intr CA |            | :x:  |          | :x:           |       | :x:  | :x:  |
 
 ### Test naming
 
