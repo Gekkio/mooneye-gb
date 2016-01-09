@@ -195,7 +195,7 @@ Versions used:
 
 | Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
-| boot hwio CA    |            | :+1: |          | :x:           |       | :x:  | :x:  |
+| boot hwio C     |            | :+1: |          | :x:           |       | :x:  | :x:  |
 | boot hwio S     |            | :x:  |          | :x:           | :x:   | :x:  | :x:  |
 | boot regs A     |            | :x:  |          | :x:           |       | :x:  |      |
 | boot regs cgb   |            | :+1: |          | :x:           |       | :x:  | :+1: |
@@ -205,15 +205,15 @@ Versions used:
 
 #### Bits
 
-| Test           | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| -------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
-| unused hwio CA |            | :x:  |          | :x:           |       | :x:  | :x:  |
+| Test          | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| ------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| unused hwio C |            | :x:  |          | :x:           |       | :x:  | :x:  |
 
 #### GPU
 
-| Test                | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| ------------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
-| vblank stat intr CA |            | :x:  |          | :x:           |       | :x:  | :x:  |
+| Test               | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
+| ------------------ | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| vblank stat intr C |            | :x:  |          | :x:           |       | :x:  | :x:  |
 
 ### Test naming
 
