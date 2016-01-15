@@ -1,0 +1,44 @@
+% This file is part of Mooneye GB.
+% Copyright (C) 2014-2016 Joonas Javanainen <joonas.javanainen@gmail.com>
+%
+% Mooneye GB is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% Mooneye GB is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usepackage{tikz-timing}
+\begin{document}
+
+\begin{tikztimingtable}
+4 MHz CLK    & 60{C} ;[dotted] 2H; 81{C}\\
+CPU          & 60D{HALT} ;[dotted] 2D{}; 33D{HALT} 8D{INTR 0} 8D{INTR 1} 8D{INTR 2} 8D{INTR PCH} 8D{INTR PCL} 8D{RETI}\\
+CPU CLK      & 60H ;[dotted] 2H; 37H 11{4C} \\
+Address      & 60U ;[dotted] 2D; 35U 6D{\$01AC} 16U 8D{\$FFFD} 8D{\$FFFC} 2U 6D{\$0048} \\
+A15          & 60H ;[dotted] 2H; 35H 6L 34H 6L \\
+LCD CLK      & 29L C C 15L 14{C} ;[dotted] 2L; 32{C} 49L \\
+VRAM CS      & HH 24L 4H 12L 4H 12L 2H ;[dotted] 2H; 2H 12L 4H 12L 51H \\
+VRAM OE      & ZZ 24L 4Z 12L 4Z 12L 2Z ;[dotted] 2Z; 2Z 12L 4Z 12L 51Z \\
+VRAM address & UU
+  [fill=orange]4D{\$9820}[fill=cyan]4D{\$8870}4D{\$8871};
+  [fill=orange]4D{\$9820}[fill=cyan]4D{\$8870}4D{\$8871};4U
+  [fill=orange]4D{\$9821}[fill=cyan]4D{\$8830}4D{\$8831};4U
+  [fill=orange]4D{\$9822}[fill=cyan]4D{\$8870}4D{\$8871};2U ;[dotted] 2D; 2U
+  [fill=orange]4D{\$9834}[fill=cyan]4D{\$8870}4D{\$8871};4U
+  [fill=orange]4D{\$9835}[fill=cyan]4D{\$8830}4D{\$8831};
+  51U \\
+\extracode
+\begin{pgfonlayer}{background}
+\vertlines[help lines]{1, 95}
+\end{pgfonlayer}
+\end{tikztimingtable}
+
+\end{document}
