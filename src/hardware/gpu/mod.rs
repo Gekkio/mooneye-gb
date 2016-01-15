@@ -313,7 +313,7 @@ impl Gpu {
     }
     self.tile_map2[reladdr as usize] = value;
   }
-  pub fn write_oam(&mut self, reladdr: u16, value: u8) {
+  pub fn write_oam(&mut self, reladdr: u8, value: u8) {
     if self.mode == Mode::AccessVram || self.mode == Mode::AccessOam {
       return;
     }
@@ -346,7 +346,7 @@ impl Gpu {
     }
     self.tile_map2[reladdr as usize]
   }
-  pub fn read_oam(&self, reladdr: u16) -> u8 {
+  pub fn read_oam(&self, reladdr: u8) -> u8 {
     if self.mode == Mode::AccessVram || self.mode == Mode::AccessOam {
       return UNDEFINED_READ;
     }

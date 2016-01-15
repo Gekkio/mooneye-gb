@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use cpu::Cpu;
-use emulation::{EmuTime, EmuEvents};
+use emulation::EmuEvents;
 use hardware::Bus;
 use hardware::irq::Interrupt;
 
@@ -55,14 +55,13 @@ impl TestHardware {
 }
 
 impl<'a> Bus for TestHardware {
-  fn write(&mut self, _: EmuTime, addr: u16, value: u8) {
+  fn write(&mut self, addr: u16, value: u8) {
     self.memory[addr as usize] = value;
   }
-  fn read(&self, _: EmuTime, addr: u16) -> u8 {
+  fn read(&self, addr: u16) -> u8 {
     self.memory[addr as usize]
   }
-  fn emulate(&mut self, _: EmuTime) {}
-  fn rewind_time(&mut self) {}
+  fn emulate(&mut self) {}
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
   fn has_interrupt(&self) -> bool { false }
   fn trigger_emu_events(&mut self, events: EmuEvents) { }
@@ -92,7 +91,7 @@ fn test_disasm_all_opcodes() {
       cpu.regs.pc = 0x00;
       cpu.disasm_op();
     } else {
-      for cb_op in (0..0xff) {
+      for cb_op in 0..0xff {
         cpu.hardware.memory[1] = cb_op as u8;
         cpu.regs.pc = 0x00;
         cpu.disasm_op();

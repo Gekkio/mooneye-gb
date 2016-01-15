@@ -18,7 +18,7 @@
 use std::fmt;
 
 use config::HardwareConfig;
-use emulation::{EmuTime, EmuEvents, MachineCycles};
+use emulation::EmuEvents;
 use frontend::{GbKey};
 use gameboy;
 use hardware::apu::Apu;
@@ -44,12 +44,11 @@ mod serial;
 mod timer;
 
 pub trait Bus {
-  fn write(&mut self, EmuTime, u16, u8);
-  fn read(&self, EmuTime, u16) -> u8;
-  fn emulate(&mut self, EmuTime);
+  fn write(&mut self, u16, u8);
+  fn read(&self, u16) -> u8;
+  fn emulate(&mut self);
   fn ack_interrupt(&mut self) -> Option<Interrupt>;
   fn has_interrupt(&self) -> bool;
-  fn rewind_time(&mut self);
   fn trigger_emu_events(&mut self, EmuEvents);
 }
 
@@ -71,16 +70,14 @@ pub struct Hardware {
 enum OamDmaState {
   Inactive,
   Requested,
-  Overlap,
+  Starting,
   Active
 }
 
 struct OamDma {
   state: OamDmaState,
   source: u8,
-  addr: u16,
-  start_time: EmuTime,
-  end_time: EmuTime
+  addr: u8
 }
 
 impl OamDma {
@@ -88,25 +85,17 @@ impl OamDma {
     OamDma {
       state: OamDmaState::Inactive,
       source: 0x00,
-      addr: 0x0000,
-      start_time: EmuTime::zero(),
-      end_time: EmuTime::zero()
+      addr: 0x00
     }
   }
-  fn start(&mut self, time: EmuTime, value: u8) {
+  fn start(&mut self, value: u8) {
     if value > 0xdf {
       panic!("Invalid OAM DMA {:02x}", value);
     }
     self.source = value;
-    self.end_time = time + MachineCycles(162);
-    self.start_time = time + MachineCycles(2);
-    self.state =
-      if self.state == OamDmaState::Inactive {
-        OamDmaState::Requested
-      } else {
-        OamDmaState::Overlap
-      };
+    self.state = OamDmaState::Requested;
   }
+  fn is_oam_available(&self) -> bool { self.addr == 0x00 }
 }
 
 impl Hardware {
@@ -138,19 +127,19 @@ impl Hardware {
   pub fn key_up(&mut self, key: GbKey) {
     self.joypad.key_up(key);
   }
-  pub fn dump_mem(&self, time: EmuTime, addr: u16, chunks: usize) {
+  pub fn dump_mem(&self, addr: u16, chunks: usize) {
     let start = addr;
     let end = addr + (chunks as u16 * 8);
     
     let mut i = start;
     while i < end {
       println!("${:04x}: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}", i,
-               self.read(time, i + 0), self.read(time, i + 1), self.read(time, i + 2), self.read(time, i + 3),
-               self.read(time, i + 4), self.read(time, i + 5), self.read(time, i + 6), self.read(time, i + 7));
+               self.read(i + 0), self.read(i + 1), self.read(i + 2), self.read(i + 3),
+               self.read(i + 4), self.read(i + 5), self.read(i + 6), self.read(i + 7));
       i += 8;
     }
   }
-  fn write_internal(&mut self, time: EmuTime, addr: u16, value: u8) {
+  fn write_internal(&mut self, addr: u16, value: u8) {
     match addr >> 8 {
       0x00 ... 0x7f => self.cartridge.write_control(addr, value),
       0x80 ... 0x97 => self.gpu.write_character_ram(addr - 0x8000, value),
@@ -165,8 +154,8 @@ impl Hardware {
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>
-            if self.oam_dma.state != OamDmaState::Active {
-              self.gpu.write_oam(addr & 0xff, value)
+            if self.oam_dma.is_oam_available() {
+              self.gpu.write_oam(addr as u8, value)
             },
           _ => ()
         }
@@ -176,7 +165,7 @@ impl Hardware {
           0x00 => self.joypad.set_register(value),
           0x01 => self.serial.set_data(value),
           0x02 => self.serial.set_control(value),
-          0x04 => self.timer.reset_divider(time),
+          0x04 => self.timer.reset_divider(),
           0x05 => self.timer.set_counter(value),
           0x06 => self.timer.set_modulo(value),
           0x07 => self.timer.set_control(value),
@@ -188,7 +177,7 @@ impl Hardware {
           0x43 => self.gpu.set_scroll_x(value),
           0x44 => self.gpu.reset_current_line(),
           0x45 => self.gpu.set_compare_line(value),
-          0x46 => self.oam_dma.start(time, value),
+          0x46 => self.oam_dma.start(value),
           0x47 => self.gpu.set_bg_palette(value),
           0x48 => self.gpu.set_obj_palette0(value),
           0x49 => self.gpu.set_obj_palette1(value),
@@ -202,7 +191,7 @@ impl Hardware {
       _ => panic!("Unsupported write at ${:04x} = {:02x}", addr, value)
     }
   }
-  fn read_internal(&self, time: EmuTime, addr: u16) -> u8 {
+  fn read_internal(&self, addr: u16) -> u8 {
     match addr >> 8 {
       0x00 ... 0x3f => {
         if addr < 0x100 && self.bootrom.is_active() { self.bootrom[addr] }
@@ -221,8 +210,8 @@ impl Hardware {
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>
-            if self.oam_dma.state == OamDmaState::Active { 0xff } else {
-              self.gpu.read_oam(addr & 0xff)
+            if !self.oam_dma.is_oam_available() { 0xff } else {
+              self.gpu.read_oam(addr as u8)
             },
           // 0x00 ... 0x9f => handle_oam!(),
           // 0xa0 ... 0xff => handle_unusable!(),
@@ -234,7 +223,7 @@ impl Hardware {
           0x00 => self.joypad.get_register(),
           0x01 => self.serial.get_data(),
           0x02 => self.serial.get_control(),
-          0x04 => self.timer.get_divider(time),
+          0x04 => self.timer.get_divider(),
           0x05 => self.timer.get_counter(),
           0x06 => self.timer.get_modulo(),
           0x07 => self.timer.get_control(),
@@ -261,30 +250,32 @@ impl Hardware {
 }
 
 impl Bus for Hardware {
-  fn read(&self, time: EmuTime, addr: u16) -> u8 {
+  fn read(&self, addr: u16) -> u8 {
     if self.oam_dma.state == OamDmaState::Active {
       println!("Warning: read at ${:04x} during OAM DMA!", addr);
     }
-    self.read_internal(time, addr)
+    self.read_internal(addr)
   }
-  fn write(&mut self, time: EmuTime, addr: u16, value: u8) {
+  fn write(&mut self, addr: u16, value: u8) {
     if self.oam_dma.state == OamDmaState::Active {
       println!("Warning: write at ${:04x} = {:02x} during OAM DMA!", addr, value)
     }
-    self.write_internal(time, addr, value)
+    self.write_internal(addr, value)
   }
-  fn emulate(&mut self, time: EmuTime) {
+  fn emulate(&mut self) {
     match self.oam_dma.state {
-      OamDmaState::Requested | OamDmaState::Overlap if self.oam_dma.start_time <= time => {
-        self.oam_dma.addr = (self.oam_dma.source as u16) << 8;
+      OamDmaState::Requested => {
+        self.oam_dma.addr = 0x00;
         self.oam_dma.state = OamDmaState::Active;
       },
-      OamDmaState::Active if self.oam_dma.end_time <= time => {
+      OamDmaState::Active if self.oam_dma.addr >= 0xa0 => {
+        self.oam_dma.addr = 0x00;
         self.oam_dma.state = OamDmaState::Inactive;
       },
-      OamDmaState::Active | OamDmaState::Overlap => {
-        let value = self.read_internal(time, self.oam_dma.addr);
-        self.gpu.write_oam(self.oam_dma.addr & 0xff, value);
+      OamDmaState::Active => {
+        let source_addr = ((self.oam_dma.source as u16) << 8) | self.oam_dma.addr as u16;
+        let value = self.read_internal(source_addr);
+        self.gpu.write_oam(self.oam_dma.addr, value);
         self.oam_dma.addr += 1;
       },
       _ => ()
@@ -295,9 +286,6 @@ impl Bus for Hardware {
   }
   fn ack_interrupt(&mut self) -> Option<Interrupt> { self.irq.ack_interrupt() }
   fn has_interrupt(&self) -> bool { self.irq.has_interrupt() }
-  fn rewind_time(&mut self) {
-    self.timer.rewind_time();
-  }
   fn trigger_emu_events(&mut self, events: EmuEvents) { self.emu_events.insert(events) }
 }
 

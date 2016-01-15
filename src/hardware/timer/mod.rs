@@ -13,18 +13,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use emulation::EmuTime;
 use hardware::irq::{Irq, Interrupt};
 
 const CONTROL_UNUSED_MASK: u8 = (1 << 7) | (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3);
 
 pub struct Timer {
+  internal_counter: u16,
   counter: u8,
   modulo: u8,
   enabled: bool,
   input_clock: InputClock,
-  timer_cycles: i32,
-  divider_time: EmuTime,
+  timer_cycles: i32
 }
 
 #[derive(Clone, Copy)]
@@ -59,17 +58,16 @@ impl InputClock {
 impl Timer {
   pub fn new() -> Timer {
     Timer {
+      internal_counter: 0,
       counter: 0,
       modulo: 0,
       enabled: false,
       input_clock: InputClock::Hz4096,
-      timer_cycles: InputClock::Hz4096.cycles(),
-      divider_time: EmuTime::zero()
+      timer_cycles: InputClock::Hz4096.cycles()
     }
   }
-  pub fn get_divider(&self, time: EmuTime) -> u8 {
-    assert!(time >= self.divider_time);
-    ((time - self.divider_time).0 / 64) as u8
+  pub fn get_divider(&self) -> u8 {
+    (self.internal_counter >> 8) as u8
   }
   pub fn get_counter(&self) -> u8 {
     self.counter
@@ -81,8 +79,8 @@ impl Timer {
     self.input_clock as u8 | CONTROL_UNUSED_MASK |
       if self.enabled { (1 << 2) } else { 0 }
   }
-  pub fn reset_divider(&mut self, time: EmuTime) {
-    self.divider_time = time;
+  pub fn reset_divider(&mut self) {
+    self.internal_counter = 0;
   }
   pub fn set_counter(&mut self, value: u8) {
     self.counter = value;
@@ -96,10 +94,8 @@ impl Timer {
     self.input_clock = InputClock::from_u8(value & 0x3).unwrap();
     self.timer_cycles = self.input_clock.cycles();
   }
-  pub fn rewind_time(&mut self) {
-    self.divider_time.rewind();
-  }
   pub fn emulate(&mut self, irq: &mut Irq) {
+    self.internal_counter = self.internal_counter.wrapping_add(4);
     if self.enabled {
       self.timer_cycles -= 1;
       if self.timer_cycles <= 0 {
