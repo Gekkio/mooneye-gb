@@ -78,6 +78,9 @@ fn ld_hl_sp_e_timing() { run_acceptance_test("acceptance/ld_hl_sp_e_timing") }
 fn oam_dma_restart() { run_acceptance_test("acceptance/oam_dma_restart") }
 
 #[test]
+fn oam_dma_start() { run_acceptance_test("acceptance/oam_dma_start") }
+
+#[test]
 fn oam_dma_timing() { run_acceptance_test("acceptance/oam_dma_timing") }
 
 #[test]

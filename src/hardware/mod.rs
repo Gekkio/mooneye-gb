@@ -67,17 +67,45 @@ pub struct Hardware {
   emu_events: EmuEvents
 }
 
+#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
+enum OamDmaState {
+  Inactive,
+  Requested,
+  Overlap,
+  Active
+}
+
 struct OamDma {
-  active: bool,
+  state: OamDmaState,
+  source: u8,
+  addr: u16,
+  start_time: EmuTime,
   end_time: EmuTime
 }
 
 impl OamDma {
   fn new() -> OamDma {
     OamDma {
-      active: false,
+      state: OamDmaState::Inactive,
+      source: 0x00,
+      addr: 0x0000,
+      start_time: EmuTime::zero(),
       end_time: EmuTime::zero()
     }
+  }
+  fn start(&mut self, time: EmuTime, value: u8) {
+    if value > 0xdf {
+      panic!("Invalid OAM DMA {:02x}", value);
+    }
+    self.source = value;
+    self.end_time = time + MachineCycles(162);
+    self.start_time = time + MachineCycles(2);
+    self.state =
+      if self.state == OamDmaState::Inactive {
+        OamDmaState::Requested
+      } else {
+        OamDmaState::Overlap
+      };
   }
 }
 
@@ -110,19 +138,6 @@ impl Hardware {
   pub fn key_up(&mut self, key: GbKey) {
     self.joypad.key_up(key);
   }
-  fn start_oam_dma(&mut self, time: EmuTime, value: u8) {
-    if value < 0x80 || value > 0xdf {
-      println!("Invalid DMA {:02x}", value);
-      return;
-    }
-    self.oam_dma.active = true;
-    self.oam_dma.end_time = time + MachineCycles(162);
-    let addr = (value as u16) << 8;
-    for i in 0..0xa0 {
-      let value = self.read_internal(time, addr + i);
-      self.gpu.write_oam(i, value);
-    }
-  }
   pub fn dump_mem(&self, time: EmuTime, addr: u16, chunks: usize) {
     let start = addr;
     let end = addr + (chunks as u16 * 8);
@@ -150,7 +165,7 @@ impl Hardware {
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>
-            if !self.oam_dma.active {
+            if self.oam_dma.state != OamDmaState::Active {
               self.gpu.write_oam(addr & 0xff, value)
             },
           _ => ()
@@ -173,7 +188,7 @@ impl Hardware {
           0x43 => self.gpu.set_scroll_x(value),
           0x44 => self.gpu.reset_current_line(),
           0x45 => self.gpu.set_compare_line(value),
-          0x46 => self.start_oam_dma(time, value),
+          0x46 => self.oam_dma.start(time, value),
           0x47 => self.gpu.set_bg_palette(value),
           0x48 => self.gpu.set_obj_palette0(value),
           0x49 => self.gpu.set_obj_palette1(value),
@@ -206,7 +221,7 @@ impl Hardware {
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>
-            if self.oam_dma.active { 0xff } else {
+            if self.oam_dma.state == OamDmaState::Active { 0xff } else {
               self.gpu.read_oam(addr & 0xff)
             },
           // 0x00 ... 0x9f => handle_oam!(),
@@ -247,20 +262,32 @@ impl Hardware {
 
 impl Bus for Hardware {
   fn read(&self, time: EmuTime, addr: u16) -> u8 {
-    if self.oam_dma.active {
+    if self.oam_dma.state == OamDmaState::Active {
       println!("Warning: read at ${:04x} during OAM DMA!", addr);
     }
     self.read_internal(time, addr)
   }
   fn write(&mut self, time: EmuTime, addr: u16, value: u8) {
-    if self.oam_dma.active {
+    if self.oam_dma.state == OamDmaState::Active {
       println!("Warning: write at ${:04x} = {:02x} during OAM DMA!", addr, value)
     }
     self.write_internal(time, addr, value)
   }
   fn emulate(&mut self, time: EmuTime) {
-    if self.oam_dma.active && self.oam_dma.end_time <= time {
-      self.oam_dma.active = false;
+    match self.oam_dma.state {
+      OamDmaState::Requested | OamDmaState::Overlap if self.oam_dma.start_time <= time => {
+        self.oam_dma.addr = (self.oam_dma.source as u16) << 8;
+        self.oam_dma.state = OamDmaState::Active;
+      },
+      OamDmaState::Active if self.oam_dma.end_time <= time => {
+        self.oam_dma.state = OamDmaState::Inactive;
+      },
+      OamDmaState::Active | OamDmaState::Overlap => {
+        let value = self.read_internal(time, self.oam_dma.addr);
+        self.gpu.write_oam(self.oam_dma.addr & 0xff, value);
+        self.oam_dma.addr += 1;
+      },
+      _ => ()
     }
     self.timer.emulate(&mut self.irq);
     self.gpu.emulate(&mut self.irq, &mut self.emu_events);
