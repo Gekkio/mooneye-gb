@@ -21,9 +21,9 @@ IMCONVERT ?= convert
 
 BUILD_PATH := build
 
-SRC := $(filter-out ./common/%.s,$(shell find -type f -name '*.s'))
+SRC := $(filter-out ./common/%.s,$(shell find . -type f -name '*.s'))
 
-LATEX_SRC := $(shell find -type f -name '*.tex')
+LATEX_SRC := $(shell find . -type f -name '*.tex')
 
 all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 
