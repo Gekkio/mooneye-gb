@@ -24,7 +24,7 @@ This project already passes Blargg's cpu\_instrs, instr\_timing, and mem\_timing
 Things that need significant work:
 
 * GPU emulation accuracy
-* APU emulation in general (Blargg's dmg_sound-2 works fairly well, but that's just the beginning)
+* APU emulation in general
 
 There's tons of documentation and tons of emulators in the internet, but in the end I only trust real hardware. I follow a fairly "scientific" process when developing emulation for a feature:
 
@@ -91,9 +91,6 @@ On Windows, also download an SDL2 package containing SDL2.dll, and put it to `ta
 | Function                   | Key       |
 | -------------------------- | --------- |
 | Fast forward               | Shift     |
-| Debug break                | Home      |
-| Debug step                 | Page Down |
-| Debug run                  | End       |
 | Toggle performance overlay | F2        |
 
 ## Accuracy comparison
