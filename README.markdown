@@ -44,6 +44,8 @@ All test ROMs are manually run with these devices:
 | Super Game Boy      | SNSP-A-SG(UKV) | SGB-R-10     | SGB-CPU-01  |
 | Super Game Boy 2    | SHVC-SGB2-JPN  | SHVC-SGB2-01 | CPU SGB2    |
 | Game Boy Color      | CGB-001        | CGB-CPU-03   | CPU CGB C   |
+| Game Boy Color      | CGB-001        | CGB-CPU-04   | CPU CGB D   |
+| Game Boy Color      | CGB-001        | CGB-CPU-05   | CPU CGB D   |
 | Game Boy Advance    | AGB-001        | AGB-CPU-10   | CPU AGB A   |
 | Game Boy Advance SP | AGS-001        | C/AGS-CPU-21 | CPU AGB B E |
 | Game Boy Advance SP | AGS-101        | C/AGT-CPU-01 | CPU AGB B E |
