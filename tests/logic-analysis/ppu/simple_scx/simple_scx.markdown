@@ -5,6 +5,12 @@ analyser. A checkerboard pattern consisting of tiles $03 and $07 is written
 to VRAM, and the test uses LY=LYC and hblank interrupts to allow precise
 triggering.
 
+The tests were executed with the following setup:
+
+* Super Famicom
+* Super Game Boy
+* EMS 64M flash cartridge
+
 Pins used in VCD files:
 
 * A[0..15]: cartridge bus address
