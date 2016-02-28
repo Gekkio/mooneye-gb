@@ -1,0 +1,62 @@
+% This file is part of Mooneye GB.
+% Copyright (C) 2014-2016 Joonas Javanainen <joonas.javanainen@gmail.com>
+%
+% Mooneye GB is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% Mooneye GB is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usepackage{tikz-timing}
+\begin{document}
+
+\begin{tikztimingtable}
+4 MHz CLK    & 1H; 15{C}\\
+CPU CLK      & 4H; 3{4C}\\
+RD           & 16L\\
+WR           & 16H\\
+\\
+% $0000-$7FFF
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 1U; 7D{}; 1U; 7D{}\\
+A15          & 2H; 6L; 2H; 6L\\
+MREQ         & 16H\\
+\\
+% $8000-$9FFF
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 16U\\
+A15          & 16H\\
+MREQ         & 16H\\
+\\
+% $A000-$FDFF
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 1U; 7D{}; 1U; 7D{}\\
+A15          & 16H\\
+MREQ         & 2H; 6L; 2H; 6L\\
+\\
+% $FE00-$FFFF
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 1U; 7D{}; 1U; 7D{}\\
+A15          & 16H\\
+MREQ         & 16H\\
+\extracode
+\begin{pgfonlayer}{background}
+\end{pgfonlayer}
+\begin{scope}
+  [font=\ttfamily\Large,shift={(-7em ,-0.5)},anchor=east]
+  \node at (0,-7) {\$0000-\$7FFF};
+  \node at (0,-17) {\$8000-\$9FFF};
+  \node at (0,-27) {\$A000-\$FDFF};
+  \node at (0,-37) {\$FE00-\$FFFF};
+\end{scope}
+\end{tikztimingtable}
+
+\end{document}
