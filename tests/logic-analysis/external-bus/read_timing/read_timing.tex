@@ -19,34 +19,34 @@
 \begin{document}
 
 \begin{tikztimingtable}
-4 MHz CLK & 1H; 7{C}\\
-CPU CLK   & 4H; {4C}\\
-RD        & 8L\\
-WR        & 8H\\
+4 MHz CLK    & 1H; 15{C}\\
+CPU CLK      & 4H; 3{4C}\\
+RD           & 16L\\
+WR           & 16H\\
 \\
 % $0000-$7FFF
-4 MHz CLK & 1H; 7{C}\\
-A0-A14    & 1U; 7D{}\\
-A7        & 2H; 6L\\
-MREQ      & 8H\\
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 1U; 7D{}; 1U; 7D{}\\
+A15          & 2H; 6L; 2H; 6L\\
+MREQ         & 16H\\
 \\
 % $8000-$9FFF
-4 MHz CLK & 1H; 7{C}\\
-A0-A14    & 8U\\
-A7        & 8H\\
-MREQ      & 8H\\
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 16U\\
+A15          & 16H\\
+MREQ         & 16H\\
 \\
 % $A000-$FDFF
-4 MHz CLK & 1H; 7{C}\\
-A0-A14    & 1U; 7D{}\\
-A7        & 8H\\
-MREQ      & 2H; 6L\\
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 1U; 7D{}; 1U; 7D{}\\
+A15          & 16H\\
+MREQ         & 2H; 6L; 2H; 6L\\
 \\
 % $FE00-$FFFF
-4 MHz CLK & 1H; 7{C}\\
-A0-A14    & 1U; 7D{}\\
-A7        & 8H\\
-MREQ      & 8H\\
+4 MHz CLK    & 1H; 15{C}\\
+A0-A14       & 1U; 7D{}; 1U; 7D{}\\
+A15          & 16H\\
+MREQ         & 16H\\
 \extracode
 \begin{pgfonlayer}{background}
 \end{pgfonlayer}
