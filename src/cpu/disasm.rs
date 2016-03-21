@@ -250,7 +250,7 @@ impl ToDisasmStr for Instr {
   }
 }
 
-struct Disasm<'a> {
+pub struct Disasm<'a> {
   pc: u16,
   reader: &'a mut FnMut(u16) -> u8
 }

@@ -14,7 +14,7 @@ impl From<RendererError> for FrontendError {
   }
 }
 
-trait Screen {
+pub trait Screen {
   fn render(&mut self, ui: &Ui);
 }
 
