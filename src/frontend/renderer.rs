@@ -161,8 +161,8 @@ impl Renderer {
 
   pub fn draw<S: Surface>(&self, frame: &mut S) -> FrontendResult<()> {
     let uniforms = uniform! {
-      matrix: self.matrix,
-      palette: self.palette,
+      matrix: self.matrix.as_ref().clone(),
+      palette: self.palette.as_ref().clone(),
       tex: self.texture.sampled()
         .minify_filter(MinifySamplerFilter::Nearest)
         .magnify_filter(MagnifySamplerFilter::Nearest)

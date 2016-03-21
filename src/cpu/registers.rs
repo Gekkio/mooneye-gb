@@ -22,7 +22,7 @@ mod flags {
   use std::fmt;
 
   bitflags!(
-    flags Flags: u8 {
+    pub flags Flags: u8 {
       const ZERO         = 0b_1000_0000,
       const ADD_SUBTRACT = 0b_0100_0000,
       const HALF_CARRY   = 0b_0010_0000,

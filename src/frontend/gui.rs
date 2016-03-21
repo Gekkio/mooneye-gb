@@ -72,8 +72,7 @@ impl WaitBootromScreen {
 
 impl Screen for WaitBootromScreen {
   fn render(&mut self, ui: &Ui) {
-    ui.window()
-      .name(im_str!("Help overlay"))
+    ui.window(im_str!("Help overlay"))
       .title_bar(false)
       .resizable(false)
       .movable(false)
@@ -112,8 +111,7 @@ impl WaitRomScreen {
 
 impl Screen for WaitRomScreen {
   fn render(&mut self, ui: &Ui) {
-    ui.window()
-      .name(im_str!("Help overlay"))
+    ui.window(im_str!("Help overlay"))
       .title_bar(false)
       .resizable(false)
       .movable(false)
@@ -148,8 +146,7 @@ impl InGameScreen {
 impl Screen for InGameScreen {
   fn render(&mut self, ui: &Ui) {
     if self.show_perf_overlay {
-      ui.window()
-        .name(im_str!("Performance overlay"))
+      ui.window(im_str!("Performance overlay"))
         .bg_alpha(0.4)
         .title_bar(false)
         .resizable(false)

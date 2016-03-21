@@ -85,12 +85,12 @@ impl Interrupt {
 }
 
 bitflags!(
-  flags InterruptType: u8 {
-    const INT_VBLANK = Interrupt::VBlank as u8,
-    const INT_LCDSTAT = Interrupt::LcdStat as u8,
-    const INT_TIMER_OVERFLOW = Interrupt::TimerOverflow as u8,
-    const INT_SERIAL_IO_DONE = Interrupt::SerialIoDone as u8,
-    const INT_JOYPAD = Interrupt::Joypad as u8,
+  pub flags InterruptType: u8 {
+    const INT_VBLANK = 1 << 0,
+    const INT_LCDSTAT = 1 << 1,
+    const INT_TIMER_OVERFLOW = 1 << 2,
+    const INT_SERIAL_IO_DONE = 1 << 3,
+    const INT_JOYPAD = 1 << 4,
     const IF_USABLE =
       INT_VBLANK.bits | INT_LCDSTAT.bits | INT_TIMER_OVERFLOW.bits |
       INT_SERIAL_IO_DONE.bits | INT_JOYPAD.bits,
