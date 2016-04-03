@@ -30,7 +30,7 @@ use time::{Duration, SteadyTime};
 use url::Url;
 
 use config::{Bootrom, Cartridge, HardwareConfig};
-use emulation::{EmuTime, MachineCycles, EE_VSYNC};
+use emulation::{EmuTime, ClockEdges, EE_VSYNC};
 use gameboy;
 use machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
@@ -332,14 +332,14 @@ impl SdlFrontend {
         }
       }
 
-      let cycles =
+      let clock_edges =
         if turbo {
-          MachineCycles((gameboy::CPU_SPEED_HZ / 4) as u32 / 60)
+          ClockEdges((gameboy::CPU_SPEED_HZ * 2) as u32 / 60)
         } else {
-          MachineCycles((delta * (gameboy::CPU_SPEED_HZ as i32 / 4)).num_seconds() as u32)
+          ClockEdges((delta * (gameboy::CPU_SPEED_HZ as i32 * 2)).num_seconds() as u32)
         };
 
-      let target_time = emu_time + cycles;
+      let target_time = emu_time + clock_edges;
       loop {
         let (events, end_time) = machine.emulate(target_time);
 

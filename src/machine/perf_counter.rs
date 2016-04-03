@@ -16,7 +16,7 @@
 use std::collections::VecDeque;
 use time::SteadyTime;
 
-use emulation::MachineCycles;
+use emulation::ClockEdges;
 
 const HISTORY_SIZE: usize = 128;
 
@@ -33,18 +33,18 @@ impl PerfCounter {
       last_time: SteadyTime::now()
     }
   }
-  pub fn update(&mut self, cycles: MachineCycles, current_time: SteadyTime) {
+  pub fn update(&mut self, clock_edges: ClockEdges, current_time: SteadyTime) {
     let delta_ns = (current_time - self.last_time).num_nanoseconds().unwrap_or(0);
-    let cycles_per_s = cycles.as_clock_cycles() as f64 / (delta_ns as f64 / 1_000_000_000.0);
+    let clock_edges_per_s = clock_edges.0 as f64 / (delta_ns as f64 / 1_000_000_000.0);
 
     self.make_room_for_new_element();
-    self.history.push_front(cycles_per_s);
+    self.history.push_front(clock_edges_per_s);
 
     self.last_time = current_time;
   }
   pub fn get_cps(&self) -> f64 {
     let sum = self.history.iter().fold(0.0, |acc, &item| acc + item);
-    sum / self.history.len() as f64
+    sum / 2.0 / self.history.len() as f64
   }
   fn make_room_for_new_element(&mut self) {
     if self.history.len() >= HISTORY_SIZE {

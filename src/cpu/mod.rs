@@ -155,7 +155,7 @@ impl<H> Cpu<H> where H: Bus {
   pub fn rewind_time(&mut self) {
     self.time.rewind();
   }
-  pub fn clock_cycles(&self) -> u32 { self.time.cycles().as_clock_cycles() }
+  pub fn clock_cycles(&self) -> u32 { self.time.clock_edges().0 / 2 }
 
   pub fn read_hiram(&self, reladdr: u16) -> u8 {
     self.hiram[reladdr as usize]
@@ -175,7 +175,7 @@ impl<H> Cpu<H> where H: Bus {
     ((h as u16) << 8) | (l as u16)
   }
   fn read_u8(&mut self, addr: u16) -> u8 {
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
 
     if addr < 0xff80 || addr == 0xffff {
@@ -185,7 +185,7 @@ impl<H> Cpu<H> where H: Bus {
     }
   }
   fn write_u8(&mut self, addr: u16, value: u8) {
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
 
     if addr < 0xff80 || addr == 0xffff {
@@ -249,7 +249,7 @@ impl<H> Cpu<H> where H: Bus {
       if self.hardware.has_interrupt() {
         self.halt = false;
       } else {
-        self.time.tick();
+        self.time.tick_machine_cycle();
         self.hardware.emulate();
       }
     } else {
@@ -270,11 +270,11 @@ impl<H> Cpu<H> where H: Bus {
           Some(interrupt) => {
             self.halt = false;
             self.ime = false;
-            self.time.tick();
+            self.time.tick_machine_cycle();
             self.hardware.emulate();
-            self.time.tick();
+            self.time.tick_machine_cycle();
             self.hardware.emulate();
-            self.time.tick();
+            self.time.tick_machine_cycle();
             self.hardware.emulate();
             let pc = self.regs.pc;
             self.push_u16(pc);
@@ -337,24 +337,24 @@ impl<H> Cpu<H> where H: Bus {
   }
   fn ctrl_jp(&mut self, addr: u16) {
     self.regs.pc = addr;
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   fn ctrl_jr(&mut self, offset: i8) {
     self.regs.pc = (self.regs.pc as i16 + offset as i16) as u16;
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   fn ctrl_call(&mut self, addr: u16) {
     let pc = self.regs.pc;
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
     self.push_u16(pc);
     self.regs.pc = addr;
   }
   fn ctrl_ret(&mut self) {
     self.regs.pc = self.pop_u16();
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
 }
@@ -690,7 +690,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn ret_cc(self, cond: Cond) {
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
     if cond.check(self.regs.f) {
       self.ctrl_ret();
@@ -702,7 +702,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   ///        - - - -
   fn rst(self, addr: u8) {
     let pc = self.regs.pc;
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
     self.push_u16(pc);
     self.regs.pc = addr as u16;
@@ -828,7 +828,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   fn load16_sp_hl(self) {
     let value = self.regs.read16(Reg16::HL);
     self.regs.sp = value;
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   /// LD HL, SP+e
@@ -842,7 +842,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
     self.regs.write16(Reg16::HL, value);
     self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, offset));
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   /// PUSH rr
@@ -851,7 +851,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   ///        - - - -
   fn push16(self, reg: Reg16) {
     let value = self.regs.read16(reg);
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
     self.push_u16(value);
   }
@@ -877,7 +877,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
                   HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
                   CARRY.test(hl > 0xffff - value);
     self.regs.write16(Reg16::HL, result);
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   /// ADD SP, e
@@ -890,9 +890,9 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
     self.regs.sp = sp.wrapping_add(val);
     self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, val));
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   /// INC rr
@@ -902,7 +902,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   fn inc16(self, reg: Reg16) {
     let value = self.regs.read16(reg).wrapping_add_one();
     self.regs.write16(reg, value);
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   /// DEC rr
@@ -912,7 +912,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   fn dec16(self, reg: Reg16) {
     let value = self.regs.read16(reg).wrapping_sub_one();
     self.regs.write16(reg, value);
-    self.time.tick();
+    self.time.tick_machine_cycle();
     self.hardware.emulate();
   }
   // --- Undefined
