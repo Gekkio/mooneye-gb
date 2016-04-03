@@ -25,23 +25,30 @@ pub use self::time::EmuTime;
 mod time;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub struct ClockEdges(pub u32);
+pub struct EmuDuration(u32);
 
-impl Add<ClockEdges> for ClockEdges {
-  type Output = ClockEdges;
-  fn add(self, rhs: ClockEdges) -> ClockEdges {
-    ClockEdges(self.0 + rhs.0)
+impl EmuDuration {
+  pub fn clock_edges(amount: u32) -> EmuDuration { EmuDuration(amount) }
+  pub fn clock_cycles(amount: u32) -> EmuDuration { EmuDuration(amount * 2) }
+  pub fn machine_cycles(amount: u32) -> EmuDuration { EmuDuration(amount * 8) }
+  pub fn as_clock_edges(self) -> u32 { self.0 }
+}
+
+impl Add<EmuDuration> for EmuDuration {
+  type Output = EmuDuration;
+  fn add(self, rhs: EmuDuration) -> EmuDuration {
+    EmuDuration(self.0 + rhs.0)
   }
 }
 
-impl Sub<ClockEdges> for ClockEdges {
-  type Output = ClockEdges;
-  fn sub(self, rhs: ClockEdges) -> ClockEdges {
-    ClockEdges(self.0 - rhs.0)
+impl Sub<EmuDuration> for EmuDuration {
+  type Output = EmuDuration;
+  fn sub(self, rhs: EmuDuration) -> EmuDuration {
+    EmuDuration(self.0 - rhs.0)
   }
 }
 
-impl fmt::Debug for ClockEdges {
+impl fmt::Debug for EmuDuration {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", self.0)
   }

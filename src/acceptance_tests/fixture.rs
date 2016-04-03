@@ -17,7 +17,7 @@ use std::path::PathBuf;
 use time::{Duration, SteadyTime};
 
 use config;
-use emulation::{EmuTime, EE_DEBUG_OP, ClockEdges};
+use emulation::{EmuDuration, EmuTime, EE_DEBUG_OP};
 use gameboy;
 use machine::Machine;
 
@@ -30,21 +30,19 @@ pub fn run_acceptance_test(name: &str) {
 
   let hardware_config = (Some(bootrom), cartridge);
 
-  let mut machine = Machine::new(hardware_config);
-
   let max_duration = Duration::seconds(30);
   let start_time = SteadyTime::now();
+  let pulse_duration = EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32);
 
-  let mut emu_time = EmuTime::zero();
-
+  let mut machine = Machine::new(hardware_config);
   let mut registers = None;
+  let mut emu_time = EmuTime::zero();
   loop {
     let time = SteadyTime::now();
     if time - start_time > max_duration {
       break;
     }
-    const PULSE_CLOCK_EDGES: ClockEdges = ClockEdges((gameboy::CPU_SPEED_HZ * 2) as u32);
-    let (events, end_time) = machine.emulate(emu_time + PULSE_CLOCK_EDGES);
+    let (events, end_time) = machine.emulate(emu_time + pulse_duration);
     emu_time = end_time;
     if events.contains(EE_DEBUG_OP) {
       registers = Some(machine.regs());
