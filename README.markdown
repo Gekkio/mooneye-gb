@@ -174,10 +174,21 @@ Versions used:
 
 #### Timer
 
-| Test         | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| ------------ | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
-| div write    | :x:        | :+1: | :x:      | :+1:          | :+1:  | :x:  | :x:  |
-| rapid toggle | :x:        | :x:  | :x:      | :+1:          | :x:   | :x:  | :+1: |
+| Test                 | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan  | KiGB | MESS |
+| -------------------- | ---------- | ---- | -------- | ------------- | ------ | ---- | ---- |
+| div write            | :x:        | :+1: | :x:      | :+1:          | :+1:   | :x:  | :x:  |
+| rapid toggle         | :x:        | :x:  | :x:      | :+1:          | :x:    | :x:  | :+1: |
+| tim00 div trigger    | :+1:       | :x:  | :+1:     | :+1:          | :x:    | :x:  | :x:  |
+| tim00                | :x:        | :+1: | :x:      | :+1:          | :+1:   | :x:  | :x:  |
+| tim01 div trigger    | :x:        | :+1: | :x:      | :+1:          | :x:    | :x:  | :x:  |
+| tim01                | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :x:  | :x:  |
+| tim10 div trigger    | :x:        | :+1: | :x:      | :+1:          | :x:    | :x:  | :+1: |
+| tim10                | :x:        | :+1: | :x:      | :+1:          | :+1:   | :x:  | :x:  |
+| tim11 div trigger    | :+1:       | :x:  | :x:      | :+1:          | :x:    | :x:  | :x:  |
+| tim11                | :x:        | :+1: | :x:      | :+1:          | :+1:   | :x:  | :x:  |
+| tima reload          | :x:        | :x:  | :x:      | :+1:          | :x:    | :x:  | :x:  |
+| tima write reloading | :x:        | :x:  | :x:      | :+1:          | :x:    | :x:  | :x:  |
+| tma write reloading  | :x:        | :x:  | :x:      | :+1:          | :x:    | :x:  | :x:  |
 
 ### Mooneye GB emulator-only tests
 
