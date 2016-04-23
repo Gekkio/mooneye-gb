@@ -102,7 +102,7 @@ Versions used:
 * BGB 1.5.2
 * Gambatte 2015-03-23 (f9fb003)
 * GiiBiiAdvance 2015-05-16 (dbf669a)
-* Higan v097 (in Game Boy mode, except for SGB/SGB2-specific test ROMs)
+* Higan v098 (in Game Boy mode, except for SGB/SGB2-specific test ROMs)
 * KiGB 2.05
 * MESS 0.163
 
@@ -121,7 +121,7 @@ Versions used:
 | Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | ----------------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
 | add sp e timing         | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| boot hwio G             | :+1:       | :+1: | :+1:     | :x:           | :x:   | :x:  | :x:  |
+| boot hwio G             | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
 | boot regs dmg           | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
 | call timing             | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
 | call timing2            | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
@@ -134,7 +134,7 @@ Versions used:
 | halt ime0 nointr_timing | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :x:  |
 | halt ime1 timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
 | halt ime1 timing2 GS    | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :+1: |
-| if ie registers         | :+1:       | :+1: | :+1:     | :+1:          | :x:   | :x:  | :+1: |
+| if ie registers         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
 | intr timing             | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
 | jp timing               | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
 | jp cc timing            | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
@@ -196,7 +196,7 @@ Versions used:
 | Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
 | boot hwio C     |            | :+1: |          | :x:           |       | :x:  | :x:  |
-| boot hwio S     |            | :x:  |          | :x:           | :x:   | :x:  | :x:  |
+| boot hwio S     |            | :x:  |          | :x:           | :+1:  | :x:  | :x:  |
 | boot regs A     |            | :x:  |          | :x:           |       | :x:  |      |
 | boot regs cgb   |            | :+1: |          | :x:           |       | :x:  | :+1: |
 | boot regs mgb   |            | :+1: |          | :+1:          |       |      | :+1: |
