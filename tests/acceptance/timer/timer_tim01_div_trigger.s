@@ -26,11 +26,9 @@
 ; by issueing several ldh (<DIV),a instructions. These instructions take
 ; 12 cycles and also trigger the mentioned behaviour.
 
-
 ; Verified results:
-;   pass: MGB, CGB, AGS
-;   fail: ?
-;   not tested: DMG, SGB, SGB2, AGB
+;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
+;   fail: -
 
 .incdir "../../common"
 .include "common.s"
