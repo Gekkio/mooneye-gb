@@ -51,6 +51,16 @@ All test ROMs are manually run with these devices:
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E |
 | Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E |
 
+These devices will also be used, but results for old tests have not yet been verified:
+
+| Device              | Model    | Mainboard    | CPU         |
+| ------------------- | -------- | ------------ | ----------- |
+| Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A   |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B   |
+| Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B   |
+| Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB     |
+
+
 **For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on CGB/AGB/AGS or emulators emulating those devices.**
 
 ## Performance
