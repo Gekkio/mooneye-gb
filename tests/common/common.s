@@ -226,7 +226,7 @@ _test_ok_cb_\@:
   wait_vblank
   ld a, d
   and a
-  jr nz, +
+  jr nz, _print_results_halt_\@
   ; Magic numbers signal a successful test
   ld b, 3
   ld c, 5
@@ -234,7 +234,8 @@ _test_ok_cb_\@:
   ld e, 13
   ld h, 21
   ld l, 34
-+ halt_execution
+_print_results_halt_\@:
+  halt_execution
 .endm
 
 ; --- Cartridge configuration ---
