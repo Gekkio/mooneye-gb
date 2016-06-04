@@ -24,7 +24,7 @@ use glium::texture::{
 use glium::texture::pixel_buffer::PixelBuffer;
 use glium::texture::texture2d::Texture2d;
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
-use nalgebra::{Diag, Mat4, Vec4};
+use nalgebra::{Diagonal, Matrix4, Vector4};
 
 use gameboy;
 use super::{FrontendError, FrontendResult};
@@ -79,8 +79,8 @@ pub struct Renderer {
   pixel_buffer: PixelBuffer<gameboy::Color>,
   program: Program,
   texture: Texture,
-  matrix: Mat4<f32>,
-  palette: Mat4<f32>
+  matrix: Matrix4<f32>,
+  palette: Matrix4<f32>
 }
 
 const TEXTURE_WIDTH: u32 = 256;
@@ -141,9 +141,9 @@ impl Renderer {
 
     let (width, height) = display.get_context().get_framebuffer_dimensions();
     let (x_scale, y_scale) = aspect_ratio_correction(width, height);
-    let matrix = Mat4::from_diag(&Vec4::new(x_scale, y_scale, 1.0, 1.0));
+    let matrix = Matrix4::from_diagonal(&Vector4::new(x_scale, y_scale, 1.0, 1.0));
 
-    let palette = Mat4::new(255.0, 181.0, 107.0, 33.0,
+    let palette = Matrix4::new(255.0, 181.0, 107.0, 33.0,
                             247.0, 174.0, 105.0, 32.0,
                             123.0, 74.0,  49.0,  16.0,
                             1.0,   1.0,   1.0,   1.0) / 255.0;

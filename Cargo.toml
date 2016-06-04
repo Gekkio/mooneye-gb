@@ -9,17 +9,17 @@ license = "GPL-3.0+"
 acceptance_tests = []
 
 [dependencies]
-bitflags = "0.5"
+bitflags = "0.7"
 crc = "1.2"
 docopt = "0.6"
-glium_sdl2 = "0.11"
-nalgebra = "0.6"
+glium_sdl2 = "0.12"
+nalgebra = "0.8"
 num = "0.1"
 podio = "0.1"
 rustc-serialize = "0.3"
-sdl2 = "0.17"
+sdl2 = "0.19"
 time = "0.1"
-url = "0.5"
+url = "1.1"
 
 [dependencies.glium]
 version = "0.14"
