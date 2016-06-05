@@ -181,6 +181,7 @@ Versions used:
 | intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:           | :x:   | :x:  | :x:  |
 | intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  | :x:  |
+| stat irq blocking           | :x:        | :x:  | :+1:     | :x:           | :x:   | :x:  | :x:  |
 | vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:          | :+1:  | :x:  | :x:  |
 
 #### Timer
