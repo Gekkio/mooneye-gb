@@ -55,8 +55,11 @@ These devices will also be used, but results for old tests have not yet been ver
 
 | Device              | Model    | Mainboard    | CPU         |
 | ------------------- | -------- | ------------ | ----------- |
+| Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU     |
 | Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A   |
+| Game Boy            | DMG-01   | DMG-CPU-05   | DMG CPU B   |
 | Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B   |
+| Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB     |
 | Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B   |
 | Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E   |
 | Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB     |
