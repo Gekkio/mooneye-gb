@@ -53,18 +53,20 @@ All test ROMs are manually run with these devices:
 
 These devices will also be used, but results for old tests have not yet been verified:
 
-| Device              | Model    | Mainboard    | CPU         |
-| ------------------- | -------- | ------------ | ----------- |
-| Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU     |
-| Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A   |
-| Game Boy            | DMG-01   | DMG-CPU-03   | DMG CPU B   |
-| Game Boy            | DMG-01   | DMG-CPU-05   | DMG CPU B   |
-| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B   |
-| Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB     |
-| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB     |
-| Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B   |
-| Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E   |
-| Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB     |
+| Device              | Model    | Mainboard    | CPU              |
+| ------------------- | -------- | ------------ | -----------      |
+| Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU          |
+| Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A        |
+| Game Boy            | DMG-01   | DMG-CPU-03   | DMG CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-05   | DMG CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-07   | DMG CPU X (blob) |
+| Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |
+| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |
+| Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |
+| Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E        |
+| Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |
 
 
 **For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on CGB/AGB/AGS or emulators emulating those devices.**
