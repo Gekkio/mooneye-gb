@@ -4,7 +4,10 @@ rust:
   - stable
   - beta
   - nightly
-cache: cargo
+cache:
+  cargo: true
+  directories:
+    - SDL2-2.0.4
 matrix:
   allow_failures:
     - rust: nightly
