@@ -8,6 +8,7 @@ cache:
   cargo: true
   directories:
     - SDL2-2.0.4
+    - wla-dx
 matrix:
   allow_failures:
     - rust: nightly
@@ -16,6 +17,7 @@ env:
     - LIBRARY_PATH: $HOME/sdl2/lib
     - LD_LIBRARY_PATH: $HOME/sdl2/lib
 before_install:
-  - curl -O http://www.libsdl.org/release/SDL2-2.0.4.tar.gz
-  - tar -xzvf SDL2-2.0.4.tar.gz
+  - curl -sSL http://www.libsdl.org/release/SDL2-2.0.4.tar.gz | tar xz
   - cd SDL2-2.0.4 && ./configure --prefix=$HOME/sdl2 && make && make install
+  - curl -sSL https://github.com/vhelin/wla-dx/archive/f4ce81415d678cb05088fc537f582539b1fd4b47.tar.gz | tar xz --strip-components=1 --one-top-level=wla-dx
+  - cd wla-dx && cmake . && make
