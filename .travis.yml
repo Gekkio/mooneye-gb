@@ -15,7 +15,7 @@ env:
   global:
     - LIBRARY_PATH: $HOME/sdl2/lib
     - LD_LIBRARY_PATH: $HOME/sdl2/lib
-install:
+before_install:
   - curl -O http://www.libsdl.org/release/SDL2-2.0.4.tar.gz
   - tar -xzvf SDL2-2.0.4.tar.gz
   - cd SDL2-2.0.4 && ./configure --prefix=$HOME/sdl2 && make && make install
