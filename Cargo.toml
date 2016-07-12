@@ -26,7 +26,7 @@ version = "0.14"
 default-features = false
 
 [dependencies.imgui]
-version = "0.0.8"
+version = "0.0.9"
 features = ["glium"]
 
 [dev-dependencies]

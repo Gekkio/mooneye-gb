@@ -50,7 +50,7 @@ impl Gui {
     self.imgui.set_mouse_pos(mouse_x as f32, mouse_y as f32);
 
     {
-      let ui = self.imgui.frame(width, height, delta_s);
+      let ui = self.imgui.frame((width, height), (width, height), delta_s);
       screen.render(&ui);
       try!(self.renderer.render(surface, ui));
     }
