@@ -249,6 +249,9 @@ _print_results_halt_\@:
 .ifndef CART_RAM_SIZE
   .define CART_RAM_SIZE 0
 .endif
+.ifndef CART_CGB
+  .define CART_CGB 0
+.endif
 
 .rombanksize $4000
 .rombanks CART_ROM_BANKS
@@ -256,10 +259,21 @@ _print_results_halt_\@:
 .emptyfill $FF
 .cartridgetype CART_TYPE
 .ramsize CART_RAM_SIZE
-.romdmg
+
+.ifeq CART_CGB 1
+  .romgbc
+.else
+  .romdmg
+.endif
+
+.countrycode $01
+.licenseecodenew "ZZ"
+
 .name "mooneye-gb test"
 .computegbcomplementcheck
 .computegbchecksum
+
+.nintendologo
 
 ; --- Cartridge header ---
 
@@ -268,20 +282,10 @@ _print_results_halt_\@:
 .section "Header" force
   nop
   jp $150
-
-  ; Nintendo logo
-  .db $CE, $ED, $66, $66, $CC, $0D, $00, $0B
-  .db $03, $73, $00, $83, $00, $0C, $00, $0D
-  .db $00, $08, $11, $1F, $88, $89, $00, $0E
-  .db $DC, $CC, $6E, $E6, $DD, $DD, $D9, $99
-  .db $BB, $BB, $67, $63, $6E, $0E, $EC, $CC
-  .db $DD, $DC, $99, $9F, $BB, $B9, $33, $3E
 .ends
 
-.org $14A
+.org $14C
 .section "Header-Extra" force
-  .db $00 ; Destination code: 00 - Japanese
-  .db $00 ; Licensee code
   .db $00 ; ROM version
 .ends
 
@@ -355,8 +359,18 @@ _print_results_halt_\@:
     xor a
     ldh (<SCY), a
     ldh (<SCX), a
+
+.ifeq CART_CGB 1
+    ld a, $82
+    ldh (<BCPS), a
+    xor a
+  .repeat 6
+    ldh (<BCPD), a
+  .endr
+.else
     ld a, $FC
     ldh (<BGP), a
+.endif
 
     call clear_vram
     ret
