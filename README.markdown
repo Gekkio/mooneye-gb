@@ -44,6 +44,7 @@ All test ROMs are manually run with these devices:
 
 | Device              | Model    | Mainboard    | CPU              |
 | ------------------- | -------- | ------------ | -----------      |
+| Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU          |
 | Game Boy            | DMG-01   | DMG-CPU-04   | DMG CPU B        |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |
 | Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       |
@@ -58,7 +59,6 @@ verified:
 
 | Device              | Model    | Mainboard    | CPU              |
 | ------------------- | -------- | ------------ | -----------      |
-| Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU          |
 | Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A        |
 | Game Boy            | DMG-01   | DMG-CPU-07   | DMG CPU X (blob) |
 | Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |
