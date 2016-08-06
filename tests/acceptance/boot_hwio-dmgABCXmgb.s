@@ -21,7 +21,7 @@
 
 ; Verified results:
 ;   pass: DMG, MGB
-;   fail: SGB, SGB2, CGB, AGB, AGS
+;   fail: DMG 0, SGB, SGB2, CGB, AGB, AGS
 
 .incdir "../common"
 .include "common.s"

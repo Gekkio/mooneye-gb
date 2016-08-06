@@ -26,6 +26,14 @@ use std::path::Path;
 
 use gameboy::BOOTROM_SIZE;
 
+static DEFAULT_BOOT_ROM_PRIORITY: [BootromType; 5] = [
+  BootromType::Dmg,
+  BootromType::Mgb,
+  BootromType::Sgb2,
+  BootromType::Sgb,
+  BootromType::Dmg0,
+];
+
 #[derive(Debug)]
 pub struct Bootrom {
   pub data: Vec<u8>,
@@ -41,8 +49,11 @@ impl Bootrom {
   pub fn from_data(data: Vec<u8>) -> Result<Bootrom, BootromError> {
     let checksum = crc32::checksum_ieee(&data);
     let kind = try!(match checksum {
+      0xc2f5cc97 => Ok(BootromType::Dmg0),
       0x59c8598e => Ok(BootromType::Dmg),
       0xe6920754 => Ok(BootromType::Mgb),
+      0xec8a83b9 => Ok(BootromType::Sgb),
+      0x53d0dd63 => Ok(BootromType::Sgb2),
       checksum => Err(BootromError::Checksum(checksum))
     });
     Ok(Bootrom {
@@ -50,17 +61,20 @@ impl Bootrom {
       kind: kind
     })
   }
-  pub fn from_default_bootrom() -> Option<Bootrom> {
+  pub fn from_default_bootrom(priority: &[BootromType]) -> Option<Bootrom> {
     let mut candidates = vec![];
+    let priority = if priority.is_empty() { &DEFAULT_BOOT_ROM_PRIORITY } else { priority };
 
     if let Ok(cwd) = env::current_dir() {
-      candidates.push(cwd.join("dmg_boot.bin"));
-      candidates.push(cwd.join("mgb_boot.bin"));
+      for kind in priority {
+        candidates.push(cwd.join(kind.file_name()));
+      }
     }
 
     if let Some(home) = env::home_dir().map(|home| home.join(".mooneye-gb")) {
-      candidates.push(home.join("dmg_boot.bin"));
-      candidates.push(home.join("mgb_boot.bin"));
+      for kind in priority {
+        candidates.push(home.join(kind.file_name()));
+      }
     }
 
     for path in candidates {
@@ -85,10 +99,7 @@ impl Bootrom {
         },
         _ => ()
       }
-      let path = home.join(match self.kind {
-        BootromType::Dmg => "dmg_boot.bin",
-        BootromType::Mgb => "mgb_boot.bin"
-      });
+      let path = home.join(self.kind.file_name());
       let mut file = try!(File::create(&path));
       return file.write_all(&self.data)
     }
@@ -98,15 +109,30 @@ impl Bootrom {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum BootromType {
-  Dmg, Mgb
+  Dmg0, Dmg, Mgb, Sgb, Sgb2
+}
+
+impl BootromType {
+  pub fn file_name(&self) -> &'static str {
+    match *self {
+      BootromType::Dmg0 => "dmg0_boot.bin",
+      BootromType::Dmg => "dmg_boot.bin",
+      BootromType::Mgb => "mgb_boot.bin",
+      BootromType::Sgb => "sgb_boot.bin",
+      BootromType::Sgb2 => "sgb2_boot.bin",
+    }
+  }
 }
 
 impl fmt::Display for BootromType {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     use self::BootromType::*;
     f.write_str(match *self {
+      Dmg0 => "DMG (Game Boy), original version",
       Dmg => "DMG (Game Boy)",
-      Mgb => "MGB (Game Boy Pocket)"
+      Mgb => "MGB (Game Boy Pocket)",
+      Sgb => "SGB (Super Game Boy)",
+      Sgb2 => "SGB2 (Super Game Boy 2)"
     })
   }
 }

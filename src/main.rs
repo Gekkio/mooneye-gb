@@ -83,7 +83,7 @@ fn main() {
         println!("Failed to read boot rom from \"{}\" ({})", path, err);
         process::exit(1)
       })),
-      _ => Bootrom::from_default_bootrom()
+      _ => Bootrom::from_default_bootrom(&[])
     };
 
   let cartridge =

@@ -13,129 +13,145 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use self::fixture::run_acceptance_test;
+use self::fixture::{run_test, run_test_with_bootrom, run_test_with_bootroms};
+use config::BootromType::*;
 
 mod fixture;
 
 #[test]
-fn add_sp_e_timing() { run_acceptance_test("acceptance/add_sp_e_timing") }
+fn add_sp_e_timing() { run_test("acceptance/add_sp_e_timing") }
 
 #[test]
-fn boot_hwio_g() { run_acceptance_test("acceptance/boot_hwio-G") }
+fn boot_hwio_dmg_abcx_mgb() { run_test_with_bootroms("acceptance/boot_hwio-dmgABCXmgb", &[Dmg, Mgb]) }
 
 #[test]
-fn boot_regs_dmg() { run_acceptance_test("acceptance/boot_regs-dmg") }
+fn boot_hwio_S() { run_test_with_bootroms("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
 
 #[test]
-fn call_cc_timing() { run_acceptance_test("acceptance/call_cc_timing") }
+fn boot_regs_dmg0() { run_test_with_bootrom("acceptance/boot_regs-dmg0", Dmg0) }
 
 #[test]
-fn call_cc_timing2() { run_acceptance_test("acceptance/call_cc_timing2") }
+fn boot_regs_dmg_abcx() { run_test_with_bootrom("acceptance/boot_regs-dmgABCX", Dmg) }
 
 #[test]
-fn call_timing() { run_acceptance_test("acceptance/call_timing") }
+fn boot_regs_mgb() { run_test_with_bootrom("acceptance/boot_regs-mgb", Mgb) }
 
 #[test]
-fn call_timing2() { run_acceptance_test("acceptance/call_timing2") }
+fn boot_regs_sgb() { run_test_with_bootrom("acceptance/boot_regs-sgb", Sgb) }
 
 #[test]
-fn di_timing_gs() { run_acceptance_test("acceptance/di_timing-GS") }
+fn boot_regs_sgb2() { run_test_with_bootrom("acceptance/boot_regs-sgb2", Sgb2) }
 
 #[test]
-fn div_timing() { run_acceptance_test("acceptance/div_timing") }
+fn call_cc_timing() { run_test("acceptance/call_cc_timing") }
 
 #[test]
-fn ei_timing() { run_acceptance_test("acceptance/ei_timing") }
+fn call_cc_timing2() { run_test("acceptance/call_cc_timing2") }
 
 #[test]
-fn halt_ime0_ei() { run_acceptance_test("acceptance/halt_ime0_ei") }
+fn call_timing() { run_test("acceptance/call_timing") }
 
 #[test]
-fn halt_ime0_nointr_timing() { run_acceptance_test("acceptance/halt_ime0_nointr_timing") }
+fn call_timing2() { run_test("acceptance/call_timing2") }
 
 #[test]
-fn halt_ime1_timing() { run_acceptance_test("acceptance/halt_ime1_timing") }
+fn di_timing_gs() { run_test("acceptance/di_timing-GS") }
 
 #[test]
-fn halt_ime1_timing2_gs() { run_acceptance_test("acceptance/halt_ime1_timing2-GS") }
+fn div_timing() { run_test("acceptance/div_timing") }
 
 #[test]
-fn if_ie_registers() { run_acceptance_test("acceptance/if_ie_registers") }
+fn ei_timing() { run_test("acceptance/ei_timing") }
 
 #[test]
-fn intr_timing() { run_acceptance_test("acceptance/intr_timing") }
+fn halt_ime0_ei() { run_test("acceptance/halt_ime0_ei") }
 
 #[test]
-fn jp_cc_timing() { run_acceptance_test("acceptance/jp_cc_timing") }
+fn halt_ime0_nointr_timing() { run_test("acceptance/halt_ime0_nointr_timing") }
 
 #[test]
-fn jp_timing() { run_acceptance_test("acceptance/jp_timing") }
+fn halt_ime1_timing() { run_test("acceptance/halt_ime1_timing") }
 
 #[test]
-fn ld_hl_sp_e_timing() { run_acceptance_test("acceptance/ld_hl_sp_e_timing") }
+fn halt_ime1_timing2_gs() { run_test("acceptance/halt_ime1_timing2-GS") }
 
 #[test]
-fn oam_dma_restart() { run_acceptance_test("acceptance/oam_dma_restart") }
+fn if_ie_registers() { run_test("acceptance/if_ie_registers") }
 
 #[test]
-fn oam_dma_start() { run_acceptance_test("acceptance/oam_dma_start") }
+fn intr_timing() { run_test("acceptance/intr_timing") }
 
 #[test]
-fn oam_dma_timing() { run_acceptance_test("acceptance/oam_dma_timing") }
+fn jp_cc_timing() { run_test("acceptance/jp_cc_timing") }
 
 #[test]
-fn pop_timing() { run_acceptance_test("acceptance/pop_timing") }
+fn jp_timing() { run_test("acceptance/jp_timing") }
 
 #[test]
-fn push_timing() { run_acceptance_test("acceptance/push_timing") }
+fn ld_hl_sp_e_timing() { run_test("acceptance/ld_hl_sp_e_timing") }
 
 #[test]
-fn rapid_di_ei() { run_acceptance_test("acceptance/rapid_di_ei") }
+fn oam_dma_restart() { run_test("acceptance/oam_dma_restart") }
 
 #[test]
-fn ret_timing() { run_acceptance_test("acceptance/ret_timing") }
+fn oam_dma_start() { run_test("acceptance/oam_dma_start") }
 
 #[test]
-fn reti_timing() { run_acceptance_test("acceptance/reti_timing") }
+fn oam_dma_timing() { run_test("acceptance/oam_dma_timing") }
 
 #[test]
-fn ret_cc_timing() { run_acceptance_test("acceptance/ret_cc_timing") }
+fn pop_timing() { run_test("acceptance/pop_timing") }
 
 #[test]
-fn reti_intr_timing() { run_acceptance_test("acceptance/reti_intr_timing") }
+fn push_timing() { run_test("acceptance/push_timing") }
 
 #[test]
-fn rst_timing() { run_acceptance_test("acceptance/rst_timing") }
+fn rapid_di_ei() { run_test("acceptance/rapid_di_ei") }
 
 #[test]
-fn bits_mem_oam() { run_acceptance_test("acceptance/bits/mem_oam") }
+fn ret_timing() { run_test("acceptance/ret_timing") }
 
 #[test]
-fn bits_reg_f() { run_acceptance_test("acceptance/bits/reg_f") }
+fn reti_timing() { run_test("acceptance/reti_timing") }
 
 #[test]
-fn bits_unused_hwio_gs() { run_acceptance_test("acceptance/bits/unused_hwio-GS") }
+fn ret_cc_timing() { run_test("acceptance/ret_cc_timing") }
 
 #[test]
-fn gpu_hblank_ly_scx_timing_gs() { run_acceptance_test("acceptance/gpu/hblank_ly_scx_timing-GS") }
+fn reti_intr_timing() { run_test("acceptance/reti_intr_timing") }
 
 #[test]
-fn gpu_intr_1_2_timing_gs() { run_acceptance_test("acceptance/gpu/intr_1_2_timing-GS") }
+fn rst_timing() { run_test("acceptance/rst_timing") }
 
 #[test]
-fn gpu_intr_2_0_timing() { run_acceptance_test("acceptance/gpu/intr_2_0_timing") }
+fn bits_mem_oam() { run_test("acceptance/bits/mem_oam") }
 
 #[test]
-fn gpu_intr_2_mode0_timing() { run_acceptance_test("acceptance/gpu/intr_2_mode0_timing") }
+fn bits_reg_f() { run_test("acceptance/bits/reg_f") }
 
 #[test]
-fn gpu_intr_2_mode3_timing() { run_acceptance_test("acceptance/gpu/intr_2_mode3_timing") }
+fn bits_unused_hwio_gs() { run_test("acceptance/bits/unused_hwio-GS") }
 
 #[test]
-fn gpu_intr_2_oam_ok_timing() { run_acceptance_test("acceptance/gpu/intr_2_oam_ok_timing") }
+fn gpu_hblank_ly_scx_timing_gs() { run_test("acceptance/gpu/hblank_ly_scx_timing-GS") }
 
 #[test]
-fn gpu_vblank_stat_intr_gs() { run_acceptance_test("acceptance/gpu/vblank_stat_intr-GS") }
+fn gpu_intr_1_2_timing_gs() { run_test("acceptance/gpu/intr_1_2_timing-GS") }
 
 #[test]
-fn mbc1_rom_4banks() { run_acceptance_test("emulator-only/mbc1_rom_4banks") }
+fn gpu_intr_2_0_timing() { run_test("acceptance/gpu/intr_2_0_timing") }
+
+#[test]
+fn gpu_intr_2_mode0_timing() { run_test("acceptance/gpu/intr_2_mode0_timing") }
+
+#[test]
+fn gpu_intr_2_mode3_timing() { run_test("acceptance/gpu/intr_2_mode3_timing") }
+
+#[test]
+fn gpu_intr_2_oam_ok_timing() { run_test("acceptance/gpu/intr_2_oam_ok_timing") }
+
+#[test]
+fn gpu_vblank_stat_intr_gs() { run_test("acceptance/gpu/vblank_stat_intr-GS") }
+
+#[test]
+fn mbc1_rom_4banks() { run_test("emulator-only/mbc1_rom_4banks") }

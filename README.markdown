@@ -161,6 +161,12 @@ Versions used:
 * KiGB 2.05
 * MESS 0.163
 
+Symbols:
+
+* :+1: pass
+* :x: fail
+* :o: pass with caveats, see notes
+
 ### Blargg's tests
 
 | Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
@@ -173,38 +179,48 @@ Versions used:
 
 ### Mooneye GB acceptance tests
 
-| Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
-| ----------------------- | ---------- | ---- | -------- | ------------- | ------| ---- | ---- |
-| add sp e timing         | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| boot hwio G             | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| boot regs dmg           | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| call timing             | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| call timing2            | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| call cc_timing          | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| call cc_timing2         | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| di timing GS            | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :+1: | :+1: |
-| div timing              | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
-| ei timing               | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| halt ime0 ei            | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| halt ime0 nointr_timing | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :x:  |
-| halt ime1 timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
-| halt ime1 timing2 GS    | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  | :+1: |
-| if ie registers         | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
-| intr timing             | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
-| jp timing               | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| jp cc timing            | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| ld hl sp e timing       | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| oam dma_restart         | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| oam dma start           | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| oam dma timing          | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| pop timing              | :+1:       | :x:  | :+1:     | :+1:          | :+1:  | :x:  | :+1: |
-| push timing             | :+1:       | :x:  | :x:      | :x:           | :+1:  | :x:  | :x:  |
-| rapid di ei             | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| ret timing              | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| ret cc timing           | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| reti timing             | :+1:       | :x:  | :+1:     | :x:           | :+1:  | :x:  | :x:  |
-| reti intr timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: | :+1: |
-| rst timing              | :+1:       | :x:  | :x:      | :x:           | :+1:  | :x:  | :x:  |
+| Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan  | KiGB | MESS |
+| ----------------------- | ---------- | ---- | -------- | ------------- | ------ | ---- | ---- |
+| add sp e timing         | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| boot hwio dmgABCXmgb    | :+1:       | :+1: | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| boot hwio S             | :+1:       | :o:  |          | :x:           | :+1:   | :x:  | :x:  |
+| boot regs dmg0          | :+1:       | :o:  |          | :x:           |        |      |      |
+| boot regs dmgABCX       | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: | :+1: |
+| boot regs mgb           | :+1:       | :o:  |          | :+1:          |        |      | :+1: |
+| boot regs sgb           | :+1:       | :o:  |          | :+1:          | :+1:   | :x:  | :+1: |
+| boot regs sgb2          | :+1:       | :o:  |          | :+1:          | :x:    | :x:  |      |
+| call timing             | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| call timing2            | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| call cc_timing          | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| call cc_timing2         | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| di timing GS            | :+1:       | :+1: | :+1:     | :x:           | :+1:   | :+1: | :+1: |
+| div timing              | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :x:  | :+1: |
+| ei timing               | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: | :+1: |
+| halt ime0 ei            | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: | :+1: |
+| halt ime0 nointr_timing | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :x:  | :x:  |
+| halt ime1 timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :x:  | :+1: |
+| halt ime1 timing2 GS    | :+1:       | :+1: | :+1:     | :x:           | :+1:   | :x:  | :+1: |
+| if ie registers         | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :x:  | :+1: |
+| intr timing             | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :x:  | :+1: |
+| jp timing               | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| jp cc timing            | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| ld hl sp e timing       | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| oam dma_restart         | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| oam dma start           | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| oam dma timing          | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| pop timing              | :+1:       | :x:  | :+1:     | :+1:          | :+1:   | :x:  | :+1: |
+| push timing             | :+1:       | :x:  | :x:      | :x:           | :+1:   | :x:  | :x:  |
+| rapid di ei             | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: | :+1: |
+| ret timing              | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| ret cc timing           | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| reti timing             | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  | :x:  |
+| reti intr timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: | :+1: |
+| rst timing              | :+1:       | :x:  | :x:      | :x:           | :+1:   | :x:  | :x:  |
+
+Notes:
+
+* BGB passes most boot tests only if you explicitly enable boot ROMs and give it the right one
+* Enabling boot ROMs in GiiBiiAdvance has no effect on test results
 
 #### Bits (unusable bits in memory and registers)
 
@@ -262,13 +278,10 @@ Versions used:
 
 | Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | KiGB | MESS |
 | --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- | ---- |
+| boot hwio dmg0  |            |      |          |               |       |      |      |
 | boot hwio C     |            | :+1: |          | :x:           |       | :x:  | :x:  |
-| boot hwio S     |            | :x:  |          | :x:           | :+1:  | :x:  | :x:  |
 | boot regs A     |            | :x:  |          | :x:           |       | :x:  |      |
 | boot regs cgb   |            | :+1: |          | :x:           |       | :x:  | :+1: |
-| boot regs mgb   |            | :+1: |          | :+1:          |       |      | :+1: |
-| boot regs sgb   |            | :x:  |          | :+1:          | :+1:  | :x:  | :+1: |
-| boot regs sgb2  |            | :x:  |          | :+1:          | :x:   | :x:  |      |
 
 #### Bits
 
