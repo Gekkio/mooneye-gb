@@ -1,85 +1,121 @@
 # Mooneye GB
 
-Mooneye GB is a Game Boy emulator written in Rust.
+Mooneye GB is a Game Boy research project and emulator written in Rust.
 
 [![Build Status](https://travis-ci.org/Gekkio/mooneye-gb.svg?branch=master)](https://travis-ci.org/Gekkio/mooneye-gb)
 
-The main goals of this project are accuracy and documentation. Some existing emulators are very accurate (Gambatte, BGB >= 1.5) but are not documented very clearly, so they are not that good references for emulator developers. I want this project to document as clearly as possible *why* certain behaviour is emulated in a certain way. This also means writing a lot of test ROMs to figure out corner cases and precise behaviour on real hardware.
+The main goals of this project are accuracy and documentation. Some existing
+emulators are very accurate (Gambatte, BGB >= 1.5) but are not documented very
+clearly, so they are not that good references for emulator developers. I want
+this project to document as clearly as possible *why* certain behaviour is
+emulated in a certain way. This also means writing a lot of test ROMs to figure
+out corner cases and precise behaviour on real hardware.
 
 Non-goals:
 
-* CGB (Game Boy Color) support. It would be nice, but I want to make the normal Game Boy support extremely robust first.
-* A good debugger. A primitive debugger exists for development purposes, and it is enough.
-* A user interface. Building native UIs with Rust is a bit painful at the moment.
+* CGB (Game Boy Color) support. It would be nice, but I want to make the normal
+  Game Boy support extremely robust first.
+* A debugger
+* A good user interface. Building native UIs with Rust is a bit painful at the
+  moment.
 
 **Warning**:
 
 * Project is WIP
 * Doesn't work properly without a boot ROM
+* The emulator is lagging behind hardware research. I don't want to spend time
+  making short-lived and probably incorrect fixes to the emulator if I'm not
+  sure about the hardware behaviour.
 
-## Accuracy
+## Hardware testing
 
-This project already passes Blargg's cpu\_instrs, instr\_timing, and mem\_timing-2 tests.
-
-Things that need significant work:
-
-* GPU emulation accuracy
-* APU emulation in general
-
-There's tons of documentation and tons of emulators in the internet, but in the end I only trust real hardware. I follow a fairly "scientific" process when developing emulation for a feature:
+There's tons of documentation and tons of emulators in the internet, but in the
+end I only trust real hardware. I follow a fairly "scientific" process when
+developing emulation for a feature:
 
 1. Think of different ways how it might behave on real hardware
 2. Make a hypothesis based on the most probable behaviour
 3. Write a test ROM for such behaviour
-4. Run the test ROM on real hardware. If the test ROM made an invalid hypothesis, go back to 1.
+4. Run the test ROM on real hardware. If the test ROM made an invalid
+   hypothesis, go back to 1.
 5. Replicate the behaviour in the emulator
 
 All test ROMs are manually run with these devices:
 
-| Device              | Model    | Mainboard    | CPU         |
-| ------------------- | -------- | ------------ | ----------- |
-| Game Boy            | DMG-01   | DMG-CPU-04   | DMG CPU B   |
-| Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB     |
-| Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB     |
-| Super Game Boy      | SNSP-027 | SGB-R-10     | SGB-CPU-01  |
-| Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01  |
-| Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2    |
-| Game Boy Color      | CGB-001  | CGB-CPU-03   | CPU CGB C   |
-| Game Boy Color      | CGB-001  | CGB-CPU-04   | CPU CGB D   |
-| Game Boy Color      | CGB-001  | CGB-CPU-05   | CPU CGB D   |
-| Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A   |
-| Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E |
-| Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E |
+| Device              | Model    | Mainboard    | CPU              |
+| ------------------- | -------- | ------------ | -----------      |
+| Game Boy            | DMG-01   | DMG-CPU-04   | DMG CPU B        |
+| Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |
+| Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       |
+| Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         |
+| Game Boy Color      | CGB-001  | CGB-CPU-03   | CPU CGB C        |
+| Game Boy Color      | CGB-001  | CGB-CPU-05   | CPU CGB D        |
+| Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      |
 
-These devices will also be used, but results for old tests have not yet been verified:
+These devices will also be used, but results for old tests have not yet been
+verified:
 
 | Device              | Model    | Mainboard    | CPU              |
 | ------------------- | -------- | ------------ | -----------      |
 | Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU          |
 | Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A        |
-| Game Boy            | DMG-01   | DMG-CPU-03   | DMG CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-05   | DMG CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B        |
 | Game Boy            | DMG-01   | DMG-CPU-07   | DMG CPU X (blob) |
-| Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |
 | Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |
 | Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |
 | Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E        |
 | Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |
 
+I also have access to these devices with different mainboard revisions, but I
+think the CPU revision is all that matters if we study the behaviour and not
+analog charasteristics (e.g. audio filtering). Even if audio sounded different
+between two units with the same CPU revision but different mainboard revisions
+but same CPU revision, I'd expect the difference to be caused by individual
+device variation or different revisions of support chips (e.g.  RAM/AMP/REG).
 
-**For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on CGB/AGB/AGS or emulators emulating those devices.**
+The main test "fleet" is already very big, so I will only use these devices if
+there's evidence of behaviour that depends on mainboard revision or individual
+units.
+
+| Device              | Model    | Mainboard    | CPU              |
+| ------------------- | -------- | ------------ | -----------      |
+| Game Boy            | DMG-01   | DMG-CPU-03   | DMG CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-05   | DMG CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B        |
+| Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          |
+| Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB          |
+| Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |
+| Super Game Boy      | SNSP-027 | SGB-R-10     | SGB-CPU-01       |
+| Game Boy Color      | CGB-001  | CGB-CPU-04   | CPU CGB D        |
+| Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          |
+| Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        |
+| Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E      |
+
+I'm still looking for the following devices:
+
+* CPUS: DMG CPU C, CPU CGB A. These are important for reverse engineering
+* Mainboards: DMG-CPU-08, AGB-CPU-04, SGB-R-01, SGB-N-01, SGB-N-10,
+  C/AGS-CPU-10, C/AGS-CPU-11, C/AGS-CPU-20, C/AGS-CPU-30. As described earlier,
+  these are probably not required for reverse engineering.
+
+**For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on
+CGB/AGB/AGS or emulators emulating those devices.**
 
 ## Performance
 
 **Always compile in release mode if you care about performance!**
 
-On a i7-3770K desktop machine I can usually run ROMs with 2000 - 4000% speed. Without optimizations the speed drops to 150 - 200%, which is still fine for development purposes.
+On a i7-3770K desktop machine I can usually run ROMs with 2000 - 4000% speed.
+Without optimizations the speed drops to 150 - 200%, which is still fine for
+development purposes.
 
-Raspberry Pi with X11 desktop works but is too slow because there is no OpenGL acceleration.
+Raspberry Pi with X11 desktop works but is too slow because there is no OpenGL
+acceleration.
 
-The emulator is runnable on Android, but cross-compiling and packaging is a huge pain and touch controls would have to be implemented, so I'm not supporting Android at the moment.
+The emulator is runnable on Android, but cross-compiling and packaging is a
+huge pain and touch controls would have to be implemented, so I'm not
+supporting Android at the moment.
 
 ## Running the emulator
 
@@ -93,7 +129,8 @@ The emulator is runnable on Android, but cross-compiling and packaging is a huge
 2. `cargo build --release`
 3. `cargo run --release -- PATH_TO_GAMEBOY_ROM`
 
-On Windows, also download an SDL2 package containing SDL2.dll, and put it to `target/debug` and `target/release`.
+On Windows, also download an SDL2 package containing SDL2.dll, and put it to
+`target/debug` and `target/release`.
 
 ### Game Boy keys
 
@@ -247,7 +284,7 @@ Versions used:
 
 ### Test naming
 
-Some tests are expected to pass only a single type of hardware:
+Some tests are expected to pass only a single model:
 
 * dmg = Game Boy
 * mgb = Game Boy Pocket
@@ -256,6 +293,16 @@ Some tests are expected to pass only a single type of hardware:
 * cgb = Game Boy Color
 * agb = Game Boy Advance
 * ags = Game Boy Advance SP
+
+In addition to model differences, CPU revisions can affect the behaviour.
+Revision 0 refers always to the initial version of a CPU (e.g. CPU CGB). AGB
+and AGS use the same CPU models.  The following CPU models have several
+revisions:
+
+* DMG: 0, A, B, C, X (blob)
+* CGB: 0, A, B, C, D, E
+* AGB: 0, A, B, B E. Revision E also exists, but only in Game Boy Micro (OXY)
+  so it is out of scope from this project.
 
 In general, hardware can be divided on to a couple of groups based on their
 behaviour. Some tests are expected to pass on a single or multiple groups:
