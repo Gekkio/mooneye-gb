@@ -67,7 +67,11 @@ impl FrontendState {
   pub fn from_roms(bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> FrontendState {
     use self::FrontendState::*;
     match (bootrom, cartridge) {
-      (Some(bootrom), Some(cartridge)) => InGame((Some(bootrom), cartridge)),
+      (Some(bootrom), Some(cartridge)) => InGame(HardwareConfig {
+        model: bootrom.model,
+        bootrom: Some(bootrom.data),
+        cartridge: cartridge
+      }),
       (None, Some(cartridge)) => WaitBootrom(Some(cartridge)),
       (Some(bootrom), None) => WaitRom(Some(bootrom)),
       _ => WaitBootrom(None)

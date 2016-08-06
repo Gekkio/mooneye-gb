@@ -16,21 +16,25 @@
 use std::path::PathBuf;
 use time::{Duration, SteadyTime};
 
-use config;
-use config::{BootromType};
+use config::{Bootrom, Cartridge, HardwareConfig, Model};
+use config::DEFAULT_MODEL_PRIORITY;
 use emulation::{EmuDuration, EmuTime, EE_DEBUG_OP};
 use gameboy;
 use machine::Machine;
 
-pub fn run_test_with_bootrom(name: &str, kind: BootromType) {
-  let bootrom = config::Bootrom::from_default_bootrom(&[kind])
-    .unwrap_or_else(|| panic!("No boot ROM found ({:?})", kind));
+pub fn run_test_with_model(name: &str, model: Model) {
+  let bootrom = Bootrom::lookup(&[model])
+    .unwrap_or_else(|| panic!("No boot ROM found ({:?})", model));
 
   let test_name = format!("tests/build/{}.gb", name);
   let cartridge_path = PathBuf::from(&test_name);
-  let cartridge = config::Cartridge::from_path(&cartridge_path).unwrap();
+  let cartridge = Cartridge::from_path(&cartridge_path).unwrap();
 
-  let hardware_config = (Some(bootrom), cartridge);
+  let hardware_config = HardwareConfig {
+    model: model,
+    bootrom: Some(bootrom.data),
+    cartridge: cartridge
+  };
 
   let max_duration = Duration::seconds(60);
   let start_time = SteadyTime::now();
@@ -52,27 +56,26 @@ pub fn run_test_with_bootrom(name: &str, kind: BootromType) {
     }
   }
   match registers {
-    None => panic!("Test did not finish ({:?})", kind),
+    None => panic!("Test did not finish ({:?})", model),
     Some(regs) => {
       if regs.a != 0 {
-        panic!("{} assertion failures in hardware test ({:?})", regs.a, kind);
+        panic!("{} assertion failures in hardware test ({:?})", regs.a, model);
       }
       if regs.b != 3  || regs.c != 5  ||
          regs.d != 8  || regs.e != 13 ||
          regs.h != 21 || regs.l != 34 {
-        panic!("Hardware test failed ({:?})", kind);
+        panic!("Hardware test failed ({:?})", model);
       }
     }
   }
 }
 
-pub fn run_test_with_bootroms(name: &str, bootroms: &[BootromType]) {
-  for &bootrom in bootroms {
-    run_test_with_bootrom(name, bootrom);
+pub fn run_test_with_models(name: &str, models: &[Model]) {
+  for &model in models {
+    run_test_with_model(name, model);
   }
 }
 
 pub fn run_test(name: &str) {
-  use config::BootromType::*;
-  run_test_with_bootroms(name, &[Dmg, Mgb, Sgb, Sgb2, Dmg0]);
+  run_test_with_models(name, &DEFAULT_MODEL_PRIORITY);
 }

@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use self::fixture::{run_test, run_test_with_bootrom, run_test_with_bootroms};
-use config::BootromType::*;
+use self::fixture::{run_test, run_test_with_model, run_test_with_models};
+use config::Model::*;
 
 mod fixture;
 
@@ -22,25 +22,25 @@ mod fixture;
 fn add_sp_e_timing() { run_test("acceptance/add_sp_e_timing") }
 
 #[test]
-fn boot_hwio_dmg_abcx_mgb() { run_test_with_bootroms("acceptance/boot_hwio-dmgABCXmgb", &[Dmg, Mgb]) }
+fn boot_hwio_dmg_abcx_mgb() { run_test_with_models("acceptance/boot_hwio-dmgABCXmgb", &[Dmg, Mgb]) }
 
 #[test]
-fn boot_hwio_S() { run_test_with_bootroms("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
+fn boot_hwio_S() { run_test_with_models("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
 
 #[test]
-fn boot_regs_dmg0() { run_test_with_bootrom("acceptance/boot_regs-dmg0", Dmg0) }
+fn boot_regs_dmg0() { run_test_with_model("acceptance/boot_regs-dmg0", Dmg0) }
 
 #[test]
-fn boot_regs_dmg_abcx() { run_test_with_bootrom("acceptance/boot_regs-dmgABCX", Dmg) }
+fn boot_regs_dmg_abcx() { run_test_with_model("acceptance/boot_regs-dmgABCX", Dmg) }
 
 #[test]
-fn boot_regs_mgb() { run_test_with_bootrom("acceptance/boot_regs-mgb", Mgb) }
+fn boot_regs_mgb() { run_test_with_model("acceptance/boot_regs-mgb", Mgb) }
 
 #[test]
-fn boot_regs_sgb() { run_test_with_bootrom("acceptance/boot_regs-sgb", Sgb) }
+fn boot_regs_sgb() { run_test_with_model("acceptance/boot_regs-sgb", Sgb) }
 
 #[test]
-fn boot_regs_sgb2() { run_test_with_bootrom("acceptance/boot_regs-sgb2", Sgb2) }
+fn boot_regs_sgb2() { run_test_with_model("acceptance/boot_regs-sgb2", Sgb2) }
 
 #[test]
 fn call_cc_timing() { run_test("acceptance/call_cc_timing") }
