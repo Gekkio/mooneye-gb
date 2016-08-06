@@ -5,7 +5,7 @@ set -e
 CARGO_FLAGS=""
 
 if [ -n "${CI}" ]; then
-    CARGO_FLAGS="-j 2"
+    CARGO_FLAGS="-j 1"
 fi
 
 make WLAFLAGS="-DACCEPTANCE_TEST=1" -C tests clean all
