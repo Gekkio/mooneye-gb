@@ -1,30 +1,35 @@
 sudo: false
 language: rust
 rust:
-  - stable
-  - beta
-  - nightly
+- stable
+- beta
+- nightly
 cache:
   cargo: true
   directories:
-    - SDL2-2.0.4
+  - SDL2-2.0.4
 matrix:
   allow_failures:
-    - rust: nightly
+  - rust: nightly
 env:
   global:
-    - LIBRARY_PATH: $HOME/sdl2/lib
-    - LD_LIBRARY_PATH: $HOME/sdl2/lib
+  - LIBRARY_PATH: "$HOME/sdl2/lib"
+  - LD_LIBRARY_PATH: "$HOME/sdl2/lib"
 before_install:
-  - curl -sSL http://www.libsdl.org/release/SDL2-2.0.4.tar.gz | tar xz
-  - cd SDL2-2.0.4 && ./configure --prefix=$HOME/sdl2 && make && make install
-  - mkdir $HOME/bin
-  - cd $HOME/bin
-  - curl -sSLO https://gekkio.fi/files/mooneye-gb/travis-precise64/wlalink
-  - curl -sSLO https://gekkio.fi/files/mooneye-gb/travis-precise64/wla-gb
-  - md5sum -c $TRAVIS_BUILD_DIR/.travis/MD5SUMS
-  - cd $TRAVIS_BUILD_DIR
+- openssl aes-256-cbc -K $encrypted_f29b02af6b5b_key -iv $encrypted_f29b02af6b5b_iv -in .travis/dmg0_boot.bin.enc -out dmg0_boot.bin -d
+- openssl aes-256-cbc -K $encrypted_f29b02af6b5b_key -iv $encrypted_f29b02af6b5b_iv -in .travis/dmg_boot.bin.enc -out dmg_boot.bin -d
+- openssl aes-256-cbc -K $encrypted_f29b02af6b5b_key -iv $encrypted_f29b02af6b5b_iv -in .travis/mgb_boot.bin.enc -out mgb_boot.bin -d
+- openssl aes-256-cbc -K $encrypted_f29b02af6b5b_key -iv $encrypted_f29b02af6b5b_iv -in .travis/sgb_boot.bin.enc -out sgb_boot.bin -d
+- openssl aes-256-cbc -K $encrypted_f29b02af6b5b_key -iv $encrypted_f29b02af6b5b_iv -in .travis/sgb2_boot.bin.enc -out sgb2_boot.bin -d
+- curl -sSL http://www.libsdl.org/release/SDL2-2.0.4.tar.gz | tar xz
+- cd SDL2-2.0.4 && ./configure --prefix=$HOME/sdl2 && make && make install
+- mkdir $HOME/bin
+- cd $HOME/bin
+- curl -sSLO https://gekkio.fi/files/mooneye-gb/travis-precise64/wlalink
+- curl -sSLO https://gekkio.fi/files/mooneye-gb/travis-precise64/wla-gb
+- md5sum -c $TRAVIS_BUILD_DIR/.travis/MD5SUMS && chmod +x wlalink && chmod +x wla-gb
+- cd $TRAVIS_BUILD_DIR
 script:
-  - cargo build --verbose
-  - cargo test --verbose
-  - ./run_acceptance_tests.sh
+- cargo build --verbose
+- cargo test --verbose
+- "./run_acceptance_tests.sh"
