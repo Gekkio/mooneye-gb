@@ -23,7 +23,7 @@ use gameboy::ROM_BANK_SIZE;
 
 pub type CartridgeError = String;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Cartridge {
   pub data: Vec<u8>,
   pub title: String,
@@ -84,7 +84,7 @@ impl Cartridge {
   }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum CartridgeType {
   Rom  = 0x00,  RomRam = 0x08,  RomRamBattery = 0x09,
   Mbc1 = 0x01, Mbc1Ram = 0x02, Mbc1RamBattery = 0x03,
@@ -134,7 +134,7 @@ impl CartridgeType {
 
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum CartridgeRomSize {
   NoRomBanks = 0x00,
   RomBanks4 = 0x01,
@@ -197,7 +197,7 @@ impl CartridgeRomSize {
   pub fn as_usize(&self) -> usize { self.banks() * ROM_BANK_SIZE }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum CartridgeRamSize {
   NoRam = 0x00,
   Ram2K = 0x01,

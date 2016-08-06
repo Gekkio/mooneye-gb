@@ -282,7 +282,7 @@ impl SdlFrontend {
   }
   fn main_in_game(&mut self, config: HardwareConfig) -> FrontendResult<FrontendState> {
     let mut screen = gui::InGameScreen::new(&config);
-    let mut machine = Machine::new(config);
+    let mut machine = Machine::new(config.clone());
     let sdl_game_controller = try!(self.sdl.game_controller());
 
     let mut fps_counter = FpsCounter::new();
@@ -340,6 +340,17 @@ impl SdlFrontend {
             if let Some((key, state)) = map_axis(axis, value) {
               if state { machine.key_down(key) } else { machine.key_up(key) }
             }
+          },
+          Event::DropFile{filename, ..} => {
+            let result = resolve_sdl_filename(filename)
+              .and_then(|path| Cartridge::from_path(&path));
+            match result {
+              Ok(cartridge) => return Ok(FrontendState::InGame(HardwareConfig {
+                cartridge: cartridge,
+                ..config
+              })),
+              Err(e) => println!("{}", e)
+            };
           },
           _ => ()
         }

@@ -34,6 +34,7 @@ pub use self::bootrom::{Bootrom, BootromError};
 pub use self::cartridge::{Cartridge, CartridgeType, CartridgeRamSize, CartridgeRomSize};
 pub use self::model::{Model, DEFAULT_MODEL_PRIORITY};
 
+#[derive(Clone, Debug)]
 pub struct HardwareConfig {
   pub model: Model,
   pub bootrom: Option<Vec<u8>>,
