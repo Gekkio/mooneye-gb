@@ -34,10 +34,11 @@ extern crate url;
 extern crate quickcheck;
 
 use docopt::Docopt;
+use std::io::{Write, stderr};
 use std::path::Path;
 use std::process;
 
-use config::{Bootrom, Cartridge};
+use config::{Bootrom, Cartridge, Model};
 use frontend::SdlFrontend;
 
 mod config;
@@ -61,14 +62,30 @@ Usage:
   mooneye-gb (-h | --help)
 
 Options:
-  -h, --help                   Help
-  -b=<file>, --bootrom=<file>  Use a boot ROM
+  -h, --help               Help
+  -m MODEL, --model MODEL  Emulate a specific Game Boy model.
+                           Valid values: dmg0, dmg, mgb, sgb, sgb2.
+  -b FILE, --bootrom FILE  Use a boot ROM
 ");
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
   arg_rom: Option<String>,
-  flag_bootrom: Option<String>
+  flag_bootrom: Option<String>,
+  flag_model: Option<Model>
+}
+
+fn read_boot_rom(path: &str, expected_model: Option<Model>) -> Bootrom {
+  let bootrom = Bootrom::from_path(&Path::new(path)).unwrap_or_else(|err| {
+    let _ = writeln!(stderr(), "Failed to read boot rom from \"{}\" ({})", path, err);
+    process::exit(1)
+  });
+  if let Some(model) = expected_model {
+    if model != bootrom.model {
+      let _ = writeln!(stderr(), "Warning: boot ROM is not for {}", model);
+    }
+  }
+  bootrom
 }
 
 fn main() {
@@ -78,18 +95,23 @@ fn main() {
     .unwrap_or_else(|e| e.exit());
 
   let bootrom =
-    match args.flag_bootrom {
-      Some(path) => Some(Bootrom::from_path(&Path::new(&path)).unwrap_or_else(|err| {
-        println!("Failed to read boot rom from \"{}\" ({})", path, err);
-        process::exit(1)
-      })),
-      _ => Bootrom::lookup(&[])
+    match (args.flag_model, args.flag_bootrom) {
+      (_, Some(path)) => Some(read_boot_rom(&path, args.flag_model)),
+      (Some(model), None) => {
+        let result = Bootrom::lookup(&[model]);
+        if result.is_none() {
+          let _ = writeln!(stderr(), "Could not find a boot rom for {}", model);
+          process::exit(1)
+        }
+        result
+      },
+      (None, None) => Bootrom::lookup(&[])
     };
 
   let cartridge =
     args.arg_rom.map(|path| {
       Cartridge::from_path(&Path::new(&path)).unwrap_or_else(|err| {
-        println!("Failed to read rom from \"{}\" ({})", path, err);
+        let _ = writeln!(stderr(), "Failed to read rom from \"{}\" ({})", path, err);
         process::exit(1)
       })
     });

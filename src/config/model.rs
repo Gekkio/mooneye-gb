@@ -24,7 +24,7 @@ pub static DEFAULT_MODEL_PRIORITY: [Model; 5] = [
   Model::Dmg0,
 ];
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, RustcDecodable)]
 pub enum Model {
   Dmg0,
   Dmg,
