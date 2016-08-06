@@ -18,3 +18,7 @@ env:
 before_install:
   - curl -sSL http://www.libsdl.org/release/SDL2-2.0.4.tar.gz | tar xz
   - cd SDL2-2.0.4 && ./configure --prefix=$HOME/sdl2 && make && make install
+  - mkdir $HOME/bin
+  - cd $HOME/bin && curl -sSLO https://gekkio.fi/files/mooneye-gb/precise64-wla-dx/wlalink
+  - cd $HOME/bin && curl -sSLO https://gekkio.fi/files/mooneye-gb/precise64-wla-dx/wla-gb
+  - cd $HOME/bin && md5sum -c $TRAVIS_BUILD_DIR/.travis/MD5SUMS
