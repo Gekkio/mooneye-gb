@@ -219,7 +219,9 @@ Symbols:
 
 Notes:
 
-* BGB passes most boot tests only if you explicitly enable boot ROMs and give it the right one
+* BGB passes most boot tests only if you explicitly enable boot ROMs and give it the right one.
+  This makes sense for DMG0, MGB, and SGB2 because they are not selectable, but SGB should work
+  without boot ROMs out of the box.
 * Enabling boot ROMs in GiiBiiAdvance has no effect on test results
 
 #### Bits (unusable bits in memory and registers)
