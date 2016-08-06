@@ -6,6 +6,7 @@ use sdl2::mouse::{MouseUtil};
 use std::f32;
 use time::Duration;
 
+use config::HardwareConfig;
 use super::{FrontendError, FrontendResult};
 
 impl From<RendererError> for FrontendError {
@@ -130,23 +131,33 @@ impl Screen for WaitRomScreen {
   }
 }
 
-#[derive(Default)]
 pub struct InGameScreen {
   pub fps: f64,
   pub perf: f64,
-  show_perf_overlay: bool
+  model: ImStr<'static>,
+  cartridge_title: ImStr<'static>,
+  show_info_overlay: bool
 }
 
 impl InGameScreen {
-  pub fn toggle_perf_overlay(&mut self) {
-    self.show_perf_overlay = !self.show_perf_overlay;
+  pub fn new(config: &HardwareConfig) -> InGameScreen {
+    InGameScreen {
+      fps: 0.0,
+      perf: 0.0,
+      model: im_str!("{}", config.model),
+      cartridge_title: im_str!("{}", config.cartridge.title),
+      show_info_overlay: false
+    }
+  }
+  pub fn toggle_info_overlay(&mut self) {
+    self.show_info_overlay = !self.show_info_overlay;
   }
 }
 
 impl Screen for InGameScreen {
   fn render(&mut self, ui: &Ui) {
-    if self.show_perf_overlay {
-      ui.window(im_str!("Performance overlay"))
+    if self.show_info_overlay {
+      ui.window(im_str!("Info overlay"))
         .bg_alpha(0.4)
         .title_bar(false)
         .resizable(false)
@@ -154,6 +165,8 @@ impl Screen for InGameScreen {
         .always_auto_resize(true)
         .position((0.0, 0.0), ImGuiSetCond_Always)
         .build(|| {
+          ui.text(self.model.clone());
+          ui.text(self.cartridge_title.clone());
           ui.text(im_str!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
         });
     }

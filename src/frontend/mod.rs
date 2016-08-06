@@ -281,13 +281,12 @@ impl SdlFrontend {
     Ok(FrontendState::Exit)
   }
   fn main_in_game(&mut self, config: HardwareConfig) -> FrontendResult<FrontendState> {
+    let mut screen = gui::InGameScreen::new(&config);
     let mut machine = Machine::new(config);
     let sdl_game_controller = try!(self.sdl.game_controller());
 
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
-
-    let mut screen = gui::InGameScreen::default();
 
     let mut emu_time = EmuTime::zero();
     let mut controllers = vec![];
@@ -317,7 +316,7 @@ impl SdlFrontend {
               self.sdl_video.gl_set_swap_interval(0);
             }
             if keycode == Keycode::F2 {
-              screen.toggle_perf_overlay();
+              screen.toggle_info_overlay();
             }
           },
           Event::KeyUp{keycode: Some(keycode), ..} => {
