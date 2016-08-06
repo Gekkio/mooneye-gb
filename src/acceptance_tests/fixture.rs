@@ -36,7 +36,7 @@ pub fn run_test_with_model(name: &str, model: Model) {
     cartridge: cartridge
   };
 
-  let max_duration = Duration::seconds(60);
+  let max_duration = Duration::seconds(120);
   let start_time = SteadyTime::now();
   let pulse_duration = EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32);
 
