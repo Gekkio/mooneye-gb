@@ -32,7 +32,7 @@ pub fn run_test_with_bootrom(name: &str, kind: BootromType) {
 
   let hardware_config = (Some(bootrom), cartridge);
 
-  let max_duration = Duration::seconds(30);
+  let max_duration = Duration::seconds(60);
   let start_time = SteadyTime::now();
   let pulse_duration = EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32);
 
