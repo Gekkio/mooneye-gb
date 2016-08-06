@@ -13,19 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crc::crc32;
-use podio::ReadPodExt;
-use std::convert::From;
-use std::env;
-use std::fmt;
-use std::fs;
-use std::fs::File;
-use std::io;
-use std::io::Write;
-use std::path::Path;
-
-use gameboy::BOOTROM_SIZE;
-
 mod bootrom;
 mod cartridge;
 mod model;

@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
-use std::fmt::Formatter;
 use std::ops::{Add, Sub};
-use time::Duration;
 
-use gameboy;
 pub use self::emu_events::{EmuEvents, EE_DEBUG_OP, EE_VSYNC};
 pub use self::time::EmuTime;
 
