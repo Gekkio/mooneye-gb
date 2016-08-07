@@ -13,8 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use std::iter;
-
 use config;
 use config::CartridgeType;
 use gameboy::{
@@ -43,11 +41,11 @@ impl Mbc {
 
 pub struct Cartridge {
   mbc: Mbc,
-  rom: Vec<u8>,
+  rom: Box<[u8]>,
   rom_offset: usize,
   rom_bank: u8,
   rom_banks: usize,
-  ram: Vec<u8>,
+  ram: Box<[u8]>,
   ram_offset: usize,
   ram_bank: u8,
   ram_accessible: bool,
@@ -64,11 +62,11 @@ impl Cartridge {
     let rom_banks = config.rom_size.banks();
     Cartridge {
       mbc: mbc,
-      rom: config.data,
+      rom: config.data.into_boxed_slice(),
       rom_bank: 0,
       rom_offset: 0x4000,
       rom_banks: rom_banks,
-      ram: iter::repeat(0).take(ram_size).collect(),
+      ram: vec![0; ram_size].into_boxed_slice(),
       ram_offset: 0x0000,
       ram_bank: 0,
       ram_accessible: false,
@@ -145,13 +143,13 @@ impl Cartridge {
     }
   }
   pub fn read_ram(&self, reladdr: u16) -> u8 {
-    if self.ram_accessible && self.ram.len() > 0 {
+    if self.ram_accessible && !self.ram.is_empty() {
       let addr = self.ram_addr(reladdr);
       self.ram[addr]
     } else { 0xff }
   }
   pub fn write_ram(&mut self, reladdr: u16, value: u8) {
-    if self.ram_accessible && self.ram.len() > 0 {
+    if self.ram_accessible && !self.ram.is_empty() {
       let addr = self.ram_addr(reladdr);
       match self.mbc {
         Mbc::Mbc2 => {

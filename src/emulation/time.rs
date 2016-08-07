@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use std::ops::{Add, Sub};
+use std::ops::{Add, AddAssign, Sub};
 
 use super::EmuDuration;
 
@@ -26,15 +26,12 @@ const REWIND_THRESHOLD: u32 = 0x80000000;
 
 impl EmuTime {
   pub fn zero() -> EmuTime { EmuTime { clock_edges: 0 } }
-  pub fn tick(&mut self, amount: EmuDuration) {
-    *self = *self + amount
-  }
   pub fn needs_rewind(&self) -> bool {
     self.clock_edges >= REWIND_THRESHOLD
   }
   pub fn rewind(&mut self) {
     assert!(self.needs_rewind());
-    self.clock_edges = self.clock_edges - REWIND_THRESHOLD;
+    self.clock_edges -= REWIND_THRESHOLD;
   }
   pub fn as_duration(&self) -> EmuDuration { EmuDuration::clock_edges(self.clock_edges) }
 }
@@ -45,6 +42,12 @@ impl Add<EmuDuration> for EmuTime {
     EmuTime {
       clock_edges: self.clock_edges + rhs.as_clock_edges()
     }
+  }
+}
+
+impl AddAssign<EmuDuration> for EmuTime {
+  fn add_assign(&mut self, rhs: EmuDuration) {
+    self.clock_edges += rhs.as_clock_edges();
   }
 }
 

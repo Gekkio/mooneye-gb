@@ -42,11 +42,11 @@ impl Irq {
     self.int_enable = InterruptType::from_bits_truncate(value);
   }
   pub fn request_interrupt(&mut self, interrupt: Interrupt) {
-    self.int_flag = self.int_flag | InterruptType::from_bits_truncate(interrupt as u8);
+    self.int_flag |= InterruptType::from_bits_truncate(interrupt as u8);
   }
   pub fn ack_interrupt(&mut self) -> Option<Interrupt> {
     let highest_priority = (self.int_enable & self.int_flag).isolate_highest_priority();
-    self.int_flag = self.int_flag - highest_priority;
+    self.int_flag -= highest_priority;
     Interrupt::from_u8(highest_priority.bits)
   }
   pub fn has_interrupt(&self) -> bool { (self.int_enable & self.int_flag) != InterruptType::empty() }
@@ -99,6 +99,7 @@ bitflags!(
 );
 
 impl InterruptType {
+  #[inline(always)]
   fn isolate_highest_priority(&self) -> InterruptType {
     InterruptType { bits: self.bits.isolate_rightmost_one() }
   }

@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
-use std::ops::{Add, Sub};
 
-pub use self::emu_events::{EmuEvents, EE_DEBUG_OP, EE_VSYNC};
 pub use self::time::EmuTime;
 
 mod time;
@@ -31,32 +29,15 @@ impl EmuDuration {
   pub fn as_clock_edges(self) -> u32 { self.0 }
 }
 
-impl Add<EmuDuration> for EmuDuration {
-  type Output = EmuDuration;
-  fn add(self, rhs: EmuDuration) -> EmuDuration {
-    EmuDuration(self.0 + rhs.0)
-  }
-}
-
-impl Sub<EmuDuration> for EmuDuration {
-  type Output = EmuDuration;
-  fn sub(self, rhs: EmuDuration) -> EmuDuration {
-    EmuDuration(self.0 - rhs.0)
-  }
-}
-
 impl fmt::Debug for EmuDuration {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", self.0)
   }
 }
 
-#[allow(dead_code)]
-mod emu_events {
-  bitflags!(
-    pub flags EmuEvents: u8 {
-      const EE_DEBUG_OP = 0b_0000_0001,
-      const EE_VSYNC    = 0b_0000_0010
-    }
-  );
-}
+bitflags!(
+  pub flags EmuEvents: u8 {
+    const EE_DEBUG_OP = 0b_0000_0001,
+    const EE_VSYNC    = 0b_0000_0010
+  }
+);

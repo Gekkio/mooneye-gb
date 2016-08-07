@@ -13,8 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-#![allow(dead_code)]
-
 use std::fmt;
 
 use config::HardwareConfig;
@@ -70,7 +68,6 @@ pub struct Hardware {
 enum OamDmaState {
   Inactive,
   Requested,
-  Starting,
   Active
 }
 
@@ -158,6 +155,7 @@ impl Hardware {
               self.gpu.write_oam(addr as u8, value)
             },
           _ => ()
+          // _ => panic!("Unsupported write at ${:04x} = {:02x}", addr, value)
         }
       },
       0xff => {

@@ -70,7 +70,7 @@ impl Joypad {
   /// Updates the register state based on select bits P14-P15 and the
   /// pressed buttons
   fn update_register(&mut self) {
-    self.register = self.register & JOYPAD_WRITABLE;
+    self.register &= JOYPAD_WRITABLE;
     if self.register.contains(JOYPAD_SELECT_DIRECTIONAL) {
       self.register.insert(self.pressed_directional);
     }

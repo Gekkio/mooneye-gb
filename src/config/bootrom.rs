@@ -84,13 +84,10 @@ impl Bootrom {
   }
   pub fn save_to_home(&self) -> Result<(), io::Error> {
     if let Some(home) = env::home_dir().map(|home| home.join(".mooneye-gb")) {
-      match fs::create_dir(&home) {
-        Err(e) => {
-          if e.kind() != io::ErrorKind::AlreadyExists {
-            return Err(e);
-          }
-        },
-        _ => ()
+      if let Err(e) = fs::create_dir(&home) {
+        if e.kind() != io::ErrorKind::AlreadyExists {
+          return Err(e);
+        }
       }
       let path = home.join(self.model.bootrom_file_name());
       let mut file = try!(File::create(&path));

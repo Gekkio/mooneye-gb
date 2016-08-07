@@ -15,36 +15,29 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-pub use self::flags::{Flags, ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY};
-
-#[allow(dead_code)]
-mod flags {
-  use std::fmt;
-
-  bitflags!(
-    pub flags Flags: u8 {
-      const ZERO         = 0b_1000_0000,
-      const ADD_SUBTRACT = 0b_0100_0000,
-      const HALF_CARRY   = 0b_0010_0000,
-      const CARRY        = 0b_0001_0000
-    }
-  );
-
-  impl Flags {
-    #[inline]
-    pub fn test(&self, test: bool) -> Flags { if test { *self } else { Flags::empty() } }
+bitflags!(
+  pub flags Flags: u8 {
+    const ZERO         = 0b_1000_0000,
+    const ADD_SUBTRACT = 0b_0100_0000,
+    const HALF_CARRY   = 0b_0010_0000,
+    const CARRY        = 0b_0001_0000
   }
+);
 
-  impl fmt::Binary for Flags {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      fmt::Binary::fmt(&(self.bits >> 4), f)
-    }
+impl Flags {
+  #[inline]
+  pub fn test(&self, test: bool) -> Flags { if test { *self } else { Flags::empty() } }
+}
+
+impl fmt::Binary for Flags {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fmt::Binary::fmt(&(self.bits >> 4), f)
   }
+}
 
-  impl fmt::LowerHex for Flags {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      fmt::LowerHex::fmt(&self.bits, f)
-    }
+impl fmt::LowerHex for Flags {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fmt::LowerHex::fmt(&self.bits, f)
   }
 }
 

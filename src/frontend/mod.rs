@@ -26,7 +26,7 @@ use std::error::Error;
 use std::fmt;
 use std::path::PathBuf;
 use std::thread;
-use time::{Duration, SteadyTime};
+use std::time::{Duration, Instant};
 use url::Url;
 
 use config::{Bootrom, Cartridge, HardwareConfig};
@@ -114,33 +114,31 @@ impl From<String> for FrontendError {
 
 impl Error for FrontendError {
   fn description(&self) -> &str {
+    use self::FrontendError::*;
     match *self {
-      FrontendError::Sdl(ref msg) => msg,
-      FrontendError::Renderer(ref msg) => msg,
-      FrontendError::Other(ref msg) => msg
+      Sdl(ref msg) | Renderer(ref msg) | Other(ref msg) => msg
     }
   }
 }
 
 impl fmt::Display for FrontendError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    use self::FrontendError::*;
     match *self {
-      FrontendError::Sdl(ref msg) => f.write_str(msg),
-      FrontendError::Renderer(ref msg) => f.write_str(msg),
-      FrontendError::Other(ref msg) => f.write_str(msg)
+      Sdl(ref msg) | Renderer(ref msg) | Other(ref msg) => f.write_str(msg)
     }
   }
 }
 
 struct FrameTimes {
   frame_duration: Duration,
-  last_time: SteadyTime,
-  target_time: SteadyTime
+  last_time: Instant,
+  target_time: Instant
 }
 
 impl FrameTimes {
   pub fn new(frame_duration: Duration) -> FrameTimes {
-    let now = SteadyTime::now();
+    let now = Instant::now();
     FrameTimes {
       frame_duration: frame_duration,
       last_time: now,
@@ -148,21 +146,21 @@ impl FrameTimes {
     }
   }
   pub fn reset(&mut self) {
-    let now = SteadyTime::now();
+    let now = Instant::now();
     self.last_time = now;
     self.target_time = now + self.frame_duration;
   }
   pub fn update(&mut self) -> Duration {
-    let now = SteadyTime::now();
+    let now = Instant::now();
     let delta = now - self.last_time;
     self.last_time = now;
-    self.target_time = self.target_time + self.frame_duration;
+    self.target_time += self.frame_duration;
     delta
   }
   pub fn limit(&self) {
-    let now = SteadyTime::now();
+    let now = Instant::now();
     if now < self.target_time {
-      thread::sleep_ms((self.target_time - now).num_milliseconds() as u32);
+      thread::sleep(self.target_time - now);
     }
   }
 }
@@ -193,7 +191,7 @@ impl SdlFrontend {
       display: display,
       gui: gui,
       renderer: renderer,
-      times: FrameTimes::new(Duration::seconds(1) / 60)
+      times: FrameTimes::new(Duration::from_secs(1) / 60)
     })
   }
   pub fn main(mut self, bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> FrontendResult<()> {
@@ -360,7 +358,7 @@ impl SdlFrontend {
         if turbo {
           EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32 / 60)
         } else {
-          EmuDuration::clock_cycles((delta * gameboy::CPU_SPEED_HZ as i32).num_seconds() as u32)
+          EmuDuration::clock_cycles((delta * gameboy::CPU_SPEED_HZ as u32).as_secs() as u32)
         };
 
       let target_time = emu_time + clock_edges;
@@ -448,10 +446,10 @@ fn resolve_sdl_filename(filename: String) -> Result<PathBuf, String> {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn configure_gl_attr<'a>(_: &mut GLAttr<'a>) { }
+fn configure_gl_attr(_: &mut GLAttr) { }
 
 #[cfg(target_os = "macos")]
-fn configure_gl_attr<'a>(gl_attr: &mut GLAttr<'a>) {
+fn configure_gl_attr(gl_attr: &mut GLAttr) {
   use sdl2::video::GLProfile;
   gl_attr.set_context_major_version(3);
   gl_attr.set_context_minor_version(2);

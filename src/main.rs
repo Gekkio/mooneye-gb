@@ -27,7 +27,6 @@ extern crate num;
 extern crate podio;
 extern crate rustc_serialize;
 extern crate sdl2;
-extern crate time;
 extern crate url;
 
 #[cfg(test)]

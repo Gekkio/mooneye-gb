@@ -25,7 +25,7 @@ fn add_sp_e_timing() { run_test("acceptance/add_sp_e_timing") }
 fn boot_hwio_dmg_abcx_mgb() { run_test_with_models("acceptance/boot_hwio-dmgABCXmgb", &[Dmg, Mgb]) }
 
 #[test]
-fn boot_hwio_S() { run_test_with_models("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
+fn boot_hwio_s() { run_test_with_models("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
 
 #[test]
 fn boot_regs_dmg0() { run_test_with_model("acceptance/boot_regs-dmg0", Dmg0) }

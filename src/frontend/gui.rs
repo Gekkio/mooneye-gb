@@ -4,7 +4,7 @@ use imgui::{ImGui, ImGuiSetCond_Always, ImStr, ImVec4, Ui};
 use imgui::glium_renderer::{Renderer, RendererError};
 use sdl2::mouse::{MouseUtil};
 use std::f32;
-use time::Duration;
+use std::time::Duration;
 
 use config::HardwareConfig;
 use super::{FrontendError, FrontendResult};
@@ -38,7 +38,7 @@ impl Gui {
   pub fn render<S: Surface, T: Screen>(&mut self, surface: &mut S,
                                       delta: Duration, mouse: &MouseUtil,
                                       screen: &mut T) -> FrontendResult<()> {
-    let delta_s = delta.num_nanoseconds().unwrap() as f32 / 1_000_000_000.0;
+    let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
     let (width, height) = surface.get_dimensions();
     let (mouse_state, mouse_x, mouse_y) = mouse.mouse_state();
     self.imgui.set_mouse_down(&[

@@ -13,8 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-#![allow(dead_code)]
-
 use std::fmt;
 use std::cmp::Ordering;
 

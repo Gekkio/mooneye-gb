@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::path::PathBuf;
-use time::{Duration, SteadyTime};
+use std::time::{Duration, Instant};
 
 use config::{Bootrom, Cartridge, HardwareConfig, Model};
 use config::DEFAULT_MODEL_PRIORITY;
@@ -36,15 +36,15 @@ pub fn run_test_with_model(name: &str, model: Model) {
     cartridge: cartridge
   };
 
-  let max_duration = Duration::seconds(120);
-  let start_time = SteadyTime::now();
+  let max_duration = Duration::from_secs(120);
+  let start_time = Instant::now();
   let pulse_duration = EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32);
 
   let mut machine = Machine::new(hardware_config);
   let mut registers = None;
   let mut emu_time = EmuTime::zero();
   loop {
-    let time = SteadyTime::now();
+    let time = Instant::now();
     if time - start_time > max_duration {
       break;
     }

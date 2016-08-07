@@ -16,8 +16,7 @@
 use std::ops::Index;
 
 pub struct Bootrom {
-  data: Vec<u8>,
-  installed: bool,
+  data: Box<[u8]>,
   active: bool
 }
 
@@ -29,15 +28,12 @@ impl Bootrom {
     };
 
     Bootrom {
-      data: data,
-      installed: installed,
+      data: data.into_boxed_slice(),
       active: installed
     }
   }
 
-  pub fn is_installed(&self) -> bool { self.installed }
   pub fn is_active(&self) -> bool { self.active }
-
   pub fn deactivate(&mut self) { self.active = false; }
 }
 

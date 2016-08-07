@@ -27,6 +27,7 @@ pub enum Color {
 }
 
 impl Color {
+  #[inline]
   pub fn from_u8(value: u8) -> Color {
     use self::Color::*;
     match value {
