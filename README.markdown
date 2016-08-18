@@ -67,14 +67,16 @@ verified:
 | Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |
 
-I also have access to these devices with different mainboard revisions, but I
+### Additional devices
+
+I also have access to more devices with different mainboard revisions, but I
 think the CPU revision is all that matters if we study the behaviour and not
 analog charasteristics (e.g. audio filtering). Even if audio sounded different
 between two units with the same CPU revision but different mainboard revisions
 but same CPU revision, I'd expect the difference to be caused by individual
-device variation or different revisions of support chips (e.g.  RAM/AMP/REG).
+device variation or different revisions of support chips (e.g. RAM/AMP/REG).
 
-The main test "fleet" is already very big, so I will only use these devices if
+The main "test fleet" is already very big, so I will only use these devices if
 there's evidence of behaviour that depends on mainboard revision or individual
 units.
 
@@ -168,7 +170,7 @@ Symbols:
 
 These emulators are intentionally omited:
 
-* KiGB. This emulator has bold claims for accuracy and compatibility.
+* KiGB. This emulator has bold claims about accuracy and compatibility.
   However, version 2.05 was tested and it barely passed any tests at all.
   See the [accuracy table from history](https://github.com/Gekkio/mooneye-gb/tree/401b8b1a4834459df18c8cf781c37a30b2b7848e)
 
@@ -322,9 +324,9 @@ revisions:
 * DMG: 0, A, B, C, X (blob)
 * CGB: 0, A, B, C, D, E
 * AGB: 0, A, B, B E. Revision E also exists, but only in Game Boy Micro (OXY)
-  so it is out of scope from this project.
+  so it is out of this project's scope.
 
-In general, hardware can be divided on to a couple of groups based on their
+In general, hardware can be divided to a couple of groups based on their
 behaviour. Some tests are expected to pass on a single or multiple groups:
 
 * G = dmg+mgb
