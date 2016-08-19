@@ -49,8 +49,12 @@ All test ROMs are manually run with these devices:
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |
 | Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       |
 | Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         |
+| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |
+| Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |
 | Game Boy Color      | CGB-001  | CGB-CPU-03   | CPU CGB C        |
 | Game Boy Color      | CGB-001  | CGB-CPU-05   | CPU CGB D        |
+| Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E        |
+| Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          |
 | Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      |
 
@@ -61,20 +65,16 @@ verified:
 | ------------------- | -------- | ------------ | -----------      |
 | Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A        |
 | Game Boy            | DMG-01   | DMG-CPU-07   | DMG CPU X (blob) |
-| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |
-| Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |
-| Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E        |
-| Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |
 
 ### Additional devices
 
 I also have access to more devices with different mainboard revisions, but I
 think the CPU revision is all that matters if we study the behaviour and not
-analog charasteristics (e.g. audio filtering). Even if audio sounded different
-between two units with the same CPU revision but different mainboard revisions
-but same CPU revision, I'd expect the difference to be caused by individual
-device variation or different revisions of support chips (e.g. RAM/AMP/REG).
+analog characteristics (e.g. audio filtering). Even if audio sounded different
+between two units with the same CPU revision but different mainboard revisions,
+I'd expect the difference to be caused by individual device variation or
+different revisions of support chips (e.g. RAM/AMP/REG).
 
 The main "test fleet" is already very big, so I will only use these devices if
 there's evidence of behaviour that depends on mainboard revision or individual
