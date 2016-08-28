@@ -168,7 +168,7 @@ Symbols:
 * :x: fail
 * :o: pass with caveats, see notes
 
-These emulators are intentionally omited:
+These emulators are omitted:
 
 * KiGB. This emulator has bold claims about accuracy and compatibility.
   However, version 2.05 was tested and it barely passed any tests at all.
