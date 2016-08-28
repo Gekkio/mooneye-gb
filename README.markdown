@@ -189,7 +189,8 @@ These emulators are intentionally omited:
 | Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan  | MESS |
 | ----------------------- | ---------- | ---- | -------- | ------------- | ------ | ---- |
 | add sp e timing         | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :x:  |
-| boot hwio dmgABCXmgb    | :+1:       | :+1: | :+1:     | :x:           | :+1:   | :x:  |
+| boot hwio dmg0          | :x:        | :o:  |          |               |        |      |
+| boot hwio dmgABCXmgb    | :x:        | :+1: | :+1:     | :x:           | :x:    | :x:  |
 | boot hwio S             | :+1:       | :o:  |          | :x:           | :+1:   | :x:  |
 | boot regs dmg0          | :+1:       | :o:  |          | :x:           |        |      |
 | boot regs dmgABCX       | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
@@ -287,7 +288,6 @@ Notes:
 
 | Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
 | --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- |
-| boot hwio dmg0  |            |      |          |               |       |      |
 | boot hwio C     |            | :+1: |          | :x:           |       | :x:  |
 | boot regs A     |            | :x:  |          | :x:           |       |      |
 | boot regs cgb   |            | :+1: |          | :x:           |       | :+1: |

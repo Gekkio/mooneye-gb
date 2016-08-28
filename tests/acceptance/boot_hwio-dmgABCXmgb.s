@@ -15,9 +15,8 @@
 ; along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 
 ; Tests the initial values of hardware IO registers that are not
-; affected by the test itself, timing, or random factors.
-; Therefore, we skip $FF04 (DIV), $FF30-$FF3F (wave ram),
-; $FF40 (LCDC) and $FF41 (STAT)
+; affected by random factors.
+; Therefore, we skip $FF30-$FF3F (wave ram)
 
 ; Verified results:
 ;   pass: DMG, MGB
@@ -87,7 +86,7 @@ mismatch_cb
 hwio_data:
 ;   mask bits  values                                   address of first byte
 ;   |          |                                        |
-.db %11110111, $CF, $00, $7E, $FF, $FF, $00, $00, $F8 ; $FF00
+.db %11111111, $CF, $00, $7E, $FF, $AD, $00, $00, $F8 ; $FF00
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $E1 ; $FF08
 .db %11111111, $80, $BF, $F3, $FF, $BF, $FF, $3F, $00 ; $FF10
 .db %11111111, $FF, $BF, $7F, $FF, $9F, $FF, $BF, $FF ; $FF18
@@ -95,7 +94,7 @@ hwio_data:
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF28
 .db %00000000, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF30
 .db %00000000, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF38
-.db %00110111, $FF, $FF, $00, $00, $FF, $00, $FF, $FC ; $FF40
+.db %11111111, $91, $80, $00, $00, $0A, $00, $FF, $FC ; $FF40
 .db %11111111, $FF, $FF, $00, $00, $FF, $FF, $FF, $FF ; $FF48
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF50
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF58
