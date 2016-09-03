@@ -85,6 +85,7 @@ units.
 | Game Boy            | DMG-01   | DMG-CPU-03   | DMG CPU B        |
 | Game Boy            | DMG-01   | DMG-CPU-05   | DMG CPU B        |
 | Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-08   | DMG CPU X (blob) |
 | Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB          |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |
@@ -97,8 +98,8 @@ units.
 I'm still looking for the following devices:
 
 * CPUS: DMG CPU C, CPU CGB A. These are important for reverse engineering
-* Mainboards: DMG-CPU-08, AGB-CPU-04, SGB-R-01, SGB-N-01, SGB-N-10,
-  C/AGS-CPU-10, C/AGS-CPU-11, C/AGS-CPU-20, C/AGS-CPU-30. As described earlier,
+* Mainboards: AGB-CPU-04, SGB-R-01, SGB-N-01, SGB-N-10, C/AGS-CPU-10,
+  C/AGS-CPU-11, C/AGS-CPU-20, C/AGS-CPU-30. As described earlier,
   these are probably not required for reverse engineering.
 
 **For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on
