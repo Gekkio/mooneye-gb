@@ -23,7 +23,7 @@ extern crate glium_sdl2;
 #[macro_use]
 extern crate imgui;
 extern crate nalgebra;
-extern crate num;
+extern crate num_traits;
 extern crate podio;
 extern crate rustc_serialize;
 extern crate sdl2;
