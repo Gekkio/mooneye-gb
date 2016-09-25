@@ -181,8 +181,8 @@ These emulators are omitted:
 
 Notes:
 
-* cpu_instrs fails on MGB hardware and emulators emulating MGB correctly. The
-  ROM incorrectly detects the device as CGB, and attempts to perform a CPU
+* cpu_instrs fails on MGB/SGB2 hardware and emulators emulating them correctly.
+  The ROM incorrectly detects the device as CGB, and attempts to perform a CPU
   speed change which causes a freeze (STOP instruction with joypad disabled)
 
 ### Mooneye GB acceptance tests
