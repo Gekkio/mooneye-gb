@@ -179,6 +179,12 @@ These emulators are omitted:
 | mem timing 2      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
 | oam bug 2         | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  |
 
+Notes:
+
+* cpu_instrs fails on MGB hardware and emulators emulating MGB correctly. The
+  ROM incorrectly detects the device as CGB, and attempts to perform a CPU
+  speed change which causes a freeze (STOP instruction with joypad disabled)
+
 ### Mooneye GB acceptance tests
 
 | Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan  | MESS |
