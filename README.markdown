@@ -87,12 +87,13 @@ units.
 | Game Boy Color      | CGB-001  | CGB-CPU-04   | CPU CGB D        |
 | Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          |
 | Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        |
+| Game Boy Advance    | AGB-001  | AGB-CPU-04   | CPU AGB A        |
 | Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E      |
 
 I'm still looking for the following devices:
 
 * CPUS: DMG CPU C, CPU CGB A. These are important for reverse engineering
-* Mainboards: AGB-CPU-04, SGB-R-01, SGB-N-01, SGB-N-10, C/AGS-CPU-10,
+* Mainboards: SGB-R-01, SGB-N-01, SGB-N-10, C/AGS-CPU-10,
   C/AGS-CPU-11, C/AGS-CPU-20, C/AGS-CPU-30. As described earlier,
   these are probably not required for reverse engineering.
 
