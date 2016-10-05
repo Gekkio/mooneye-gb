@@ -29,7 +29,7 @@ all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 
 $(BUILD_PATH)/%.o: %.s common/*.s
 	@mkdir -p $(BUILD_PATH)/$(dir $<)
-	@cd $(dir $<) && $(WLA) $(WLAFLAGS) -o $(abspath $@) $(notdir $<)
+	@cd $(dir $<) && $(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $(notdir $<)
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
 	@mkdir -p $(dir $<)
