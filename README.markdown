@@ -44,13 +44,13 @@ All test ROMs are manually run with these devices:
 
 | Device              | Model    | Mainboard    | CPU              |
 | ------------------- | -------- | ------------ | ---------------- |
-| Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU          |
-| Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A        |
-| Game Boy            | DMG-01   | DMG-CPU-04   | DMG CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU C        |
-| Game Boy            | DMG-01   | DMG-CPU-07   | DMG CPU X (blob) |
-| Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          |
+| Game Boy            | DMG-01   | DMG-CPU-01   | DMG-CPU          |
+| Game Boy            | DMG-01   | DMG-CPU-02   | DMG-CPU A        |
+| Game Boy            | DMG-01   | DMG-CPU-04   | DMG-CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU C        |
+| Game Boy            | DMG-01   | DMG-CPU-07   | DMG-CPU X (blob) |
 | Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       |
+| Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          |
 | Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         |
 | Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |
 | Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |
@@ -77,14 +77,14 @@ units.
 
 | Device              | Model    | Mainboard    | CPU              |
 | ------------------- | -------- | ------------ | -----------      |
-| Game Boy            | DMG-01   | DMG-CPU-03   | DMG CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-05   | DMG CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-08   | DMG CPU X (blob) |
+| Game Boy            | DMG-01   | DMG-CPU-03   | DMG-CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-05   | DMG-CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-08   | DMG-CPU X (blob) |
+| Super Game Boy      | SNSP-027 | SGB-R-10     | SGB-CPU-01       |
 | Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB          |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |
-| Super Game Boy      | SNSP-027 | SGB-R-10     | SGB-CPU-01       |
 | Game Boy Color      | CGB-001  | CGB-CPU-04   | CPU CGB D        |
 | Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          |
 | Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        |
