@@ -350,3 +350,7 @@ sgb+sgb2.
 
 Mooneye GB is licensed under GPLv3+.
 Copyright (C) 2014-2016 Joonas Javanainen <joonas.javanainen@gmail.com>
+
+The test framework and hardware tests under `tests/` are licensed
+under MIT.
+Copyright (C) 2014-2016 Joonas Javanainen <joonas.javanainen@gmail.com>
