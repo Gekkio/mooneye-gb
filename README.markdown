@@ -43,10 +43,11 @@ developing emulation for a feature:
 All test ROMs are manually run with these devices:
 
 | Device              | Model    | Mainboard    | CPU              |
-| ------------------- | -------- | ------------ | -----------      |
+| ------------------- | -------- | ------------ | ---------------- |
 | Game Boy            | DMG-01   | DMG-CPU-01   | DMG CPU          |
 | Game Boy            | DMG-01   | DMG-CPU-02   | DMG CPU A        |
 | Game Boy            | DMG-01   | DMG-CPU-04   | DMG CPU B        |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU C        |
 | Game Boy            | DMG-01   | DMG-CPU-07   | DMG CPU X (blob) |
 | Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          |
 | Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       |
@@ -60,13 +61,6 @@ All test ROMs are manually run with these devices:
 | Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      |
-
-These devices will also be used, but results for old tests have not yet been
-verified:
-
-| Device              | Model    | Mainboard    | CPU              |
-| ------------------- | -------- | ------------ | -----------      |
-| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU C        |
 
 ### Additional devices
 
