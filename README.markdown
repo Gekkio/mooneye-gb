@@ -61,6 +61,13 @@ All test ROMs are manually run with these devices:
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      |
 
+These devices will also be used, but results for old tests have not yet been
+verified:
+
+| Device              | Model    | Mainboard    | CPU              |
+| ------------------- | -------- | ------------ | -----------      |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG CPU C        |
+
 ### Additional devices
 
 I also have access to more devices with different mainboard revisions, but I
@@ -92,7 +99,7 @@ units.
 
 I'm still looking for the following devices:
 
-* CPUS: DMG CPU C, CPU CGB A. These are important for reverse engineering
+* CPUS: CPU CGB A. This CPU version is important for reverse engineering
 * Mainboards: SGB-R-01, SGB-N-01, SGB-N-10, C/AGS-CPU-10,
   C/AGS-CPU-11, C/AGS-CPU-20, C/AGS-CPU-30. As described earlier,
   these are probably not required for reverse engineering.
