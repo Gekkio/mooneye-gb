@@ -96,7 +96,9 @@ units.
 | Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          |
 | Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        |
 | Game Boy Advance    | AGB-001  | AGB-CPU-04   | CPU AGB A        |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-10 | CPU AGB B        |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-11 | CPU AGB B        |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-30 | CPU AGB B E      |
 | Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E      |
 
 I'm still looking for the following mainboards, but these are probably not
@@ -105,9 +107,7 @@ required for reverse engineering:
 * SGB-R-01
 * SGB-N-01
 * SGB-N-10
-* C/AGS-CPU-10
 * C/AGS-CPU-20
-* C/AGS-CPU-30
 
 **For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on
 CGB/AGB/AGS or emulators emulating those devices.**
