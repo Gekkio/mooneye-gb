@@ -166,7 +166,6 @@ Versions used:
 * mooneye-gb (master)
 * BGB 1.5.2
 * Gambatte 2015-03-23 (f9fb003)
-* GiiBiiAdvance 2015-05-16 (dbf669a)
 * Higan v098 (in Game Boy mode, except for SGB/SGB2-specific test ROMs)
 * MESS 0.179
 
@@ -181,16 +180,18 @@ These emulators are omitted:
 * KiGB. This emulator has bold claims about accuracy and compatibility.
   However, version 2.05 was tested and it barely passed any tests at all.
   See the [accuracy table from history](https://github.com/Gekkio/mooneye-gb/tree/401b8b1a4834459df18c8cf781c37a30b2b7848e)
+* GiiBiiAdvance. This emulator seems to be unmaintained, but you can check
+  the [accuracy table from history](https://github.com/Gekkio/mooneye-gb/tree/6f18d5094fc820b48ac5371c1fb07b78b47e67e8) for old results.
 
 ### Blargg's tests
 
-| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| ----------------- | ---------- | ---- | -------- | ------------- | ----- | ---- |
-| cpu instrs        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| dmg sound 2       | :x:        | :+1: | :+1:     | :x:           | :x:   | :o:  |
-| instr timing      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| mem timing 2      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| oam bug 2         | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  |
+| Test              | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| ----------------- | ---------- | ---- | -------- | ----- | ---- |
+| cpu instrs        | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| dmg sound 2       | :x:        | :+1: | :+1:     | :x:   | :o:  |
+| instr timing      | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| mem timing 2      | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| oam bug 2         | :x:        | :x:  | :x:      | :x:   | :x:  |
 
 Notes:
 
@@ -202,123 +203,122 @@ Notes:
 
 ### Mooneye GB acceptance tests
 
-| Test                    | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan  | MESS |
-| ----------------------- | ---------- | ---- | -------- | ------------- | ------ | ---- |
-| add sp e timing         | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| boot hwio dmg0          | :x:        | :o:  |          |               |        | :+1: |
-| boot hwio dmgABCXmgb    | :x:        | :+1: | :+1:     | :x:           | :x:    | :+1: |
-| boot hwio S             | :+1:       | :o:  |          | :x:           | :+1:   | :x:  |
-| boot regs dmg0          | :+1:       | :o:  |          | :x:           |        | :+1: |
-| boot regs dmgABCX       | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| boot regs mgb           | :+1:       | :o:  |          | :+1:          |        | :+1: |
-| boot regs sgb           | :+1:       | :o:  |          | :+1:          | :+1:   | :+1: |
-| boot regs sgb2          | :+1:       | :o:  |          | :+1:          | :x:    | :+1: |
-| call timing             | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| call timing2            | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| call cc_timing          | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| call cc_timing2         | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| di timing GS            | :+1:       | :+1: | :+1:     | :x:           | :+1:   | :+1: |
-| div timing              | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| ei timing               | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| halt ime0 ei            | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| halt ime0 nointr_timing | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| halt ime1 timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| halt ime1 timing2 GS    | :+1:       | :+1: | :+1:     | :x:           | :+1:   | :+1: |
-| if ie registers         | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| intr timing             | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| jp timing               | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| jp cc timing            | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| ld hl sp e timing       | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| oam dma_restart         | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| oam dma start           | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| oam dma timing          | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| pop timing              | :+1:       | :x:  | :+1:     | :+1:          | :+1:   | :+1: |
-| push timing             | :+1:       | :x:  | :x:      | :x:           | :+1:   | :+1: |
-| rapid di ei             | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| ret timing              | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| ret cc timing           | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| reti timing             | :+1:       | :x:  | :+1:     | :x:           | :+1:   | :+1: |
-| reti intr timing        | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| rst timing              | :+1:       | :x:  | :x:      | :x:           | :+1:   | :+1: |
+| Test                    | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
+| ----------------------- | ---------- | ---- | -------- | ------ | ---- |
+| add sp e timing         | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| boot hwio dmg0          | :x:        | :o:  |          |        | :+1: |
+| boot hwio dmgABCXmgb    | :x:        | :+1: | :+1:     | :x:    | :+1: |
+| boot hwio S             | :+1:       | :o:  |          | :+1:   | :x:  |
+| boot regs dmg0          | :+1:       | :o:  |          |        | :+1: |
+| boot regs dmgABCX       | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| boot regs mgb           | :+1:       | :o:  |          |        | :+1: |
+| boot regs sgb           | :+1:       | :o:  |          | :+1:   | :+1: |
+| boot regs sgb2          | :+1:       | :o:  |          | :x:    | :+1: |
+| call timing             | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| call timing2            | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| call cc_timing          | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| call cc_timing2         | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| di timing GS            | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| div timing              | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| ei timing               | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| halt ime0 ei            | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| halt ime0 nointr_timing | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| halt ime1 timing        | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| halt ime1 timing2 GS    | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| if ie registers         | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| intr timing             | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| jp timing               | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| jp cc timing            | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| ld hl sp e timing       | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| oam dma_restart         | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| oam dma start           | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| oam dma timing          | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| pop timing              | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| push timing             | :+1:       | :x:  | :x:      | :+1:   | :+1: |
+| rapid di ei             | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| ret timing              | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| ret cc timing           | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| reti timing             | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| reti intr timing        | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| rst timing              | :+1:       | :x:  | :x:      | :+1:   | :+1: |
 
 Notes:
 
 * BGB passes most boot tests only if you explicitly enable boot ROMs and give it the right one.
   This makes sense for DMG0, MGB, and SGB2 because they are not selectable, but SGB should work
   without boot ROMs out of the box.
-* Enabling boot ROMs in GiiBiiAdvance has no effect on test results
 
 #### Bits (unusable bits in memory and registers)
 
-| Test           | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| -------------- | ---------- | ---- | -------- | ------------- | ------| ---- |
-| mem oam        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| reg f          | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| unused_hwio GS | :+1:       | :x:  | :+1:     | :x:           | :x:   | :+1: |
+| Test           | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| -------------- | ---------- | ---- | -------- | ------| ---- |
+| mem oam        | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| reg f          | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| unused_hwio GS | :+1:       | :x:  | :+1:     | :x:   | :+1: |
 
 #### GPU
 
-| Test                        | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| --------------------------- | ---------- | ---- | -------- | ------------- | ------| ---- |
-| hblank ly scx timing GS     | :+1:       | :x:  | :x:      | :x:           | :x:   | :+1: |
-| intr 1 2 timing GS          | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :+1: |
-| intr 2 0 timing             | :+1:       | :+1: | :x:      | :x:           | :+1:  | :+1: |
-| intr 2 mode0 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :+1: |
-| intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:           | :x:   | :+1: |
-| intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:           | :x:   | :+1: |
-| intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:           | :x:   | :+1: |
-| stat irq blocking           | :x:        | :x:  | :+1:     | :x:           | :x:   | :+1: |
-| vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:          | :+1:  | :+1: |
+| Test                        | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| --------------------------- | ---------- | ---- | -------- | ------| ---- |
+| hblank ly scx timing GS     | :+1:       | :x:  | :x:      | :x:   | :+1: |
+| intr 1 2 timing GS          | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| intr 2 0 timing             | :+1:       | :+1: | :x:      | :+1:  | :+1: |
+| intr 2 mode0 timing         | :+1:       | :+1: | :x:      | :x:   | :+1: |
+| intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:   | :+1: |
+| intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:   | :+1: |
+| intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:   | :+1: |
+| stat irq blocking           | :x:        | :x:  | :+1:     | :x:   | :+1: |
+| vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:  | :+1: |
 
 #### Timer
 
-| Test                 | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan  | MESS |
-| -------------------- | ---------- | ---- | -------- | ------------- | ------ | ---- |
-| div write            | :x:        | :+1: | :x:      | :+1:          | :+1:   | :+1: |
-| rapid toggle         | :x:        | :x:  | :x:      | :+1:          | :x:    | :+1: |
-| tim00 div trigger    | :+1:       | :x:  | :+1:     | :+1:          | :x:    | :+1: |
-| tim00                | :x:        | :+1: | :x:      | :+1:          | :+1:   | :+1: |
-| tim01 div trigger    | :x:        | :+1: | :x:      | :+1:          | :x:    | :+1: |
-| tim01                | :+1:       | :+1: | :+1:     | :+1:          | :+1:   | :+1: |
-| tim10 div trigger    | :x:        | :+1: | :x:      | :+1:          | :x:    | :+1: |
-| tim10                | :x:        | :+1: | :x:      | :+1:          | :+1:   | :+1: |
-| tim11 div trigger    | :+1:       | :x:  | :x:      | :+1:          | :x:    | :+1: |
-| tim11                | :x:        | :+1: | :x:      | :+1:          | :+1:   | :+1: |
-| tima reload          | :x:        | :x:  | :x:      | :+1:          | :x:    | :+1: |
-| tima write reloading | :x:        | :x:  | :x:      | :+1:          | :x:    | :+1: |
-| tma write reloading  | :x:        | :x:  | :x:      | :+1:          | :x:    | :+1: |
+| Test                 | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
+| -------------------- | ---------- | ---- | -------- | ------ | ---- |
+| div write            | :x:        | :+1: | :x:      | :+1:   | :+1: |
+| rapid toggle         | :x:        | :x:  | :x:      | :x:    | :+1: |
+| tim00 div trigger    | :+1:       | :x:  | :+1:     | :x:    | :+1: |
+| tim00                | :x:        | :+1: | :x:      | :+1:   | :+1: |
+| tim01 div trigger    | :x:        | :+1: | :x:      | :x:    | :+1: |
+| tim01                | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| tim10 div trigger    | :x:        | :+1: | :x:      | :x:    | :+1: |
+| tim10                | :x:        | :+1: | :x:      | :+1:   | :+1: |
+| tim11 div trigger    | :+1:       | :x:  | :x:      | :x:    | :+1: |
+| tim11                | :x:        | :+1: | :x:      | :+1:   | :+1: |
+| tima reload          | :x:        | :x:  | :x:      | :x:    | :+1: |
+| tima write reloading | :x:        | :x:  | :x:      | :x:    | :+1: |
+| tma write reloading  | :x:        | :x:  | :x:      | :x:    | :+1: |
 
 ### Mooneye GB emulator-only tests
 
-| Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| ----------------- | ---------- | ---- | -------- | ------------- | ----- | ---- |
-| mbc1 rom 4banks   | :+1:       | :x:  | :+1:     | :+1:          | :+1:  | :+1: |
+| Test              | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| ----------------- | ---------- | ---- | -------- | ----- | ---- |
+| mbc1 rom 4banks   | :+1:       | :x:  | :+1:     | :+1:  | :+1: |
 
 ### Mooneye GB manual tests
 
-| Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- |
-| sprite priority | :+1:       | :+1: | :+1:     | :x:           | :+1:  | :x:  |
+| Test            | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| --------------- | ---------- | ---- | -------- | ----- | ---- |
+| sprite priority | :+1:       | :+1: | :+1:     | :+1:  | :x:  |
 
 ### Mooneye GB misc tests
 
-| Test            | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| --------------- | ---------- | ---- | -------- | ------------- | ----- | ---- |
-| boot hwio C     |            | :+1: |          | :x:           |       | :x:  |
-| boot regs A     |            | :x:  |          | :x:           |       |      |
-| boot regs cgb   |            | :+1: |          | :x:           |       | :+1: |
+| Test            | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| --------------- | ---------- | ---- | -------- | ----- | ---- |
+| boot hwio C     |            | :+1: |          |       | :x:  |
+| boot regs A     |            | :x:  |          |       |      |
+| boot regs cgb   |            | :+1: |          |       | :+1: |
 
 #### Bits
 
-| Test          | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| ------------- | ---------- | ---- | -------- | ------------- | ----- | ---- |
-| unused hwio C |            | :x:  |          | :x:           |       | :x:  |
+| Test          | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| ------------- | ---------- | ---- | -------- | ----- | ---- |
+| unused hwio C |            | :x:  |          |       | :x:  |
 
 #### GPU
 
-| Test               | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
-| ------------------ | ---------- | ---- | -------- | ------------- | ----- | ---- |
-| vblank stat intr C |            | :x:  |          | :x:           |       | :+1: |
+| Test               | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| ------------------ | ---------- | ---- | -------- | ----- | ---- |
+| vblank stat intr C |            | :x:  |          |       | :+1: |
 
 ### Test naming
 
