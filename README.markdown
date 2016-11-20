@@ -187,7 +187,7 @@ These emulators are omitted:
 | Test              | mooneye-gb | BGB  | Gambatte | GiiBiiAdvance | Higan | MESS |
 | ----------------- | ---------- | ---- | -------- | ------------- | ----- | ---- |
 | cpu instrs        | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
-| dmg sound 2       | :x:        | :+1: | :+1:     | :x:           | :x:   | :+1: |
+| dmg sound 2       | :x:        | :+1: | :+1:     | :x:           | :x:   | :o:  |
 | instr timing      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
 | mem timing 2      | :+1:       | :+1: | :+1:     | :+1:          | :+1:  | :+1: |
 | oam bug 2         | :x:        | :x:  | :x:      | :x:           | :x:   | :x:  |
@@ -198,6 +198,7 @@ Notes:
   The ROM incorrectly detects the device as CGB, and attempts to perform a CPU
   speed change which causes a freeze (STOP instruction with joypad disabled)
 * dmg_sound-2 test #10 fails on DMG-CPU A, DMG-CPU C, and MGB
+* MESS incorrectly passes dmg_sound-2 on MGB
 
 ### Mooneye GB acceptance tests
 
