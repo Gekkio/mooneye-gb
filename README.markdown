@@ -179,9 +179,9 @@ These emulators are omitted:
 
 * KiGB. This emulator has bold claims about accuracy and compatibility.
   However, version 2.05 was tested and it barely passed any tests at all.
-  See the [accuracy table from history](https://github.com/Gekkio/mooneye-gb/tree/401b8b1a4834459df18c8cf781c37a30b2b7848e)
+  See the [accuracy table from history](https://github.com/Gekkio/mooneye-gb/blob/401b8b1a4834459df18c8cf781c37a30b2b7848e/README.markdown#hardware-testing)
 * GiiBiiAdvance. This emulator seems to be unmaintained, but you can check
-  the [accuracy table from history](https://github.com/Gekkio/mooneye-gb/tree/6f18d5094fc820b48ac5371c1fb07b78b47e67e8) for old results.
+  the [accuracy table from history](https://github.com/Gekkio/mooneye-gb/blob/6f18d5094fc820b48ac5371c1fb07b78b47e67e8/README.markdown#hardware-testing) for old results.
 
 ### Blargg's tests
 
