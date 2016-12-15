@@ -306,37 +306,40 @@ _print_results_halt_\@:
   ; Inputs:
   ;   HL target
   ;   DE source
-  ;   BC number of bytes
-  ; Clobbers:
-  ;   AF, BC, DE, HL
+  ;   BC length
+  ; Outputs:
+  ;   HL target + length
+  ; Preserved: -
   memcpy:
--   ld a, (de)
+-   ld a, b
+    or c
+    ret z
+    ld a, (de)
     ld (hl+), a
     inc de
     dec bc
-    ld a,b
-    or c
-    jr nz, -
-    ret
+    jr -
 
   ; Inputs:
   ;   HL target
   ;   A value
-  ;   BC number of bytes
-  ; Clobbers:
-  ;   AF, BC, HL
+  ;   BC length
+  ; Outputs:
+  ;   HL target + number of bytes
+  ; Preserved: E
   memset:
     ld d, a
--   ld a, d
+-   ld a, b
+    or c
+    ret z
+    ld a, d
     ld (hl+), a
     dec bc
-    ld a, b
-    or c
-    jr nz, -
-    ret
+    jr -
 
-  ; Clobbers:
-  ;   AF, BC, DE, HL
+  ; Inputs: -
+  ; Outputs: -
+  ; Preserved: E
   clear_vram:
     ld hl, VRAM
     ld bc, $2000
