@@ -163,12 +163,12 @@ _wait_ly_\@:
 ; During OAM DMA the CPU cannot access any other memory,
 ; so our code needs to be there
 .macro run_hiram_test
-  ld hl, $FF80
+  ld hl, HIRAM
   ld de, hiram_test
   ld bc, $60 ; 0x60 bytes should be enough
   call memcpy
   ; jump to test procedure in hiram
-  jp $FF80
+  jp HIRAM
 .endm
 
 .macro start_oam_dma ARGS address
@@ -217,9 +217,7 @@ _test_ok_cb_\@:
 
 
 .macro print_results ARGS cb
-  enable_lcd
-  wait_vblank
-  disable_lcd
+  call disable_lcd_safe
   call reset_screen
   call print_load_font
 
@@ -357,15 +355,40 @@ _print_results_halt_\@:
   ; Preserved: E
   clear_vram:
     ld hl, VRAM
-    ld bc, $2000
+    ld bc, VRAM_LEN
     xor a
-    call memset
+    jp memset
+
+  ; Inputs: -
+  ; Outputs: -
+  ; Preserved: E
+  clear_oam:
+    ld hl, OAM
+    ld bc, OAM_LEN
+    xor a
+    jp memset
+
+  ; Inputs: -
+  ; Outputs: -
+  ; Preserved: BC, DE
+  disable_lcd_safe:
+    ld hl, LCDC
+    bit 7, (HL)
+    ret z
+    wait_vblank
+    res 7, (HL)
     ret
 
+  ; Inputs: -
+  ; Outputs: -
   reset_screen:
     xor a
     ldh (<SCY), a
     ldh (<SCX), a
+    ldh (<WX), a
+    ldh (<WY), a
+    ld a, $11
+    ldh (<LCDC), a
 
 .ifeq CART_CGB 1
     ld a, $82
@@ -379,8 +402,7 @@ _print_results_halt_\@:
     ldh (<BGP), a
 .endif
 
-    call clear_vram
-    ret
+    jp clear_vram
 
   process_results:
     print_results _process_results_cb
@@ -414,9 +436,7 @@ _print_results_halt_\@:
     ld a, h
     ld (memdump_addr + 1), a
 
-    enable_lcd
-    wait_vblank
-    disable_lcd
+    call disable_lcd_safe
     call reset_screen
     call print_load_font
 

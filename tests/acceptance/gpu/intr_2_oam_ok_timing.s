@@ -42,11 +42,7 @@
 
   di
   wait_vblank
-  ; Clear OAM
-  ld hl, OAM
-  ld bc, $a0
-  xor a
-  call memset
+  call clear_oam
 
 .macro test_iter ARGS delay
   call setup_and_wait_mode2

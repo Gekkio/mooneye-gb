@@ -29,8 +29,7 @@
 .include "common.s"
 
   di
-  wait_vblank
-  disable_lcd
+  call disable_lcd_safe
   call reset_screen
   call print_load_font
 
@@ -41,11 +40,7 @@
   ld a, $55
   ld (OBP1), a
 
-  ; Clear OAM
-  ld hl, OAM
-  ld bc, $a0
-  xor a
-  call memset
+  call clear_oam
 
   ; Copy data to OAM
   ld hl, OAM

@@ -44,6 +44,10 @@
 .define OAM   $FE00
 .define HIRAM $FF80
 
+.define VRAM_LEN  $2000
+.define OAM_LEN   $A0
+.define HIRAM_LEN $7F
+
 .define P1    $FF00
 .define SB    $FF01
 .define SC    $FF02

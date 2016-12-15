@@ -41,8 +41,7 @@
 .endm
 
   di
-  wait_vblank
-  disable_lcd
+  call disable_lcd_safe
   call reset_screen
   call print_load_font
 
@@ -303,13 +302,6 @@ setup_and_wait_mode2:
   halt
   nop
   jp fail_halt
-
-clear_oam:
-  ; Clear OAM
-  ld hl, OAM
-  ld bc, $a0
-  xor a
-  jp memset
 
 test_fail:
   print_results _test_fail_cb

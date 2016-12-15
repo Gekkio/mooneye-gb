@@ -30,11 +30,10 @@
 .include "common.s"
 
   di
-  wait_vblank
-  disable_lcd
+  call disable_lcd_safe
 
   ld hl, OAM
-  ld b, $a0
+  ld b, OAM_LEN
 
 -
 ; Write all 1s (= $FF) and expect the same value back

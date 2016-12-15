@@ -46,11 +46,10 @@
 .endm
 
   di
-  wait_vblank
-  disable_lcd
+  call disable_lcd_safe
 
   ld hl, VRAM
-  ld bc, $A0
+  ld bc, OAM_LEN
   ld a, $D7   ; RST $10
   call memset
 
@@ -96,10 +95,10 @@ finish_round1:
   ld (round1_oam), a
   ld a, b
   ld (round1_b), a
+  ld sp, $FFFE
 
 test_round2:
-  wait_vblank
-  disable_lcd
+  call disable_lcd_safe
 
   ld hl, vector_10
   ld a, <fail_round2
@@ -113,7 +112,7 @@ test_round2:
   ld (hl+), a
 
   ld hl, OAM
-  ld bc, $A0
+  ld bc, OAM_LEN
   ld a, $04   ; INC B
   call memset
 
