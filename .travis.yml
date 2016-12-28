@@ -21,6 +21,8 @@ addons:
 
 cache:
   cargo: true
+  directories:
+    - $HOME/bin
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_f29b02af6b5b_key -iv $encrypted_f29b02af6b5b_iv -in .travis/boot_roms.tar.enc -out .travis/boot_roms.tar -d
