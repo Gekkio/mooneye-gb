@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use std::fmt;
 use std::ops::{Add, AddAssign, Sub};
 
 use super::EmuDuration;
@@ -55,5 +56,11 @@ impl Sub for EmuTime {
   type Output = EmuDuration;
   fn sub(self, rhs: EmuTime) -> EmuDuration {
     EmuDuration::clock_edges(self.clock_edges - rhs.clock_edges)
+  }
+}
+
+impl fmt::Display for EmuTime {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "{} clock edges", self.clock_edges)
   }
 }
