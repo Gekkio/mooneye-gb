@@ -38,7 +38,7 @@ $(BUILD_PATH)/%.o: %.s common/*.s
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
 	@mkdir -p $(dir $<)
-	@echo "[objects]\n$(notdir $<)" > $@
+	@printf "[objects]\n%s" $(notdir $<) > $@
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
 	@mkdir -p $(dir $<)
