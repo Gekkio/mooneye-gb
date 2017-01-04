@@ -27,6 +27,7 @@ IMCONVERT ?= convert
 BUILD_PATH := build
 
 SRC := $(filter-out ./common/%.s,$(shell find . -type f -name '*.s'))
+OBJS := $(addprefix $(BUILD_PATH)/, $(TARGETS:.s=.o))
 
 LATEX_SRC := $(shell find . -type f -name '*.tex')
 
@@ -35,10 +36,12 @@ all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 $(BUILD_PATH):
 	@mkdir $(BUILD_PATH)
 
+$(OBJS): | $(BUILD_PATH)
+
 $(BUILD_PATH)/flags: force | $(BUILD_PATH)
 	@echo '${WLAFLAGS}' | cmp -s - $@ || echo '${WLAFLAGS}' > $@
 
-$(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags | $(BUILD_PATH)
+$(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags
 	@mkdir -p $(dir $@)
 	@$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
 
