@@ -27,28 +27,33 @@ IMCONVERT ?= convert
 BUILD_PATH := build
 
 SRC := $(filter-out ./common/%.s,$(shell find . -type f -name '*.s'))
+OBJS := $(addprefix $(BUILD_PATH)/, $(TARGETS:.s=.o))
 
 LATEX_SRC := $(shell find . -type f -name '*.tex')
 
 all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 
-$(BUILD_PATH)/flags: force
-	@mkdir -p $(BUILD_PATH)
+$(BUILD_PATH):
+	@mkdir $(BUILD_PATH)
+
+$(OBJS): | $(BUILD_PATH)
+
+$(BUILD_PATH)/flags: force | $(BUILD_PATH)
 	@echo '${WLAFLAGS}' | cmp -s - $@ || echo '${WLAFLAGS}' > $@
 
 $(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags
 	@mkdir -p $(dir $@)
-	cd $(dir $<) && $(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $(notdir $<)
+	$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
-	printf "[objects]\n%s" $(notdir $<) > $@
+	printf "[objects]\n%s" $< > $@
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
-	cd $(dir $<) && $(WLALINK) -S $(notdir $<) $(abspath $@)
+	$(WLALINK) -S $< $(abspath $@)
 	@echo --- $(notdir $(basename $@))
 
 $(BUILD_PATH)/%.pdf: %.tex
-	@mkdir -p $(dir $@)
+	@mkdir -p $(BUILD_PATH)/$(dir $<)
 	@$(LATEX) -halt-on-error -interaction=batchmode -output-directory=$(dir $@) $<
 
 $(BUILD_PATH)/%.png: $(BUILD_PATH)/%.pdf
