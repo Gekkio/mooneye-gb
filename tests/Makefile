@@ -32,23 +32,21 @@ LATEX_SRC := $(shell find . -type f -name '*.tex')
 
 all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 
-$(BUILD_PATH)/flags: force
-	@mkdir -p $(BUILD_PATH)
-	@echo '${WLAFLAGS}' | cmp -s - $@ || echo '${WLAFLAGS}' > $@
-
-$(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags
-	@mkdir -p $(dir $@)
-	cd $(dir $<) && $(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $(notdir $<)
+$(BUILD_PATH)/%.o: %.s common/*.s
+	@mkdir -p $(BUILD_PATH)/$(dir $<)
+	@cd $(dir $<) && $(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $(notdir $<)
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
-	printf "[objects]\n%s" $(notdir $<) > $@
+	@mkdir -p $(dir $<)
+	@printf "[objects]\n%s" $(notdir $<) > $@
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
-	cd $(dir $<) && $(WLALINK) -S $(notdir $<) $(abspath $@)
+	@mkdir -p $(dir $<)
+	@cd $(dir $<) && $(WLALINK) -S $(notdir $<) $(abspath $@)
 	@echo --- $(notdir $(basename $@))
 
 $(BUILD_PATH)/%.pdf: %.tex
-	@mkdir -p $(dir $@)
+	@mkdir -p $(BUILD_PATH)/$(dir $<)
 	@$(LATEX) -halt-on-error -interaction=batchmode -output-directory=$(dir $@) $<
 
 $(BUILD_PATH)/%.png: $(BUILD_PATH)/%.pdf
@@ -62,4 +60,4 @@ clean:
 	@rm -rf $(BUILD_PATH)
 
 .PRECIOUS: $(BUILD_PATH)/%.pdf
-.PHONY: clean all force
+.PHONY: clean all
