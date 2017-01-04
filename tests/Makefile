@@ -32,17 +32,22 @@ LATEX_SRC := $(shell find . -type f -name '*.tex')
 
 all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 
-$(BUILD_PATH)/%.o: %.s common/*.s
-	@mkdir -p $(BUILD_PATH)/$(dir $<)
-	@cd $(dir $<) && $(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $(notdir $<)
+$(BUILD_PATH):
+	@mkdir $(BUILD_PATH)
+
+$(BUILD_PATH)/flags: force | $(BUILD_PATH)
+	@echo '${WLAFLAGS}' | cmp -s - $@ || echo '${WLAFLAGS}' > $@
+
+$(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags | $(BUILD_PATH)
+	@mkdir -p $(dir $@)
+	@$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
-	@mkdir -p $(dir $<)
-	@echo "[objects]\n$(notdir $<)" > $@
+	$(file >$@,[objects])
+	$(foreach F,$^,$(file >>$@,$(F)))
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
-	@mkdir -p $(dir $<)
-	@cd $(dir $<) && $(WLALINK) -S $(notdir $<) $(abspath $@)
+	@$(WLALINK) -S $< $(abspath $@)
 	@echo --- $(notdir $(basename $@))
 
 $(BUILD_PATH)/%.pdf: %.tex
@@ -60,4 +65,4 @@ clean:
 	@rm -rf $(BUILD_PATH)
 
 .PRECIOUS: $(BUILD_PATH)/%.pdf
-.PHONY: clean all
+.PHONY: clean all force
