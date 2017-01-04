@@ -46,7 +46,7 @@ $(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags
 	@$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
-	@printf "[objects]\n%s" $< > $@
+	@printf "[objects]\n%s\n" $< > $@
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
 	@$(WLALINK) -S $< $(abspath $@)
