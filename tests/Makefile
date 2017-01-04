@@ -32,21 +32,21 @@ LATEX_SRC := $(shell find . -type f -name '*.tex')
 
 all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 
-$(BUILD_PATH)/flags: force
-	@mkdir -p $(BUILD_PATH)
+$(BUILD_PATH):
+	@mkdir $(BUILD_PATH)
+
+$(BUILD_PATH)/flags: force | $(BUILD_PATH)
 	@echo '${WLAFLAGS}' | cmp -s - $@ || echo '${WLAFLAGS}' > $@
 
-$(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags
+$(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags | $(BUILD_PATH)
 	@mkdir -p $(dir $@)
 	@$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
-	@mkdir -p $(BUILD_PATH)
 	$(file >$@,[objects])
 	$(foreach F,$^,$(file >>$@,$(F)))
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
-	@mkdir -p $(BUILD_PATH)
 	@$(WLALINK) -S $< $(abspath $@)
 	@echo --- $(notdir $(basename $@))
 
