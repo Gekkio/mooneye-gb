@@ -43,13 +43,13 @@ $(BUILD_PATH)/flags: force | $(BUILD_PATH)
 
 $(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags
 	@mkdir -p $(dir $@)
-	$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
+	@$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
 
 $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
-	printf "[objects]\n%s" $< > $@
+	@printf "[objects]\n%s" $< > $@
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
-	$(WLALINK) -S $< $(abspath $@)
+	@$(WLALINK) -S $< $(abspath $@)
 	@echo --- $(notdir $(basename $@))
 
 $(BUILD_PATH)/%.pdf: %.tex
