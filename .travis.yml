@@ -10,7 +10,7 @@ rust:
 - nightly
 env:
   global:
-    - WLA_DX_COMMIT="d1dcfd6142a71702471580e6ddca24652a63d00f"
+    - WLA_DX_COMMIT="6522d1a3d482159960f1d2eea7ca4d3c15473eff"
 
 matrix:
   allow_failures:
