@@ -157,4 +157,28 @@ fn gpu_intr_2_oam_ok_timing() { run_test("acceptance/gpu/intr_2_oam_ok_timing") 
 fn gpu_vblank_stat_intr_gs() { run_test("acceptance/gpu/vblank_stat_intr-GS") }
 
 #[test]
-fn mbc1_rom_4banks() { run_test("emulator-only/mbc1_rom_4banks") }
+fn mbc1_rom_512kb() { run_test("emulator-only/mbc1/rom_512Kb") }
+
+#[test]
+fn mbc1_rom_1mb() { run_test("emulator-only/mbc1/rom_1Mb") }
+
+#[test]
+fn mbc1_rom_2mb() { run_test("emulator-only/mbc1/rom_2Mb") }
+
+#[test]
+fn mbc1_rom_4mb() { run_test("emulator-only/mbc1/rom_4Mb") }
+
+#[test]
+fn mbc1_rom_8mb() { run_test("emulator-only/mbc1/rom_8Mb") }
+
+#[test]
+fn mbc1_rom_16mb() { run_test("emulator-only/mbc1/rom_16Mb") }
+
+#[test]
+fn mbc1_ram_64kb() { run_test("emulator-only/mbc1/ram_64Kb") }
+
+#[test]
+fn mbc1_ram_25kb() { run_test("emulator-only/mbc1/ram_256Kb") }
+
+#[test]
+fn mbc1_multicart_rom_8mb() { run_test("emulator-only/mbc1/multicart_rom_8Mb") }

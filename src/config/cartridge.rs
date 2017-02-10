@@ -202,9 +202,9 @@ pub enum CartridgeRamSize {
   NoRam = 0x00,
   Ram2K = 0x01,
   Ram8K = 0x02,
-  Ram16K = 0x03,
+  Ram32K = 0x03,
   Ram128K = 0x04,
-  Ram32K = 0x05
+  Ram64K = 0x05
 }
 
 impl fmt::Debug for CartridgeRamSize {
@@ -214,9 +214,9 @@ impl fmt::Debug for CartridgeRamSize {
       NoRam => "-",
       Ram2K => "16 Kbit",
       Ram8K => "64 Kbit",
-      Ram16K => "128 Kbit",
+      Ram32K => "256 Kbit",
       Ram128K => "1 Mbit",
-      Ram32K => "256 Kbit"
+      Ram64K => "512 Kbit"
     })
   }
 }
@@ -228,9 +228,9 @@ impl CartridgeRamSize {
       0x00 => Some(NoRam),
       0x01 => Some(Ram2K),
       0x02 => Some(Ram8K),
-      0x03 => Some(Ram16K),
+      0x03 => Some(Ram32K),
       0x04 => Some(Ram128K),
-      0x05 => Some(Ram32K),
+      0x05 => Some(Ram64K),
       _ => None
     }
   }
@@ -240,9 +240,9 @@ impl CartridgeRamSize {
       NoRam => 0,
       Ram2K => 2048,
       Ram8K => 8192,
-      Ram16K => 16384,
+      Ram32K => 32768,
       Ram128K => 131072,
-      Ram32K => 32768
+      Ram64K => 65536
     }
   }
 }

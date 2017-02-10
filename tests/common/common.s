@@ -271,7 +271,9 @@ _print_results_halt_\@:
 .countrycode $01
 .licenseecodenew "ZZ"
 
+.ifndef CART_NO_TITLE
 .name "mooneye-gb test"
+.endif
 .computegbcomplementcheck
 .computegbchecksum
 
@@ -349,6 +351,30 @@ _print_results_halt_\@:
     ld (hl+), a
     dec bc
     jr -
+
+  ; Inputs:
+  ;   HL source 1
+  ;   DE source 2
+  ;   BC length
+  ; Outputs:
+  ;   cf 0 if both were equal, 1 otherwise
+  ; Preserved: -
+  memcmp:
+-   ld a, b
+    or c
+    ret z
+
+    ld a, (de)
+    cp (hl)
+    jr nz, +
+
+    inc de
+    inc hl
+    dec bc
+    jr -
+
++   scf
+    ret
 
   ; Inputs: -
   ; Outputs: -

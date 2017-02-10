@@ -290,9 +290,25 @@ Notes:
 
 ### Mooneye GB emulator-only tests
 
+#### MBC1
+
 | Test              | mooneye-gb | BGB  | Gambatte | Higan | MESS |
 | ----------------- | ---------- | ---- | -------- | ----- | ---- |
-| mbc1 rom 4banks   | :+1:       | :x:  | :+1:     | :+1:  | :+1: |
+| rom 512Kb         | :+1:       | :x:  | :+1:     | :+1:  | :+1: |
+| rom 1Mb           | :+1:       | :x:  | :+1:     | :+1:  | :+1: |
+| rom 2Mb           | :+1:       | :x:  | :+1:     | :+1:  | :+1: |
+| rom 4Mb           | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| rom 8Mb           | :+1:       | :x:  | :x:      | :x:   | :+1: |
+| rom 16Mb          | :+1:       | :x:  | :x:      | :x:   | :+1: |
+| ram 64Kb          | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
+| ram 256Kb         | :+1:       | :+1: | :x:      | :x:   | :+1: |
+| multicart rom 8Mb | :+1:       |      |          | :x:   | :+1: |
+
+Notes:
+
+* Most emulators don't support MBC1 multicart ROMs at all
+* Higan requires manual manifest file creation to trigger MBC1 multicart mode,
+  but doesn't pass the test.
 
 ### Mooneye GB manual tests
 
