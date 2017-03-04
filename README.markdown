@@ -46,7 +46,7 @@ developing emulation for a feature:
 
 All test ROMs are manually run with these devices:
 
-| Device              | Model    | Mainboard    | CPU              | Serial/identity                                                                       |
+| Device              | Model    | Mainboard    | CPU              | Detailed information                                                                  |
 | ------------------- | -------- | ------------ | ---------------- | ---------------                                                                       |
 | Game Boy            | DMG-01   | DMG-CPU-01   | DMG-CPU          |                                                                                       |
 | Game Boy            | DMG-01   | DMG-CPU-02   | DMG-CPU A        |                                                                                       |
@@ -69,7 +69,7 @@ All test ROMs are manually run with these devices:
 These devices will also be used, but results for old tests have not yet been
 verified:
 
-| Device              | Model    | Mainboard    | CPU              | Serial/identity                                                                       |
+| Device              | Model    | Mainboard    | CPU              | Detailed information                                                                  |
 | ------------------- | -------- | ------------ | -----------      | ----                                                                                  |
 | Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB A        |                                                                                       |
 
@@ -86,7 +86,7 @@ The main "test fleet" is already very big, so I will only use these devices if
 there's evidence of behaviour that depends on mainboard revision or individual
 units.
 
-| Device              | Model    | Mainboard    | CPU              | Serial/identity                                                                       |
+| Device              | Model    | Mainboard    | CPU              | Detailed information                                                                  |
 | ------------------- | -------- | ------------ | -----------      | ----                                                                                  |
 | Game Boy            | DMG-01   | DMG-CPU-03   | DMG-CPU B        |                                                                                       |
 | Game Boy            | DMG-01   | DMG-CPU-05   | DMG-CPU B        |                                                                                       |
