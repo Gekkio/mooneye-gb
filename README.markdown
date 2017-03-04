@@ -46,32 +46,32 @@ developing emulation for a feature:
 
 All test ROMs are manually run with these devices:
 
-| Device              | Model    | Mainboard    | CPU              |
-| ------------------- | -------- | ------------ | ---------------- |
-| Game Boy            | DMG-01   | DMG-CPU-01   | DMG-CPU          |
-| Game Boy            | DMG-01   | DMG-CPU-02   | DMG-CPU A        |
-| Game Boy            | DMG-01   | DMG-CPU-04   | DMG-CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU C        |
-| Game Boy            | DMG-01   | DMG-CPU-07   | DMG-CPU X (blob) |
-| Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       |
-| Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          |
-| Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         |
-| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |
-| Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |
-| Game Boy Color      | CGB-001  | CGB-CPU-03   | CPU CGB C        |
-| Game Boy Color      | CGB-001  | CGB-CPU-05   | CPU CGB D        |
-| Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E        |
-| Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          |
-| Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        |
-| Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |
-| Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      |
+| Device              | Model    | Mainboard    | CPU              | Serial/identity                                                                       |
+| ------------------- | -------- | ------------ | ---------------- | ---------------                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-01   | DMG-CPU          |                                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-02   | DMG-CPU A        |                                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-04   | DMG-CPU B        |                                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU C        |                                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-07   | DMG-CPU X (blob) |                                                                                       |
+| Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       | [SGB Submission #2 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb/gekkio-2.html)   |
+| Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          |                                                                                       |
+| Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         | [SGB2 Submission #1 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb2/gekkio-1.html) |
+| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |                                                                                       |
+| Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |                                                                                       |
+| Game Boy Color      | CGB-001  | CGB-CPU-03   | CPU CGB C        |                                                                                       |
+| Game Boy Color      | CGB-001  | CGB-CPU-05   | CPU CGB D        |                                                                                       |
+| Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E        |                                                                                       |
+| Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          |                                                                                       |
+| Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        |                                                                                       |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |                                                                                       |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      |                                                                                       |
 
 These devices will also be used, but results for old tests have not yet been
 verified:
 
-| Device              | Model    | Mainboard    | CPU              |
-| ------------------- | -------- | ------------ | -----------      |
-| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB A        |
+| Device              | Model    | Mainboard    | CPU              | Serial/identity                                                                       |
+| ------------------- | -------- | ------------ | -----------      | ----                                                                                  |
+| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB A        |                                                                                       |
 
 ### Additional devices
 
@@ -86,24 +86,24 @@ The main "test fleet" is already very big, so I will only use these devices if
 there's evidence of behaviour that depends on mainboard revision or individual
 units.
 
-| Device              | Model    | Mainboard    | CPU              |
-| ------------------- | -------- | ------------ | -----------      |
-| Game Boy            | DMG-01   | DMG-CPU-03   | DMG-CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-05   | DMG-CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU B        |
-| Game Boy            | DMG-01   | DMG-CPU-08   | DMG-CPU X (blob) |
-| Super Game Boy      | SNSP-027 | SGB-R-10     | SGB-CPU-01       |
-| Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB          |
-| Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |
-| Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |
-| Game Boy Color      | CGB-001  | CGB-CPU-04   | CPU CGB D        |
-| Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          |
-| Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        |
-| Game Boy Advance    | AGB-001  | AGB-CPU-04   | CPU AGB A        |
-| Game Boy Advance SP | AGS-001  | C/AGS-CPU-10 | CPU AGB B        |
-| Game Boy Advance SP | AGS-001  | C/AGS-CPU-11 | CPU AGB B        |
-| Game Boy Advance SP | AGS-001  | C/AGS-CPU-30 | CPU AGB B E      |
-| Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E      |
+| Device              | Model    | Mainboard    | CPU              | Serial/identity                                                                       |
+| ------------------- | -------- | ------------ | -----------      | ----                                                                                  |
+| Game Boy            | DMG-01   | DMG-CPU-03   | DMG-CPU B        |                                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-05   | DMG-CPU B        |                                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU B        |                                                                                       |
+| Game Boy            | DMG-01   | DMG-CPU-08   | DMG-CPU X (blob) |                                                                                       |
+| Super Game Boy      | SNSP-027 | SGB-R-10     | SGB-CPU-01       | [SGB Submission #7 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb/gekkio-7.html)   |
+| Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB          |                                                                                       |
+| Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |                                                                                       |
+| Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |                                                                                       |
+| Game Boy Color      | CGB-001  | CGB-CPU-04   | CPU CGB D        |                                                                                       |
+| Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          |                                                                                       |
+| Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        |                                                                                       |
+| Game Boy Advance    | AGB-001  | AGB-CPU-04   | CPU AGB A        |                                                                                       |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-10 | CPU AGB B        |                                                                                       |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-11 | CPU AGB B        |                                                                                       |
+| Game Boy Advance SP | AGS-001  | C/AGS-CPU-30 | CPU AGB B E      |                                                                                       |
+| Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E      |                                                                                       |
 
 I'm still looking for the following mainboards, but these are probably not
 required for reverse engineering:
