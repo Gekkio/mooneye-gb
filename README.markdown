@@ -139,7 +139,7 @@ supporting Android at the moment.
 2. Follow the instructions
 
 ### Command-line
-1. Acquire a Game Boy bootrom, and put it to `$HOME/.mooneye-gb/dmg_boot.bin`
+1. Acquire a Game Boy bootrom, and put it to `$HOME/.local/share/mooneye-gb/bootroms/dmg_boot.bin`
 2. `cargo build --release`
 3. `cargo run --release -- PATH_TO_GAMEBOY_ROM`
 
