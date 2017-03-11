@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use app_dirs::{AppDataType, AppInfo, app_dir, get_app_dir};
 use crc::crc32;
 use podio::ReadPodExt;
 use std::convert::From;
@@ -26,6 +27,8 @@ use std::path::Path;
 
 use gameboy::BOOTROM_SIZE;
 use config::{Model, DEFAULT_MODEL_PRIORITY};
+
+const APP_INFO: AppInfo = AppInfo{name: "mooneye-gb", author: "Gekkio"};
 
 #[derive(Debug)]
 pub struct Bootrom {
@@ -64,9 +67,9 @@ impl Bootrom {
       }
     }
 
-    if let Some(home) = env::home_dir().map(|home| home.join(".mooneye-gb")) {
+    if let Ok(dir) = get_app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
       for model in models {
-        candidates.push(home.join(model.bootrom_file_name()));
+        candidates.push(dir.join(model.bootrom_file_name()));
       }
     }
 
@@ -82,14 +85,9 @@ impl Bootrom {
     }
     None
   }
-  pub fn save_to_home(&self) -> Result<(), io::Error> {
-    if let Some(home) = env::home_dir().map(|home| home.join(".mooneye-gb")) {
-      if let Err(e) = fs::create_dir(&home) {
-        if e.kind() != io::ErrorKind::AlreadyExists {
-          return Err(e);
-        }
-      }
-      let path = home.join(self.model.bootrom_file_name());
+  pub fn save_to_data_dir(&self) -> Result<(), io::Error> {
+    if let Ok(dir) = app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
+      let path = dir.join(self.model.bootrom_file_name());
       let mut file = try!(File::create(&path));
       return file.write_all(&self.data)
     }

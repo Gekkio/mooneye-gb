@@ -226,7 +226,7 @@ impl SdlFrontend {
               .and_then(|path| Bootrom::from_path(&path).map_err(|e| format!("{}", e)));
             match result {
               Ok(bootrom) => {
-                if let Err(error) = bootrom.save_to_home() {
+                if let Err(error) = bootrom.save_to_data_dir() {
                   println!("Failed to save boot rom: {}", error);
                 }
                 return Ok(FrontendState::from_roms(Some(bootrom), cartridge))
