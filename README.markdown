@@ -53,9 +53,9 @@ All test ROMs are manually run with these devices:
 | Game Boy            | DMG-01   | DMG-CPU-04   | DMG-CPU B        |                                                                                       |
 | Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU C        |                                                                                       |
 | Game Boy            | DMG-01   | DMG-CPU-07   | DMG-CPU X (blob) |                                                                                       |
-| Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       | [SGB Submission #2 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb/gekkio-2.html)   |
+| Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       | [SGB Unit #2 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb/gekkio-2.html)   |
 | Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          |                                                                                       |
-| Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         | [SGB2 Submission #1 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb2/gekkio-1.html) |
+| Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         | [SGB2 Unit #1 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb2/gekkio-1.html) |
 | Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |                                                                                       |
 | Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |                                                                                       |
 | Game Boy Color      | CGB-001  | CGB-CPU-03   | CPU CGB C        |                                                                                       |
