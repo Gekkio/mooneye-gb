@@ -19,7 +19,6 @@ use podio::ReadPodExt;
 use std::convert::From;
 use std::env;
 use std::fmt;
-use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Write;

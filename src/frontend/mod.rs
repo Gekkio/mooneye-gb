@@ -15,6 +15,8 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use glium::{Api, GliumCreationError, Surface, SwapBuffersError, Version};
 use glium_sdl2::{Display, DisplayBuild, GliumSdl2Error};
+use imgui::ImGui;
+use imgui::glium_renderer;
 use sdl2;
 use sdl2::{Sdl, EventPump, VideoSubsystem};
 use sdl2::controller::{Axis, Button};
@@ -34,7 +36,7 @@ use emulation::{EmuTime, EmuDuration, EE_VSYNC};
 use gameboy;
 use machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
-use self::gui::Gui;
+use self::gui::{Screen};
 use self::renderer::Renderer;
 
 mod fps;
@@ -51,7 +53,8 @@ pub struct SdlFrontend {
   sdl_video: VideoSubsystem,
   event_pump: EventPump,
   display: Display,
-  gui: Gui,
+  imgui: ImGui,
+  gui_renderer: glium_renderer::Renderer,
   renderer: Renderer,
   times: FrameTimes
 }
@@ -176,20 +179,25 @@ impl SdlFrontend {
     let display =
       try!(sdl_video.window("Mooneye GB", 640, 576).opengl().position_centered().build_glium());
 
-    println!("Initialized renderer with {}", match *display.get_opengl_version() {
+    info!("Initialized renderer with {}", match *display.get_opengl_version() {
       Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
       Version(Api::GlEs, major, minor) => format!("OpenGL ES {}.{}", major, minor)
     });
 
     let renderer = try!(Renderer::new(&display));
-    let gui = try!(Gui::init(&display));
+
+    let mut imgui = ImGui::init();
+    imgui.set_ini_filename(None);
+    imgui.set_log_filename(None);
+    let gui_renderer = try!(glium_renderer::Renderer::init(&mut imgui, &display));
 
     Ok(SdlFrontend {
       sdl: sdl,
       sdl_video: sdl_video,
       event_pump: event_pump,
       display: display,
-      gui: gui,
+      imgui: imgui,
+      gui_renderer: gui_renderer,
       renderer: renderer,
       times: FrameTimes::new(Duration::from_secs(1) / 60)
     })
@@ -239,7 +247,14 @@ impl SdlFrontend {
       }
       let mut target = self.display.draw();
       target.clear_color(1.0, 1.0, 1.0, 1.0);
-      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut screen));
+
+      let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
+      let (width, height) = target.get_dimensions();
+      self.update_mouse();
+
+      let ui = self.imgui.frame((width, height), (width, height), delta_s);
+      screen.render(&ui);
+      try!(self.gui_renderer.render(&mut target, ui));
       try!(target.finish());
 
       self.times.limit();
@@ -273,7 +288,14 @@ impl SdlFrontend {
       }
       let mut target = self.display.draw();
       target.clear_color(1.0, 1.0, 1.0, 1.0);
-      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut screen));
+
+      let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
+      let (width, height) = target.get_dimensions();
+      self.update_mouse();
+      let ui = self.imgui.frame((width, height), (width, height), delta_s);
+
+      screen.render(&ui);
+      try!(self.gui_renderer.render(&mut target, ui));
       try!(target.finish());
     }
     Ok(FrontendState::Exit)
@@ -354,6 +376,14 @@ impl SdlFrontend {
         }
       }
 
+      let mut target = self.display.draw();
+      target.clear_color(0.0, 0.0, 0.0, 1.0);
+
+      let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
+      let (width, height) = target.get_dimensions();
+      self.update_mouse();
+      let ui = self.imgui.frame((width, height), (width, height), delta_s);
+
       let clock_edges =
         if turbo {
           EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32 / 60)
@@ -375,11 +405,10 @@ impl SdlFrontend {
           break;
         }
       }
-
-      let mut target = self.display.draw();
-      target.clear_color(0.0, 0.0, 0.0, 1.0);
       try!(self.renderer.draw(&mut target));
-      try!(self.gui.render(&mut target, delta, &self.sdl.mouse(), &mut screen));
+
+      screen.render(&ui);
+      try!(self.gui_renderer.render(&mut target, ui));
       try!(target.finish());
 
       if !turbo {
@@ -387,6 +416,17 @@ impl SdlFrontend {
       }
     }
     Ok(FrontendState::Exit)
+  }
+  fn update_mouse(&mut self) {
+    let (mouse_state, mouse_x, mouse_y) = self.sdl.mouse().mouse_state();
+    self.imgui.set_mouse_down(&[
+      mouse_state.left(),
+      mouse_state.right(),
+      mouse_state.middle(),
+      mouse_state.x1(),
+      mouse_state.x2()
+    ]);
+    self.imgui.set_mouse_pos(mouse_x as f32, mouse_y as f32);
   }
 }
 

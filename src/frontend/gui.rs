@@ -1,13 +1,9 @@
-use glium::Surface;
-use glium::backend::Facade;
-use imgui::{ImGui, ImGuiSetCond_Always, ImStr, ImVec4, Ui};
-use imgui::glium_renderer::{Renderer, RendererError};
-use sdl2::mouse::{MouseUtil};
+use imgui::{ImGuiSetCond_Always, ImStr, ImVec4, Ui};
+use imgui::glium_renderer::RendererError;
 use std::f32;
-use std::time::Duration;
 
 use config::HardwareConfig;
-use super::{FrontendError, FrontendResult};
+use super::FrontendError;
 
 impl From<RendererError> for FrontendError {
   fn from(e: RendererError) -> FrontendError {
@@ -17,47 +13,6 @@ impl From<RendererError> for FrontendError {
 
 pub trait Screen {
   fn render(&mut self, ui: &Ui);
-}
-
-pub struct Gui {
-  imgui: ImGui,
-  renderer: Renderer
-}
-
-impl Gui {
-  pub fn init<F: Facade>(ctx: &F) -> FrontendResult<Gui> {
-    let mut imgui = ImGui::init();
-    imgui.set_ini_filename(None);
-    imgui.set_log_filename(None);
-    let renderer = try!(Renderer::init(&mut imgui, ctx));
-    Ok(Gui {
-      imgui: imgui,
-      renderer: renderer
-    })
-  }
-  pub fn render<S: Surface, T: Screen>(&mut self, surface: &mut S,
-                                      delta: Duration, mouse: &MouseUtil,
-                                      screen: &mut T) -> FrontendResult<()> {
-    let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
-    let (width, height) = surface.get_dimensions();
-    let (mouse_state, mouse_x, mouse_y) = mouse.mouse_state();
-    self.imgui.set_mouse_down(&[
-      mouse_state.left(),
-      mouse_state.right(),
-      mouse_state.middle(),
-      mouse_state.x1(),
-      mouse_state.x2()
-    ]);
-    self.imgui.set_mouse_pos(mouse_x as f32, mouse_y as f32);
-
-    {
-      let ui = self.imgui.frame((width, height), (width, height), delta_s);
-      screen.render(&ui);
-      try!(self.renderer.render(surface, ui));
-    }
-
-    Ok(())
-  }
 }
 
 #[derive(Default)]

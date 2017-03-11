@@ -38,7 +38,6 @@ extern crate quickcheck;
 
 use docopt::Docopt;
 use simplelog::{LogLevelFilter, TermLogger};
-use std::io::{Write, stderr};
 use std::path::Path;
 use std::process;
 
