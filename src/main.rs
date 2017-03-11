@@ -23,17 +23,21 @@ extern crate glium;
 extern crate glium_sdl2;
 #[macro_use]
 extern crate imgui;
+#[macro_use]
+extern crate log;
 extern crate nalgebra;
 extern crate num_traits;
 extern crate podio;
 extern crate rustc_serialize;
 extern crate sdl2;
+extern crate simplelog;
 extern crate url;
 
 #[cfg(test)]
 extern crate quickcheck;
 
 use docopt::Docopt;
+use simplelog::{LogLevelFilter, TermLogger};
 use std::io::{Write, stderr};
 use std::path::Path;
 use std::process;
@@ -77,12 +81,12 @@ struct Args {
 
 fn read_boot_rom(path: &str, expected_model: Option<Model>) -> Bootrom {
   let bootrom = Bootrom::from_path(&Path::new(path)).unwrap_or_else(|err| {
-    let _ = writeln!(stderr(), "Failed to read boot rom from \"{}\" ({})", path, err);
+    error!("Failed to read boot rom from \"{}\" ({})", path, err);
     process::exit(1)
   });
   if let Some(model) = expected_model {
     if model != bootrom.model {
-      let _ = writeln!(stderr(), "Warning: boot ROM is not for {}", model);
+      warn!("Warning: boot ROM is not for {}", model);
     }
   }
   bootrom
@@ -94,13 +98,16 @@ fn main() {
     .and_then(|d| d.decode())
     .unwrap_or_else(|e| e.exit());
 
+  TermLogger::init(LogLevelFilter::Debug, simplelog::Config::default())
+    .expect("Failed to initialize logging");
+
   let bootrom =
     match (args.flag_model, args.flag_bootrom) {
       (_, Some(path)) => Some(read_boot_rom(&path, args.flag_model)),
       (Some(model), None) => {
         let result = Bootrom::lookup(&[model]);
         if result.is_none() {
-          let _ = writeln!(stderr(), "Could not find a boot rom for {}", model);
+          error!("Could not find a boot rom for {}", model);
           process::exit(1)
         }
         result
@@ -111,7 +118,7 @@ fn main() {
   let cartridge =
     args.arg_rom.map(|path| {
       Cartridge::from_path(&Path::new(&path)).unwrap_or_else(|err| {
-        let _ = writeln!(stderr(), "Failed to read rom from \"{}\" ({})", path, err);
+        error!("Failed to read rom from \"{}\" ({})", path, err);
         process::exit(1)
       })
     });

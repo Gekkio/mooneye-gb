@@ -9,12 +9,14 @@ dependencies = [
  "glium 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glium_sdl2 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "imgui 0.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "podio 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "quickcheck 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "simplelog 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -340,6 +342,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "redox_syscall"
+version = "0.1.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "regex"
 version = "0.1.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -392,6 +399,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "simplelog"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "term 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "smallvec"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -400,6 +417,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "strsim"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "term"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "thread-id"
@@ -416,6 +442,17 @@ version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "thread-id 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "time"
+version = "0.1.36"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redox_syscall 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -508,16 +545,20 @@ dependencies = [
 "checksum podio 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "e5422a1ee1bc57cc47ae717b0137314258138f38fd5f3cea083f43a9725383a0"
 "checksum quickcheck 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "02c2411d418cea2364325b18a205664f9ef8252e06b2e911db97c0b0d98b1406"
 "checksum rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "022e0636ec2519ddae48154b028864bdce4eaf7d35226ab8e65c611be97b189d"
+"checksum redox_syscall 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)" = "8dd35cc9a8bdec562c757e3d43c1526b5c6d2653e23e2315065bc25556550753"
 "checksum regex 0.1.80 (registry+https://github.com/rust-lang/crates.io-index)" = "4fd4ace6a8cf7860714a2c2280d6c1f7e6a413486c13298bbc86fd3da019402f"
 "checksum regex-syntax 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "f9ec002c35e86791825ed294b50008eea9ddfc8def4420124fbc6b08db834957"
 "checksum rustc-serialize 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)" = "237546c689f20bb44980270c73c3b9edd0891c1be49cc1274406134a66d3957b"
 "checksum sdl2 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "76ec9974f9c46477eaf6df9ca7fce9005848a3b345166b20c946e45015bb082c"
 "checksum sdl2-sys 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de2b434665e5a478b029ec5bbdb038d9d110d46b0a94e6688b39d52027fb1f12"
 "checksum shell32-sys 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "72f20b8f3c060374edb8046591ba28f62448c369ccbdc7b02075103fb3a9e38d"
+"checksum simplelog 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "2c3a63f2b74bc3359ed6050da62e32cc0e10a162c4f62a0c1d80cd89d432234b"
 "checksum smallvec 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "fcc8d19212aacecf95e4a7a2179b26f7aeb9732a915cf01f05b0d3e044865410"
 "checksum strsim 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "67f84c44fbb2f91db7fef94554e6b2ac05909c9c0b0bc23bb98d3a1aebfe7f7c"
+"checksum term 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)" = "d168af3930b369cfe245132550579d47dfd873d69470755a19c2c6568dbbd989"
 "checksum thread-id 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a9539db560102d1cef46b8b78ce737ff0bb64e7e18d35b2a5688f7d097d0ff03"
 "checksum thread_local 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)" = "8576dbbfcaef9641452d5cf0df9b0e7eeab7694956dd33bb61515fb8f18cfdd5"
+"checksum time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "211b63c112206356ef1ff9b19355f43740fc3f85960c598a93d3a3d3ba7beade"
 "checksum unicode-bidi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "d3a078ebdd62c0e71a709c3d53d2af693fe09fe93fbff8344aebe289b78f9032"
 "checksum unicode-normalization 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "e28fa37426fceeb5cf8f41ee273faa7c82c47dc8fba5853402841e665fcd86ff"
 "checksum url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f5ba8a749fb4479b043733416c244fa9d1d3af3d7c23804944651c8a448cb87e"

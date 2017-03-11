@@ -74,13 +74,16 @@ impl Bootrom {
     }
 
     for path in candidates {
+      let path_str = path.to_string_lossy();
+      debug!("Scanning {} for a boot ROM", path_str);
       match Bootrom::from_path(&path) {
         Err(BootromError::Io(ref e)) if e.kind() == io::ErrorKind::NotFound => (),
-        Err(BootromError::Io(ref e)) =>
-          println!("Warning: Boot rom \"{}\" ({})", path.to_string_lossy(), e),
-        Err(BootromError::Checksum(ref e)) =>
-          println!("Warning: Boot rom \"{}\" ({})", path.to_string_lossy(), e),
-        Ok(bootrom) => return Some(bootrom)
+        Err(BootromError::Io(ref e)) => warn!("Warning: Boot rom \"{}\" ({})", path_str, e),
+        Err(BootromError::Checksum(ref e)) => warn!("Warning: Boot rom \"{}\" ({})", path_str, e),
+        Ok(bootrom) => {
+          info!("Using {} boot ROM from {}", bootrom.model, path_str);
+          return Some(bootrom)
+        }
       }
     }
     None
@@ -89,7 +92,8 @@ impl Bootrom {
     if let Ok(dir) = app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
       let path = dir.join(self.model.bootrom_file_name());
       let mut file = try!(File::create(&path));
-      return file.write_all(&self.data)
+      try!(file.write_all(&self.data));
+      info!("Saved {} boot ROM to {}", self.model, path.to_string_lossy());
     }
     Ok(())
   }
