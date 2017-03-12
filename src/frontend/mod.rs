@@ -20,7 +20,7 @@ use imgui::glium_renderer;
 use sdl2;
 use sdl2::{Sdl, EventPump, VideoSubsystem};
 use sdl2::controller::{Axis, Button};
-use sdl2::event::{Event, WindowEventId};
+use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::video::gl_attr::GLAttr;
 use std::convert::From;
@@ -229,6 +229,7 @@ impl SdlFrontend {
         match event {
           Event::Quit{..} => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
+          Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
           Event::DropFile{filename, ..} => {
             let result = resolve_sdl_filename(filename)
               .and_then(|path| Bootrom::from_path(&path).map_err(|e| format!("{}", e)));
@@ -250,7 +251,6 @@ impl SdlFrontend {
 
       let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
-      self.update_mouse();
 
       let ui = self.imgui.frame((width, height), (width, height), delta_s);
       screen.render(&ui);
@@ -275,6 +275,7 @@ impl SdlFrontend {
         match event {
           Event::Quit{..} => break 'main,
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
+          Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
           Event::DropFile{filename, ..} => {
             let result = resolve_sdl_filename(filename)
               .and_then(|path| Cartridge::from_path(&path));
@@ -291,9 +292,8 @@ impl SdlFrontend {
 
       let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
-      self.update_mouse();
-      let ui = self.imgui.frame((width, height), (width, height), delta_s);
 
+      let ui = self.imgui.frame((width, height), (width, height), delta_s);
       screen.render(&ui);
       try!(self.gui_renderer.render(&mut target, ui));
       try!(target.finish());
@@ -325,7 +325,7 @@ impl SdlFrontend {
       for event in self.event_pump.poll_iter() {
         match event {
           Event::Quit{..} => break 'main,
-          Event::Window { win_event_id: WindowEventId::SizeChanged, ..} => {
+          Event::Window { win_event: WindowEvent::SizeChanged(..), ..} => {
             self.renderer.update_dimensions(&self.display);
           },
           Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
@@ -339,6 +339,7 @@ impl SdlFrontend {
               screen.toggle_info_overlay();
             }
           },
+          Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
           Event::KeyUp{keycode: Some(keycode), ..} => {
             if let Some(key) = map_keycode(keycode) { machine.key_up(key) }
             if keycode == Keycode::LShift && turbo {
@@ -381,7 +382,6 @@ impl SdlFrontend {
 
       let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
-      self.update_mouse();
       let ui = self.imgui.frame((width, height), (width, height), delta_s);
 
       let clock_edges =
@@ -416,17 +416,6 @@ impl SdlFrontend {
       }
     }
     Ok(FrontendState::Exit)
-  }
-  fn update_mouse(&mut self) {
-    let (mouse_state, mouse_x, mouse_y) = self.sdl.mouse().mouse_state();
-    self.imgui.set_mouse_down(&[
-      mouse_state.left(),
-      mouse_state.right(),
-      mouse_state.middle(),
-      mouse_state.x1(),
-      mouse_state.x2()
-    ]);
-    self.imgui.set_mouse_pos(mouse_x as f32, mouse_y as f32);
   }
 }
 

@@ -24,7 +24,7 @@ use glium::texture::{
 use glium::texture::pixel_buffer::PixelBuffer;
 use glium::texture::texture2d::Texture2d;
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
-use nalgebra::{Diagonal, Matrix4, Vector4};
+use nalgebra::{Matrix4, Vector4};
 
 use gameboy;
 use super::{FrontendError, FrontendResult};
@@ -160,9 +160,11 @@ impl Renderer {
   }
 
   pub fn draw<S: Surface>(&self, frame: &mut S) -> FrontendResult<()> {
+    let matrix: &[[f32; 4]; 4] = self.matrix.as_ref();
+    let palette: &[[f32; 4]; 4] = self.palette.as_ref();
     let uniforms = uniform! {
-      matrix: self.matrix.as_ref().clone(),
-      palette: self.palette.as_ref().clone(),
+      matrix: matrix.clone(),
+      palette: palette.clone(),
       tex: self.texture.sampled()
         .minify_filter(MinifySamplerFilter::Nearest)
         .magnify_filter(MagnifySamplerFilter::Nearest)
