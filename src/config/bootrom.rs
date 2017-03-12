@@ -60,15 +60,15 @@ impl Bootrom {
     let mut candidates = vec![];
     let models = if models.is_empty() { &DEFAULT_MODEL_PRIORITY } else { models };
 
-    if let Ok(cwd) = env::current_dir() {
-      for model in models {
-        candidates.push(cwd.join(model.bootrom_file_name()));
-      }
-    }
-
     if let Ok(dir) = get_app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
       for model in models {
         candidates.push(dir.join(model.bootrom_file_name()));
+      }
+    }
+
+    if let Ok(cwd) = env::current_dir() {
+      for model in models {
+        candidates.push(cwd.join(model.bootrom_file_name()));
       }
     }
 
