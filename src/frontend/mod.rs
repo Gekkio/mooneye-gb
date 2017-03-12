@@ -61,7 +61,6 @@ pub struct SdlFrontend {
 
 enum FrontendState {
   WaitBootrom(Option<Cartridge>),
-  WaitRom(Option<Bootrom>),
   InGame(HardwareConfig),
   Exit
 }
@@ -76,7 +75,11 @@ impl FrontendState {
         cartridge: cartridge
       }),
       (None, Some(cartridge)) => WaitBootrom(Some(cartridge)),
-      (Some(bootrom), None) => WaitRom(Some(bootrom)),
+      (Some(bootrom), None) => InGame(HardwareConfig {
+        model: bootrom.model,
+        bootrom: Some(bootrom.data),
+        cartridge: Cartridge::no_cartridge(),
+      }),
       _ => WaitBootrom(None)
     }
   }
@@ -208,7 +211,6 @@ impl SdlFrontend {
       state =
         match state {
           FrontendState::WaitBootrom(cartridge) => try!(self.main_wait_bootrom(cartridge)),
-          FrontendState::WaitRom(bootrom) => try!(self.main_wait_rom(bootrom)),
           FrontendState::InGame(config) => try!(self.main_in_game(config)),
           FrontendState::Exit => break
         }
@@ -258,45 +260,6 @@ impl SdlFrontend {
       try!(target.finish());
 
       self.times.limit();
-    }
-    Ok(FrontendState::Exit)
-  }
-  fn main_wait_rom(&mut self, bootrom: Option<Bootrom>) -> FrontendResult<FrontendState> {
-    self.sdl_video.gl_set_swap_interval(1);
-
-    let mut screen = gui::WaitRomScreen::new();
-
-    self.times.reset();
-
-    'main: loop {
-      let delta = self.times.update();
-
-      for event in self.event_pump.poll_iter() {
-        match event {
-          Event::Quit{..} => break 'main,
-          Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
-          Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
-          Event::DropFile{filename, ..} => {
-            let result = resolve_sdl_filename(filename)
-              .and_then(|path| Cartridge::from_path(&path));
-            match result {
-              Ok(cartridge) => return Ok(FrontendState::from_roms(bootrom, Some(cartridge))),
-              Err(e) => screen.set_error(format!("{}", e))
-            };
-          },
-          _ => ()
-        }
-      }
-      let mut target = self.display.draw();
-      target.clear_color(1.0, 1.0, 1.0, 1.0);
-
-      let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
-      let (width, height) = target.get_dimensions();
-
-      let ui = self.imgui.frame((width, height), (width, height), delta_s);
-      screen.render(&ui);
-      try!(self.gui_renderer.render(&mut target, ui));
-      try!(target.finish());
     }
     Ok(FrontendState::Exit)
   }

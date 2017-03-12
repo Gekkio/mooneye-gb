@@ -33,6 +33,15 @@ pub struct Cartridge {
 }
 
 impl Cartridge {
+  pub fn no_cartridge() -> Cartridge {
+    Cartridge {
+      data: vec![0xff; 2],
+      title: "-".to_string(),
+      cartridge_type: CartridgeType::Rom,
+      rom_size: CartridgeRomSize::NoRomBanks,
+      ram_size: CartridgeRamSize::NoRam,
+    }
+  }
   pub fn from_path(path: &Path) -> Result<Cartridge, CartridgeError> {
     let mut file = try!(File::open(path).map_err(|e| format!("{}", e)));
     let mut data = vec!();
