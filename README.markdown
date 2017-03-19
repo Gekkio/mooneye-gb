@@ -100,6 +100,7 @@ units.
 | Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          | [AJ12569062](https://gbhwdb.gekkio.fi/consoles/agb/AJ12569065.html)             |
 | Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        | [AJ14804298](https://gbhwdb.gekkio.fi/consoles/agb/AJ14804298.html)             |
 | Game Boy Advance    | AGB-001  | AGB-CPU-04   | CPU AGB A        | [AJ15529163](https://gbhwdb.gekkio.fi/consoles/agb/AJ15529163.html)             |
+| Game Boy Player     | DOL-017  | DOL-GBS-10   | CPU AGB A        |                                                                                 |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-10 | CPU AGB B        |                                                                                 |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-11 | CPU AGB B        |                                                                                 |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-30 | CPU AGB B E      |                                                                                 |
@@ -112,6 +113,8 @@ required for reverse engineering:
 * SGB-N-01
 * SGB-N-10
 * C/AGS-CPU-20
+* DOL-GBS-01
+* DOL-GBS-20
 
 **For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on
 CGB/AGB/AGS or emulators emulating those devices.**
