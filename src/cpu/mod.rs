@@ -167,7 +167,7 @@ impl<H> Cpu<H> where H: Bus {
 
   fn next_u8(&mut self) -> u8 {
     let addr = self.regs.pc;
-    self.regs.pc += 1;
+    self.regs.pc = self.regs.pc.wrapping_add(1);
     self.read_u8(addr)
   }
   fn next_u16(&mut self) -> u16 {
@@ -289,14 +289,6 @@ impl<H> Cpu<H> where H: Bus {
     }
   }
 
-  fn alu_add(&mut self, value: u8, use_carry: bool) {
-    let cy = if use_carry && self.regs.f.contains(CARRY) { 1 } else { 0 };
-    let result = self.regs.a.wrapping_add(value).wrapping_add(cy);
-    self.regs.f = ZERO.test(result == 0) |
-                  CARRY.test(self.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
-                  HALF_CARRY.test((self.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
-    self.regs.a = result;
-  }
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
     let cy = if use_carry && self.regs.f.contains(CARRY) { 1 } else { 0 };
     let result = self.regs.a.wrapping_sub(value).wrapping_sub(cy);
@@ -342,7 +334,7 @@ impl<H> Cpu<H> where H: Bus {
     self.hardware.emulate();
   }
   fn ctrl_jr(&mut self, offset: i8) {
-    self.regs.pc = (self.regs.pc as i16 + offset as i16) as u16;
+    self.regs.pc = self.regs.pc.wrapping_add(offset as u16);
     self.time += EmuDuration::machine_cycles(1);
     self.hardware.emulate();
   }
@@ -357,6 +349,9 @@ impl<H> Cpu<H> where H: Bus {
     self.regs.pc = self.pop_u16();
     self.time += EmuDuration::machine_cycles(1);
     self.hardware.emulate();
+  }
+  #[inline(never)]
+  fn possu(&mut self, value: u8) {
   }
 }
 
@@ -380,7 +375,12 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   ///        * 0 * *
   fn add<I: In8>(self, in8: I) {
     let value = in8.read(self);
-    self.alu_add(value, false);
+    let (result, carry) = self.regs.a.overflowing_add(value);
+    let half_carry = (self.regs.a & 0x0f).checked_add(value | 0xf0).is_none();
+    self.regs.f = ZERO.test(result == 0) |
+                  CARRY.test(carry) |
+                  HALF_CARRY.test(half_carry);
+    self.regs.a = result;
   }
   /// ADC s
   ///
@@ -388,7 +388,12 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   ///        * 0 * *
   fn adc<I: In8>(self, in8: I) {
     let value = in8.read(self);
-    self.alu_add(value, true);
+    let cy = if self.regs.f.contains(CARRY) { 1 } else { 0 };
+    let result = self.regs.a.wrapping_add(value).wrapping_add(cy);
+    self.regs.f = ZERO.test(result == 0) |
+                  CARRY.test(self.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
+                  HALF_CARRY.test((self.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
+    self.regs.a = result;
   }
   /// SUB s
   ///
@@ -457,7 +462,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// DEC s
   ///
   /// Flags: Z N H C
-  ///        * 0 * -
+  ///        * 1 * -
   fn dec<IO: In8+Out8>(self, io: IO) {
     let value = io.read(self);
     let new_value = value.wrapping_sub_one();
