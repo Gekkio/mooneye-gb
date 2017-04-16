@@ -96,11 +96,12 @@ units.
 | Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB          |                                                                                 |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          |                                                                                 |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-02  | CPU MGB          |                                                                                 |
+| Game Boy Light      | MGB-101  | MGL-CPU-01   | CPU MGB          |                                                                                 |
 | Game Boy Color      | CGB-001  | CGB-CPU-04   | CPU CGB D        |                                                                                 |
 | Game Boy Advance    | AGB-001  | AGB-CPU-02   | CPU AGB          | [AJ12569062](https://gbhwdb.gekkio.fi/consoles/agb/AJ12569065.html)             |
 | Game Boy Advance    | AGB-001  | AGB-CPU-03   | CPU AGB A        | [AJ14804298](https://gbhwdb.gekkio.fi/consoles/agb/AJ14804298.html)             |
 | Game Boy Advance    | AGB-001  | AGB-CPU-04   | CPU AGB A        | [AJ15529163](https://gbhwdb.gekkio.fi/consoles/agb/AJ15529163.html)             |
-| Game Boy Player     | DOL-017  | DOL-GBS-10   | CPU AGB A        |                                                                                 |
+| Game Boy Player     | DOL-017  | DOL-GBS-10   | CPU AGB A        | [GBS Unit #1 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/gbs/gekkio-1.html)   |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-10 | CPU AGB B        |                                                                                 |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-11 | CPU AGB B        |                                                                                 |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-30 | CPU AGB B E      |                                                                                 |
