@@ -15,7 +15,6 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 pub type HiramData = [u8; HIRAM_SIZE];
 pub type ScreenBuffer = [Color; SCREEN_PIXELS];
-pub type WramBank = [u8; WRAM_BANK_SIZE];
 
 #[derive(PartialEq, Clone, Copy)]
 #[repr(u8)]
@@ -49,5 +48,3 @@ pub const SCREEN_WIDTH: usize = 160;
 pub const SCREEN_HEIGHT: usize = 144;
 pub const SCREEN_PIXELS: usize = SCREEN_WIDTH * SCREEN_HEIGHT;
 pub const SCREEN_EMPTY: ScreenBuffer = [Color::Off; SCREEN_PIXELS];
-pub const WRAM_BANK_SIZE: usize = 0x1000;
-pub const WRAM_BANK_EMPTY: WramBank = [0; WRAM_BANK_SIZE];

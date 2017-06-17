@@ -24,7 +24,7 @@ use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
 use hardware::cartridge::Cartridge;
 use hardware::gpu::Gpu;
-use hardware::internal_ram::InternalRam;
+use hardware::work_ram::WorkRam;
 use hardware::irq::{
   Irq, Interrupt
 };
@@ -36,7 +36,7 @@ mod apu;
 mod bootrom;
 mod cartridge;
 mod gpu;
-mod internal_ram;
+mod work_ram;
 pub mod irq;
 mod joypad;
 mod serial;
@@ -56,7 +56,7 @@ pub trait Bus {
 pub struct Hardware {
   pub bootrom: Bootrom,
   pub cartridge: Cartridge,
-  internal_ram: InternalRam,
+  work_ram: WorkRam,
   hiram: HiramData,
   gpu: Gpu,
   apu: Apu,
@@ -105,7 +105,7 @@ impl Hardware {
     Hardware {
       bootrom: Bootrom::new(config.bootrom),
       cartridge: Cartridge::new(config.cartridge),
-      internal_ram: InternalRam::new(),
+      work_ram: WorkRam::new(),
       hiram: HIRAM_EMPTY,
       gpu: Gpu::new(),
       apu: Apu::new(),
@@ -153,11 +153,11 @@ impl Hardware {
       0x98 ... 0x9b => self.gpu.write_tile_map1(addr - 0x9800, value),
       0x9c ... 0x9f => self.gpu.write_tile_map2(addr - 0x9c00, value),
       0xa0 ... 0xbf => self.cartridge.write_ram(addr - 0xa000, value),
-      0xc0 ... 0xcf => self.internal_ram.write_bank0(addr - 0xc000, value),
-      0xd0 ... 0xdf => self.internal_ram.write_bank1(addr - 0xd000, value),
+      0xc0 ... 0xcf => self.work_ram.write_lower(addr, value),
+      0xd0 ... 0xdf => self.work_ram.write_upper(addr, value),
       // Echo RAM
-      0xe0 ... 0xef => self.internal_ram.write_bank0(addr - 0xe000, value),
-      0xf0 ... 0xfd => self.internal_ram.write_bank1(addr - 0xf000, value),
+      0xe0 ... 0xef => self.work_ram.write_lower(addr, value),
+      0xf0 ... 0xfd => self.work_ram.write_upper(addr, value),
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>
@@ -211,11 +211,11 @@ impl Hardware {
       0x98 ... 0x9b => self.gpu.read_tile_map1(addr - 0x9800),
       0x9c ... 0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
       0xa0 ... 0xbf => self.cartridge.read_ram(addr - 0xa000),
-      0xc0 ... 0xcf => self.internal_ram.read_bank0(addr - 0xc000),
-      0xd0 ... 0xdf => self.internal_ram.read_bank1(addr - 0xd000),
+      0xc0 ... 0xcf => self.work_ram.read_lower(addr),
+      0xd0 ... 0xdf => self.work_ram.read_upper(addr),
       // Echo RAM
-      0xe0 ... 0xef => self.internal_ram.read_bank0(addr - 0xe000),
-      0xf0 ... 0xfd => self.internal_ram.read_bank1(addr - 0xf000),
+      0xe0 ... 0xef => self.work_ram.read_lower(addr),
+      0xf0 ... 0xfd => self.work_ram.read_upper(addr),
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>

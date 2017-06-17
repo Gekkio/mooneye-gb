@@ -13,35 +13,28 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use gameboy::{
-  WramBank,
-  WRAM_BANK_EMPTY
-};
-
-pub struct InternalRam {
-  wram_bank0: WramBank,
-  wram_bank1: WramBank
+pub struct WorkRam {
+  ram: Box<[u8; 0x2000]>,
 }
 
-impl InternalRam {
-  pub fn new() -> InternalRam {
-    InternalRam {
-      wram_bank0: WRAM_BANK_EMPTY,
-      wram_bank1: WRAM_BANK_EMPTY
+impl WorkRam {
+  pub fn new() -> WorkRam {
+    WorkRam {
+      ram: Box::new([0; 0x2000]),
     }
   }
 
-  pub fn read_bank0(&self, reladdr: u16) -> u8 {
-    self.wram_bank0[reladdr as usize]
+  pub fn read_lower(&self, addr: u16) -> u8 {
+    self.ram[(addr as usize) & 0x1fff]
   }
-  pub fn write_bank0(&mut self, reladdr: u16, value: u8) {
-    self.wram_bank0[reladdr as usize] = value;
+  pub fn write_lower(&mut self, addr: u16, value: u8) {
+    self.ram[(addr as usize) & 0x1fff] = value;
   }
 
-  pub fn read_bank1(&self, reladdr: u16) -> u8 {
-    self.wram_bank1[reladdr as usize]
+  pub fn read_upper(&self, addr: u16) -> u8 {
+    self.ram[(addr as usize) & 0x1fff]
   }
-  pub fn write_bank1(&mut self, reladdr: u16, value: u8) {
-    self.wram_bank1[reladdr as usize] = value;
+  pub fn write_upper(&mut self, addr: u16, value: u8) {
+    self.ram[(addr as usize) & 0x1fff] = value;
   }
 }
