@@ -56,6 +56,14 @@
   cp $80
   jp nz, --
 
+  ; Extra test for $FFFF (IE)
+  ld hl, $FFFF
+  ld a, (hl)
+  ld b, a
+  ld a, $00 ; expected value
+  cp b
+  jp nz, mismatch
+
   test_ok
 
 mismatch:
