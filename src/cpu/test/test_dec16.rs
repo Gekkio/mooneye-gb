@@ -19,15 +19,15 @@ use cpu::registers::Reg16;
 use cpu::test::run_test;
 
 fn test_dec16(opcode: u8, x: u16, reg: Reg16) -> bool {
-  let cpu = run_test(
+  let machine = run_test(
     &[opcode],
-    |cpu| {
-      cpu.regs.write16(reg, x);
+    |machine| {
+      machine.cpu.regs.write16(reg, x);
     }
   );
   let expected = x.wrapping_sub(1);
-  cpu.hardware.clock_cycles() == 8 &&
-    cpu.regs.read16(reg) == expected
+  machine.hardware.clock_cycles() == 8 &&
+    machine.cpu.regs.read16(reg) == expected
 }
 
 #[test]

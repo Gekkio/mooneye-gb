@@ -21,14 +21,14 @@ use cpu::test::run_test;
 #[test]
 fn test_f9() {
   fn prop(hl: u16) -> bool {
-    let cpu = run_test(
+    let machine = run_test(
       &[0xf9],
-      |cpu| {
-        cpu.regs.write16(Reg16::HL, hl);
+      |machine| {
+        machine.cpu.regs.write16(Reg16::HL, hl);
       }
     );
-    cpu.hardware.clock_cycles() == 8 &&
-      cpu.regs.read16(Reg16::SP) == hl
+    machine.hardware.clock_cycles() == 8 &&
+      machine.cpu.regs.read16(Reg16::SP) == hl
   }
   quickcheck(prop as fn(u16) -> bool);
 }

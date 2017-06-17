@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use cpu::Cpu;
+use cpu::disasm;
+use cpu::disasm::{DisasmStr, ToDisasmStr};
 use emulation::EmuEvents;
 use hardware::Bus;
 use hardware::irq::Interrupt;
@@ -41,6 +43,11 @@ mod test_add16;
 mod test_add16_sp_e;
 mod test_inc16;
 mod test_dec16;
+
+pub struct TestMachine {
+  cpu: Cpu,
+  hardware: TestHardware,
+}
 
 pub struct TestHardware {
   memory: Vec<u8>,
@@ -80,38 +87,51 @@ impl<'a> Bus for TestHardware {
   }
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
   fn has_interrupt(&self) -> bool { false }
-  fn trigger_emu_events(&mut self, events: EmuEvents) { }
+  fn trigger_emu_events(&mut self, _: EmuEvents) { }
 }
 
-pub fn run_test<I: Fn(&mut Cpu<TestHardware>) -> ()>(instructions: &[u8], cpu_init: I) -> Cpu<TestHardware> {
+pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> TestMachine {
   let mut memory = instructions.to_vec();
   memory.push(0xed);
 
-  let mut cpu = Cpu::new(TestHardware::from_memory(&memory));
-  cpu_init(&mut cpu);
+  let mut machine = TestMachine {
+    cpu: Cpu::new(),
+    hardware: TestHardware::from_memory(&memory),
+  };
+  init(&mut machine);
 
-  while cpu.hardware.memory[cpu.regs.pc as usize] != 0xed {
-    cpu.execute();
+  while machine.hardware.memory[machine.cpu.regs.pc as usize] != 0xed {
+    machine.cpu.execute(&mut machine.hardware);
   }
-  cpu
+  machine
+}
+
+fn disasm_op<H: Bus>(cpu: &Cpu, bus: &H) -> DisasmStr {
+  let pc = cpu.regs.pc;
+
+  disasm::disasm(pc, &mut |addr| {
+    bus.read(addr)
+  }).to_disasm_str()
 }
 
 #[test]
 fn test_disasm_all_opcodes() {
-  let bus = TestHardware::from_memory(&vec![0x00, 0x00, 0x00]);
-  let mut cpu = Cpu::new(bus);
+  let mut bus = TestHardware::from_memory(&vec![0x00, 0x00, 0x00]);
+  let mut cpu = Cpu::new();
 
   for op in 0..0xff {
-    cpu.hardware.memory[0] = op as u8;
+    bus.memory[0] = op as u8;
     if op != 0xcb {
       cpu.regs.pc = 0x00;
-      cpu.disasm_op();
+      disasm_op(&cpu, &bus);
     } else {
       for cb_op in 0..0xff {
-        cpu.hardware.memory[1] = cb_op as u8;
+        bus.memory[1] = cb_op as u8;
         cpu.regs.pc = 0x00;
-        cpu.disasm_op();
+        disasm_op(&cpu, &bus);
       }
     }
   }
 }
+
+

@@ -22,17 +22,17 @@ use cpu::test::run_test;
 fn test_add16<F: Fn(Flags) -> bool>(opcode: u8,
                                     hl: u16, reg: Reg16,
                                     x: u16, check_flags: F) -> bool {
-  let cpu = run_test(
+  let machine = run_test(
     &[opcode],
-    |cpu| {
-      cpu.regs.write16(Reg16::HL, hl);
-      cpu.regs.write16(reg, x);
+    |machine| {
+      machine.cpu.regs.write16(Reg16::HL, hl);
+      machine.cpu.regs.write16(reg, x);
     }
   );
   let expected = hl.wrapping_add(x);
-  cpu.hardware.clock_cycles() == 8 &&
-    cpu.regs.read16(Reg16::HL) == expected &&    
-    check_flags(cpu.regs.f)
+  machine.hardware.clock_cycles() == 8 &&
+    machine.cpu.regs.read16(Reg16::HL) == expected &&    
+    check_flags(machine.cpu.regs.f)
 }
 
 #[test]

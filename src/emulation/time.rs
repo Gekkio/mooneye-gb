@@ -25,7 +25,6 @@ pub struct EmuTime {
 
 impl EmuTime {
   pub fn zero() -> EmuTime { EmuTime { clock_edges: 0 } }
-  pub fn as_duration(&self) -> EmuDuration { EmuDuration::clock_edges(self.clock_edges) }
 }
 
 impl Add<EmuDuration> for EmuTime {

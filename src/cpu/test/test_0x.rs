@@ -21,264 +21,264 @@ use cpu::test::run_test;
 
 #[test]
 fn test_00() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x00], // NOP
     |_| {}
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
 }
 
 #[test]
 fn test_02() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x02, 0xed, 0x00], // LD (BC), A
-    |cpu| {
-      cpu.regs.a = 0x42;
-      cpu.regs.b = 0x00;
-      cpu.regs.c = 0x02;
+    |machine| {
+      machine.cpu.regs.a = 0x42;
+      machine.cpu.regs.b = 0x00;
+      machine.cpu.regs.c = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 8);
-  assert_eq!(cpu.hardware.memory[0x02], 0x42);
+  assert_eq!(machine.hardware.clock_cycles(), 8);
+  assert_eq!(machine.hardware.memory[0x02], 0x42);
 }
 
 #[test]
 fn test_04() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x04], // INC B
-    |cpu| {
-      cpu.regs.b = 0x42;
+    |machine| {
+      machine.cpu.regs.b = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.b, 0x43);
-  assert_eq!(cpu.regs.f, Flags::empty());
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.b, 0x43);
+  assert_eq!(machine.cpu.regs.f, Flags::empty());
 }
 
 #[test]
 fn test_04_zero() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x04], // INC B
-    |cpu| {
-      cpu.regs.b = 0xff;
+    |machine| {
+      machine.cpu.regs.b = 0xff;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.b, 0x00);
-  assert_eq!(cpu.regs.f, ZERO | HALF_CARRY);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.b, 0x00);
+  assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
 }
 
 #[test]
 fn test_04_half_carry() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x04], // INC B
-    |cpu| {
-      cpu.regs.b = 0x0f;
+    |machine| {
+      machine.cpu.regs.b = 0x0f;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.b, 0x10);
-  assert_eq!(cpu.regs.f, HALF_CARRY);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.b, 0x10);
+  assert_eq!(machine.cpu.regs.f, HALF_CARRY);
 }
 
 #[test]
 fn test_05() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x05], // DEC B
-    |cpu| {
-      cpu.regs.b = 0x42;
+    |machine| {
+      machine.cpu.regs.b = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.b, 0x41);
-  assert_eq!(cpu.regs.f, ADD_SUBTRACT);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.b, 0x41);
+  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT);
 }
 
 #[test]
 fn test_05_zero() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x05], // DEC B
-    |cpu| {
-      cpu.regs.b = 0x01;
+    |machine| {
+      machine.cpu.regs.b = 0x01;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.b, 0x00);
-  assert_eq!(cpu.regs.f, ZERO | ADD_SUBTRACT);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.b, 0x00);
+  assert_eq!(machine.cpu.regs.f, ZERO | ADD_SUBTRACT);
 }
 
 #[test]
 fn test_05_half_carry() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x05], // DEC B
-    |cpu| {
-      cpu.regs.b = 0x00;
+    |machine| {
+      machine.cpu.regs.b = 0x00;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.b, 0xff);
-  assert_eq!(cpu.regs.f, ADD_SUBTRACT | HALF_CARRY);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.b, 0xff);
+  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT | HALF_CARRY);
 }
 
 #[test]
 fn test_06() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x06, 0x42], // LD B, n
     |_| {}
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 8);
-  assert_eq!(cpu.regs.b, 0x42);
+  assert_eq!(machine.hardware.clock_cycles(), 8);
+  assert_eq!(machine.cpu.regs.b, 0x42);
 }
 
 #[test]
 fn test_07() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x07], // RLCA
-    |cpu| {
-      cpu.regs.a = 0x77;
+    |machine| {
+      machine.cpu.regs.a = 0x77;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.a, 0xee);
-  assert_eq!(cpu.regs.f, Flags::empty());
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.a, 0xee);
+  assert_eq!(machine.cpu.regs.f, Flags::empty());
 }
 
 #[test]
 fn test_07_carry() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x07], // RLCA
-    |cpu| {
-      cpu.regs.a = 0xf7;
+    |machine| {
+      machine.cpu.regs.a = 0xf7;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.a, 0xef);
-  assert_eq!(cpu.regs.f, CARRY);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.a, 0xef);
+  assert_eq!(machine.cpu.regs.f, CARRY);
 }
 
 #[test]
 fn test_0a() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0a, 0xed, 0x42], // LD A, (BC)
-    |cpu| {
-      cpu.regs.b = 0x00;
-      cpu.regs.c = 0x02;
+    |machine| {
+      machine.cpu.regs.b = 0x00;
+      machine.cpu.regs.c = 0x02;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 8);
-  assert_eq!(cpu.regs.a, 0x42);
+  assert_eq!(machine.hardware.clock_cycles(), 8);
+  assert_eq!(machine.cpu.regs.a, 0x42);
 }
 
 #[test]
 fn test_0c() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0c], // INC C
-    |cpu| {
-      cpu.regs.c = 0x42;
+    |machine| {
+      machine.cpu.regs.c = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.c, 0x43);
-  assert_eq!(cpu.regs.f, Flags::empty());
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.c, 0x43);
+  assert_eq!(machine.cpu.regs.f, Flags::empty());
 }
 
 #[test]
 fn test_0c_zero() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0c], // INC C
-    |cpu| {
-      cpu.regs.c = 0xff;
+    |machine| {
+      machine.cpu.regs.c = 0xff;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.c, 0x00);
-  assert_eq!(cpu.regs.f, ZERO | HALF_CARRY);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.c, 0x00);
+  assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
 }
 
 #[test]
 fn test_0c_half_carry() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0c], // INC C
-    |cpu| {
-      cpu.regs.c = 0x0f;
+    |machine| {
+      machine.cpu.regs.c = 0x0f;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.c, 0x10);
-  assert_eq!(cpu.regs.f, HALF_CARRY);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.c, 0x10);
+  assert_eq!(machine.cpu.regs.f, HALF_CARRY);
 }
 
 #[test]
 fn test_0d() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0d], // DEC C
-    |cpu| {
-      cpu.regs.c = 0x42;
+    |machine| {
+      machine.cpu.regs.c = 0x42;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.c, 0x41);
-  assert_eq!(cpu.regs.f, ADD_SUBTRACT);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.c, 0x41);
+  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT);
 }
 
 #[test]
 fn test_0d_zero() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0d], // DEC C
-    |cpu| {
-      cpu.regs.c = 0x01;
+    |machine| {
+      machine.cpu.regs.c = 0x01;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.c, 0x00);
-  assert_eq!(cpu.regs.f, ZERO | ADD_SUBTRACT);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.c, 0x00);
+  assert_eq!(machine.cpu.regs.f, ZERO | ADD_SUBTRACT);
 }
 
 #[test]
 fn test_0d_half_carry() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0d], // DEC C
-    |cpu| {
-      cpu.regs.c = 0x00;
+    |machine| {
+      machine.cpu.regs.c = 0x00;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.c, 0xff);
-  assert_eq!(cpu.regs.f, ADD_SUBTRACT | HALF_CARRY);
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.c, 0xff);
+  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT | HALF_CARRY);
 }
 
 #[test]
 fn test_0e() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0e, 0x42], // LD C, n
     |_| {}
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 8);
-  assert_eq!(cpu.regs.c, 0x42);
+  assert_eq!(machine.hardware.clock_cycles(), 8);
+  assert_eq!(machine.cpu.regs.c, 0x42);
 }
 
 #[test]
 fn test_0f() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0f], // RRCA
-    |cpu| {
-      cpu.regs.a = 0xee;
+    |machine| {
+      machine.cpu.regs.a = 0xee;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.a, 0x77);
-  assert!(!cpu.regs.f.contains(CARRY));
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.a, 0x77);
+  assert!(!machine.cpu.regs.f.contains(CARRY));
 }
 
 #[test]
 fn test_0f_carry() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x0f], // RRCA
-    |cpu| {
-      cpu.regs.a = 0xef;
+    |machine| {
+      machine.cpu.regs.a = 0xef;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 4);
-  assert_eq!(cpu.regs.a, 0xf7);
-  assert!(cpu.regs.f.contains(CARRY));
+  assert_eq!(machine.hardware.clock_cycles(), 4);
+  assert_eq!(machine.cpu.regs.a, 0xf7);
+  assert!(machine.cpu.regs.f.contains(CARRY));
 }

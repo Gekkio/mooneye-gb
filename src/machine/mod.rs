@@ -25,30 +25,32 @@ pub use self::perf_counter::PerfCounter;
 mod perf_counter;
 
 pub struct Machine {
-  cpu: Cpu<Hardware>
+  cpu: Cpu,
+  hardware: Hardware,
 }
 
 impl Machine {
   pub fn new(config: HardwareConfig) -> Machine {
     Machine {
-      cpu: Cpu::new(Hardware::new(config))
+      cpu: Cpu::new(),
+      hardware: Hardware::new(config)
     }
   }
   pub fn emulate(&mut self, target_time: EmuTime) -> (EmuEvents, EmuTime) {
     loop {
-      self.cpu.execute();
-      if !self.cpu.hardware().emu_events().is_empty() || self.cpu.hardware.emu_time() >= target_time {
+      self.cpu.execute(&mut self.hardware);
+      if !self.hardware.emu_events().is_empty() || self.hardware.emu_time() >= target_time {
         break;
       }
     }
-    (self.cpu.hardware().ack_emu_events(), self.cpu.hardware.emu_time())
+    (self.hardware.ack_emu_events(), self.hardware.emu_time())
   }
   pub fn key_down(&mut self, key: GbKey) {
-    self.cpu.hardware().key_down(key);
+    self.hardware.key_down(key);
   }
   pub fn key_up(&mut self, key: GbKey) {
-    self.cpu.hardware().key_up(key);
+    self.hardware.key_up(key);
   }
   pub fn regs(&self) -> Registers { self.cpu.regs }
-  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { self.cpu.hardware.screen_buffer() }
+  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { self.hardware.screen_buffer() }
 }

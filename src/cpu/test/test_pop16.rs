@@ -21,15 +21,15 @@ use cpu::test::run_test;
 fn test_pop16(opcode: u8, x: u16, reg: Reg16) -> bool {
   let h = (x >> 8) as u8;
   let l = x as u8;
-  let cpu = run_test(
+  let machine = run_test(
     &[opcode, 0xed, l, h],
-    |cpu| {
-      cpu.regs.sp = 0x0002;
+    |machine| {
+      machine.cpu.regs.sp = 0x0002;
     }
   );
-  cpu.hardware.clock_cycles() == 12 &&
-    cpu.regs.sp == 0x0004 &&
-    cpu.regs.read16(reg) == x
+  machine.hardware.clock_cycles() == 12 &&
+    machine.cpu.regs.sp == 0x0004 &&
+    machine.cpu.regs.read16(reg) == x
 }
 
 #[test]
@@ -53,15 +53,15 @@ fn test_e1() {
 #[test]
 fn test_f1() {
   fn prop(a: u8, f: u8) -> bool {
-    let cpu = run_test(
+    let machine = run_test(
       &[0xf1, 0xed, f, a],
-      |cpu| {
-        cpu.regs.sp = 0x0002;
+      |machine| {
+        machine.cpu.regs.sp = 0x0002;
       }
     );
-    cpu.hardware.clock_cycles() == 12 &&
-      cpu.regs.a == a &&
-      cpu.regs.f == Flags::from_bits_truncate(f)
+    machine.hardware.clock_cycles() == 12 &&
+      machine.cpu.regs.a == a &&
+      machine.cpu.regs.f == Flags::from_bits_truncate(f)
   }
   quickcheck(prop as fn(u8, u8) -> bool);
 }

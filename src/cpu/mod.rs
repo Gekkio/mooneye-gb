@@ -17,7 +17,6 @@ use std::fmt;
 
 use emulation::{EE_DEBUG_OP};
 use hardware::Bus;
-use cpu::disasm::{DisasmStr, ToDisasmStr};
 use cpu::registers::{
   Registers, Reg8, Reg16, Flags,
   ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
@@ -33,19 +32,18 @@ pub mod registers;
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
 
-pub struct Cpu<H: Bus> {
+pub struct Cpu {
   pub regs: Registers,
   ime: bool,
   ime_change: ImeChange,
   halt: bool,
-  pub hardware: H
 }
 
 pub trait In8: disasm::ResolveOp8 {
-  fn read<H: Bus>(&self, &mut Cpu<H>) -> u8;
+  fn read<H: Bus>(&self, &mut Cpu, &mut H) -> u8;
 }
 pub trait Out8: disasm::ResolveOp8 {
-  fn write<H: Bus>(&self, &mut Cpu<H>, u8);
+  fn write<H: Bus>(&self, &mut Cpu, &mut H, u8);
 }
 
 
@@ -72,7 +70,7 @@ enum ImeChange {
 
 pub struct Immediate8;
 impl In8 for Immediate8 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u8 { cpu.next_u8() }
+  fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8 { cpu.next_u8(bus) }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -81,21 +79,21 @@ pub enum Addr {
   Direct, ZeroPage, ZeroPageC
 }
 impl In8 for Addr {
-  fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u8 {
-    let addr = cpu.indirect_addr(*self);
-    cpu.read_cycle(addr)
+  fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8 {
+    let addr = cpu.indirect_addr(bus, *self);
+    cpu.read_cycle(bus, addr)
   }
 }
 impl Out8 for Addr {
-  fn write<H: Bus>(&self, cpu: &mut Cpu<H>, value: u8) {
-    let addr = cpu.indirect_addr(*self);
-    cpu.write_cycle(addr, value);
+  fn write<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H, value: u8) {
+    let addr = cpu.indirect_addr(bus, *self);
+    cpu.write_cycle(bus, addr, value);
   }
 }
 
 
 impl In8 for Reg8 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u8 {
+  fn read<H: Bus>(&self, cpu: &mut Cpu, _: &mut H) -> u8 {
     use cpu::registers::Reg8::*;
     match *self {
       A => cpu.regs.a, B => cpu.regs.b,
@@ -106,7 +104,7 @@ impl In8 for Reg8 {
   }
 }
 impl Out8 for Reg8 {
-  fn write<H: Bus>(&self, cpu: &mut Cpu<H>, value: u8) {
+  fn write<H: Bus>(&self, cpu: &mut Cpu, _: &mut H, value: u8) {
     use cpu::registers::Reg8::*;
     match *self {
       A => cpu.regs.a = value, B => cpu.regs.b = value,
@@ -118,92 +116,77 @@ impl Out8 for Reg8 {
 }
 
 
-impl<H> fmt::Display for Cpu<H> where H: Bus {
+impl fmt::Display for Cpu {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", self.regs)
   }
 }
-impl<H> Cpu<H> where H: Bus {
-  pub fn new(hardware: H) -> Cpu<H> {
+impl Cpu {
+  pub fn new() -> Cpu {
     Cpu {
       regs: Registers::new(),
       ime: true,
       ime_change: ImeChange::None,
       halt: false,
-      hardware: hardware,
     }
   }
-  pub fn hardware(&mut self) -> &mut H {
-    &mut self.hardware
-  }
 
-  pub fn get_pc(&self) -> u16 {
-    self.regs.pc
-  }
-  pub fn disasm_op(&self) -> DisasmStr {
-    let pc = self.regs.pc;
-
-    disasm::disasm(pc, &mut |addr| {
-      self.hardware.read(addr)
-    }).to_disasm_str()
-  }
-
-  fn fetch_cycle(&mut self) -> u8 {
+  fn fetch_cycle<H: Bus>(&mut self, bus: &mut H) -> u8 {
     let addr = self.regs.pc;
     self.regs.pc = self.regs.pc.wrapping_add(1);
-    self.hardware.fetch_cycle(addr)
+    bus.fetch_cycle(addr)
   }
-  fn read_cycle(&mut self, addr: u16) -> u8 {
-    self.hardware.read_cycle(addr)
+  fn read_cycle<H: Bus>(&self, bus: &mut H, addr: u16) -> u8 {
+    bus.read_cycle(addr)
   }
-  fn write_cycle(&mut self, addr: u16, value: u8) {
-    self.hardware.write_cycle(addr, value);
+  fn write_cycle<H: Bus>(&self, bus: &mut H, addr: u16, value: u8) {
+    bus.write_cycle(addr, value)
   }
-  fn halt_cycle(&mut self) {
-    if self.hardware.has_interrupt() {
+  fn halt_cycle<H: Bus>(&mut self, bus: &mut H) {
+    if bus.has_interrupt() {
       self.halt = false;
     } else {
-      self.hardware.emulate();
+      bus.emulate();
     }
   }
-  fn internal_cycle(&mut self) {
-    self.hardware.emulate();
+  fn internal_cycle<H: Bus>(&self, bus: &mut H) {
+    bus.emulate();
   }
 
-  fn next_u8(&mut self) -> u8 {
+  fn next_u8<H: Bus>(&mut self, bus: &mut H) -> u8 {
     let addr = self.regs.pc;
     self.regs.pc = self.regs.pc.wrapping_add(1);
-    self.read_cycle(addr)
+    self.read_cycle(bus, addr)
   }
-  fn next_u16(&mut self) -> u16 {
-    let l = self.next_u8();
-    let h = self.next_u8();
+  fn next_u16<H: Bus>(&mut self, bus: &mut H) -> u16 {
+    let l = self.next_u8(bus);
+    let h = self.next_u8(bus);
     ((h as u16) << 8) | (l as u16)
   }
 
-  fn pop_u8(&mut self) -> u8 {
+  fn pop_u8<H: Bus>(&mut self, bus: &mut H) -> u8 {
     let sp = self.regs.sp;
-    let value = self.read_cycle(sp);
+    let value = self.read_cycle(bus, sp);
     self.regs.sp = self.regs.sp.wrapping_add_one();
     value
   }
-  fn push_u8(&mut self, value: u8) {
+  fn push_u8<H: Bus>(&mut self, bus: &mut H, value: u8) {
     self.regs.sp = self.regs.sp.wrapping_sub_one();
     let sp = self.regs.sp;
-    self.write_cycle(sp, value);
+    self.write_cycle(bus, sp, value);
   }
 
-  fn pop_u16(&mut self) -> u16 {
-    let l = self.pop_u8();
-    let h = self.pop_u8();
+  fn pop_u16<H: Bus>(&mut self, bus: &mut H) -> u16 {
+    let l = self.pop_u8(bus);
+    let h = self.pop_u8(bus);
     ((h as u16) << 8) | (l as u16)
   }
-  fn push_u16(&mut self, value: u16) {
-    self.push_u8((value >> 8) as u8);
-    self.push_u8(value as u8);
+  fn push_u16<H: Bus>(&mut self, bus: &mut H, value: u16) {
+    self.push_u8(bus, (value >> 8) as u8);
+    self.push_u8(bus, value as u8);
   }
 
-  fn indirect_addr(&mut self, addr: Addr) -> u16 {
+  fn indirect_addr<H: Bus>(&mut self, bus: &mut H, addr: Addr) -> u16 {
     use self::Addr::*;
     match addr {
       BC => self.regs.read16(Reg16::BC),
@@ -219,15 +202,15 @@ impl<H> Cpu<H> where H: Bus {
         self.regs.write16(Reg16::HL, addr.wrapping_add_one());
         addr
       },
-      Direct => self.next_u16(),
-      ZeroPage => 0xff00u16 | self.next_u8() as u16,
+      Direct => self.next_u16(bus),
+      ZeroPage => 0xff00u16 | self.next_u8(bus) as u16,
       ZeroPageC => 0xff00u16 | self.regs.c as u16,
     }
   }
 
-  pub fn execute(&mut self) {
+  pub fn execute<H: Bus>(&mut self, bus: &mut H) {
     if self.halt {
-      self.halt_cycle();
+      self.halt_cycle(bus);
     } else {
       match self.ime_change {
         ImeChange::None => (),
@@ -241,23 +224,23 @@ impl<H> Cpu<H> where H: Bus {
       }
 
       if self.ime {
-        match self.hardware.ack_interrupt() {
+        match bus.ack_interrupt() {
           None => (),
           Some(interrupt) => {
             self.halt = false;
             self.ime = false;
-            self.internal_cycle();
-            self.internal_cycle();
-            self.internal_cycle();
+            self.internal_cycle(bus);
+            self.internal_cycle(bus);
+            self.internal_cycle(bus);
             let pc = self.regs.pc;
-            self.push_u16(pc);
+            self.push_u16(bus, pc);
             self.regs.pc = interrupt.get_addr();
           }
         }
       }
 
-      let op = self.fetch_cycle();
-      ops::decode(self, op)
+      let op = self.fetch_cycle(bus);
+      ops::decode((self, bus), op)
     }
   }
 
@@ -300,28 +283,28 @@ impl<H> Cpu<H> where H: Bus {
                   CARRY.test(co != 0);
     new_value
   }
-  fn ctrl_jp(&mut self, addr: u16) {
+  fn ctrl_jp<H: Bus>(&mut self, bus: &mut H, addr: u16) {
     self.regs.pc = addr;
-    self.internal_cycle();
+    self.internal_cycle(bus);
   }
-  fn ctrl_jr(&mut self, offset: i8) {
+  fn ctrl_jr<H: Bus>(&mut self, bus: &mut H, offset: i8) {
     self.regs.pc = self.regs.pc.wrapping_add(offset as u16);
-    self.internal_cycle();
+    self.internal_cycle(bus);
   }
-  fn ctrl_call(&mut self, addr: u16) {
+  fn ctrl_call<H: Bus>(&mut self, bus: &mut H, addr: u16) {
     let pc = self.regs.pc;
-    self.internal_cycle();
-    self.push_u16(pc);
+    self.internal_cycle(bus);
+    self.push_u16(bus, pc);
     self.regs.pc = addr;
   }
-  fn ctrl_ret(&mut self) {
-    self.regs.pc = self.pop_u16();
-    self.internal_cycle();
+  fn ctrl_ret<H: Bus>(&mut self, bus: &mut H) {
+    self.regs.pc = self.pop_u16(bus);
+    self.internal_cycle(bus);
   }
 }
 
 
-impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
+impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   type R = ();
   // --- 8-bit operations
   // 8-bit loads
@@ -330,8 +313,9 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn load<O: Out8, I: In8>(self, out8: O, in8: I) {
-    let value = in8.read(self);
-    out8.write(self, value);
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    out8.write(cpu, bus, value);
   }
   // 8-bit arithmetic
   /// ADD s
@@ -339,59 +323,65 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        * 0 * *
   fn add<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    let (result, carry) = self.regs.a.overflowing_add(value);
-    let half_carry = (self.regs.a & 0x0f).checked_add(value | 0xf0).is_none();
-    self.regs.f = ZERO.test(result == 0) |
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    let (result, carry) = cpu.regs.a.overflowing_add(value);
+    let half_carry = (cpu.regs.a & 0x0f).checked_add(value | 0xf0).is_none();
+    cpu.regs.f = ZERO.test(result == 0) |
                   CARRY.test(carry) |
                   HALF_CARRY.test(half_carry);
-    self.regs.a = result;
+    cpu.regs.a = result;
   }
   /// ADC s
   ///
   /// Flags: Z N H C
   ///        * 0 * *
   fn adc<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    let cy = if self.regs.f.contains(CARRY) { 1 } else { 0 };
-    let result = self.regs.a.wrapping_add(value).wrapping_add(cy);
-    self.regs.f = ZERO.test(result == 0) |
-                  CARRY.test(self.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
-                  HALF_CARRY.test((self.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
-    self.regs.a = result;
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    let cy = if cpu.regs.f.contains(CARRY) { 1 } else { 0 };
+    let result = cpu.regs.a.wrapping_add(value).wrapping_add(cy);
+    cpu.regs.f = ZERO.test(result == 0) |
+                  CARRY.test(cpu.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
+                  HALF_CARRY.test((cpu.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
+    cpu.regs.a = result;
   }
   /// SUB s
   ///
   /// Flags: Z N H C
   ///        * 1 * *
   fn sub<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    self.regs.a = self.alu_sub(value, false);
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    cpu.regs.a = cpu.alu_sub(value, false);
   }
   /// SBC s
   ///
   /// Flags: Z N H C
   ///        * 1 * *
   fn sbc<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    self.regs.a = self.alu_sub(value, true);
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    cpu.regs.a = cpu.alu_sub(value, true);
   }
   /// CP s
   ///
   /// Flags: Z N H C
   ///        * 1 * *
   fn cp<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    self.alu_sub(value, false);
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    cpu.alu_sub(value, false);
   }
   /// AND s
   ///
   /// Flags: Z N H C
   ///        * 0 1 0
   fn and<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    self.regs.a &= value;
-    self.regs.f = ZERO.test(self.regs.a == 0) |
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    cpu.regs.a &= value;
+    cpu.regs.f = ZERO.test(cpu.regs.a == 0) |
                   HALF_CARRY;
   }
   /// OR s
@@ -399,184 +389,203 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        * 0 0 0
   fn or<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    self.regs.a |= value;
-    self.regs.f = ZERO.test(self.regs.a == 0);
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    cpu.regs.a |= value;
+    cpu.regs.f = ZERO.test(cpu.regs.a == 0);
   }
   /// XOR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
   fn xor<I: In8>(self, in8: I) {
-    let value = in8.read(self);
-    self.regs.a ^= value;
-    self.regs.f = ZERO.test(self.regs.a == 0)
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus);
+    cpu.regs.a ^= value;
+    cpu.regs.f = ZERO.test(cpu.regs.a == 0)
   }
   /// INC s
   ///
   /// Flags: Z N H C
   ///        * 0 * -
   fn inc<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
     let new_value = value.wrapping_add_one();
-    self.regs.f = ZERO.test(new_value == 0) |
+    cpu.regs.f = ZERO.test(new_value == 0) |
                   HALF_CARRY.test(value & 0xf == 0xf) |
-                  (CARRY & self.regs.f);
-    io.write(self, new_value);
+                  (CARRY & cpu.regs.f);
+    io.write(cpu, bus, new_value);
   }
   /// DEC s
   ///
   /// Flags: Z N H C
   ///        * 1 * -
   fn dec<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
     let new_value = value.wrapping_sub_one();
-    self.regs.f = ZERO.test(new_value == 0) |
+    cpu.regs.f = ZERO.test(new_value == 0) |
                   ADD_SUBTRACT |
                   HALF_CARRY.test(value & 0xf == 0) |
-                  (CARRY & self.regs.f);
-    io.write(self, new_value);
+                  (CARRY & cpu.regs.f);
+    io.write(cpu, bus, new_value);
   }
   /// RLCA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
   fn rlca(self) {
-    let value = self.regs.a;
-    self.regs.a = self.alu_rlc(value, false);
+    let (cpu, _) = self;
+    let value = cpu.regs.a;
+    cpu.regs.a = cpu.alu_rlc(value, false);
   }
   /// RLA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
   fn rla(self) {
-    let value = self.regs.a;
-    self.regs.a = self.alu_rl(value, false);
+    let (cpu, _) = self;
+    let value = cpu.regs.a;
+    cpu.regs.a = cpu.alu_rl(value, false);
   }
   /// RRCA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
   fn rrca(self) {
-    let value = self.regs.a;
-    self.regs.a = self.alu_rrc(value, false);
+    let (cpu, _) = self;
+    let value = cpu.regs.a;
+    cpu.regs.a = cpu.alu_rrc(value, false);
   }
   /// RRA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
   fn rra(self) {
-    let value = self.regs.a;
-    self.regs.a = self.alu_rr(value, false);
+    let (cpu, _) = self;
+    let value = cpu.regs.a;
+    cpu.regs.a = cpu.alu_rr(value, false);
   }
   /// RLC s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
   fn rlc<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
-    let new_value = self.alu_rlc(value, true);
-    io.write(self, new_value);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
+    let new_value = cpu.alu_rlc(value, true);
+    io.write(cpu, bus, new_value);
   }
   /// RL s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
   fn rl<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
-    let new_value = self.alu_rl(value, true);
-    io.write(self, new_value);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
+    let new_value = cpu.alu_rl(value, true);
+    io.write(cpu, bus, new_value);
   }
   /// RRC s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
   fn rrc<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
-    let new_value = self.alu_rrc(value, true);
-    io.write(self, new_value);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
+    let new_value = cpu.alu_rrc(value, true);
+    io.write(cpu, bus, new_value);
   }
   /// RR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
   fn rr<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
-    let new_value = self.alu_rr(value, true);
-    io.write(self, new_value);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
+    let new_value = cpu.alu_rr(value, true);
+    io.write(cpu, bus, new_value);
   }
   /// SLA s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
   fn sla<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
     let co = value & 0x80;
     let new_value = value << 1;
-    self.regs.f = ZERO.test(new_value == 0) |
+    cpu.regs.f = ZERO.test(new_value == 0) |
                   CARRY.test(co != 0);
-    io.write(self, new_value);
+    io.write(cpu, bus, new_value);
   }
   /// SRA s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
   fn sra<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
     let co = value & 0x01;
     let hi = value & 0x80;
     let new_value = (value >> 1) | hi;
-    self.regs.f = ZERO.test(new_value == 0) |
+    cpu.regs.f = ZERO.test(new_value == 0) |
                   CARRY.test(co != 0);
-    io.write(self, new_value);
+    io.write(cpu, bus, new_value);
   }
   /// SRL s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
   fn srl<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
     let co = value & 0x01;
     let new_value = value >> 1;
-    self.regs.f = ZERO.test(new_value == 0) |
+    cpu.regs.f = ZERO.test(new_value == 0) |
                   CARRY.test(co != 0);
-    io.write(self, new_value);
+    io.write(cpu, bus, new_value);
   }
   /// SWAP s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
   fn swap<IO: In8+Out8>(self, io: IO) {
-    let value = io.read(self);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus);
     let new_value = (value >> 4) | (value << 4);
-    self.regs.f = ZERO.test(value == 0);
-    io.write(self, new_value);
+    cpu.regs.f = ZERO.test(value == 0);
+    io.write(cpu, bus, new_value);
   }
   /// BIT b, s
   ///
   /// Flags: Z N H C
   ///        * 0 1 -
   fn bit<I: In8>(self, bit: usize, in8: I) {
-    let value = in8.read(self) & (1 << bit);
-    self.regs.f = ZERO.test(value == 0) |
+    let (cpu, bus) = self;
+    let value = in8.read(cpu, bus) & (1 << bit);
+    cpu.regs.f = ZERO.test(value == 0) |
                   HALF_CARRY |
-                  (CARRY & self.regs.f);
+                  (CARRY & cpu.regs.f);
   }
   /// SET b, s
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn set<IO: In8+Out8>(self, bit: usize, io: IO) {
-    let value = io.read(self) | (1 << bit);
-    io.write(self, value);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus) | (1 << bit);
+    io.write(cpu, bus, value);
   }
   /// RES b, s
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn res<IO: In8+Out8>(self, bit: usize, io: IO) {
-    let value = io.read(self) & !(1 << bit);
-    io.write(self, value);
+    let (cpu, bus) = self;
+    let value = io.read(cpu, bus) & !(1 << bit);
+    io.write(cpu, bus, value);
   }
   // --- Control
   /// JP nn
@@ -584,56 +593,63 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn jp(self) {
-    let addr = self.next_u16();
-    self.ctrl_jp(addr);
+    let (cpu, bus) = self;
+    let addr = cpu.next_u16(bus);
+    cpu.ctrl_jp(bus, addr);
   }
   /// JP HL
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn jp_hl(self) {
-    self.regs.pc = self.regs.read16(Reg16::HL);
+    let (cpu, _) = self;
+    cpu.regs.pc = cpu.regs.read16(Reg16::HL);
   }
   /// JR e
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn jr(self) {
-    let offset = self.next_u8() as i8;
-    self.ctrl_jr(offset);
+    let (cpu, bus) = self;
+    let offset = cpu.next_u8(bus) as i8;
+    cpu.ctrl_jr(bus, offset);
   }
   /// CALL nn
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn call(self) {
-    let addr = self.next_u16();
-    self.ctrl_call(addr);
+    let (cpu, bus) = self;
+    let addr = cpu.next_u16(bus);
+    cpu.ctrl_call(bus, addr);
   }
   /// RET
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn ret(self) {
-    self.ctrl_ret();
+    let (cpu, bus) = self;
+    cpu.ctrl_ret(bus);
   }
   /// RETI
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn reti(self) {
-    self.ime = true;
-    self.ime_change = ImeChange::None;
-    self.ctrl_ret();
+    let (cpu, bus) = self;
+    cpu.ime = true;
+    cpu.ime_change = ImeChange::None;
+    cpu.ctrl_ret(bus);
   }
   /// JP cc, nn
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn jp_cc(self, cond: Cond) {
-    let addr = self.next_u16();
-    if cond.check(self.regs.f) {
-      self.ctrl_jp(addr);
+    let (cpu, bus) = self;
+    let addr = cpu.next_u16(bus);
+    if cond.check(cpu.regs.f) {
+      cpu.ctrl_jp(bus, addr);
     }
   }
   /// JR cc, e
@@ -641,9 +657,10 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn jr_cc(self, cond: Cond) {
-    let offset = self.next_u8() as i8;
-    if cond.check(self.regs.f) {
-      self.ctrl_jr(offset);
+    let (cpu, bus) = self;
+    let offset = cpu.next_u8(bus) as i8;
+    if cond.check(cpu.regs.f) {
+      cpu.ctrl_jr(bus, offset);
     }
   }
   /// CALL cc, nn
@@ -651,9 +668,10 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn call_cc(self, cond: Cond) {
-    let addr = self.next_u16();
-    if cond.check(self.regs.f) {
-      self.ctrl_call(addr);
+    let (cpu, bus) = self;
+    let addr = cpu.next_u16(bus);
+    if cond.check(cpu.regs.f) {
+      cpu.ctrl_call(bus, addr);
     }
   }
   /// RET cc
@@ -661,9 +679,10 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn ret_cc(self, cond: Cond) {
-    self.internal_cycle();
-    if cond.check(self.regs.f) {
-      self.ctrl_ret();
+    let (cpu, bus) = self;
+    cpu.internal_cycle(bus);
+    if cond.check(cpu.regs.f) {
+      cpu.ctrl_ret(bus);
     }
   }
   /// RST n
@@ -671,10 +690,11 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn rst(self, addr: u8) {
-    let pc = self.regs.pc;
-    self.internal_cycle();
-    self.push_u16(pc);
-    self.regs.pc = addr as u16;
+    let (cpu, bus) = self;
+    let pc = cpu.regs.pc;
+    cpu.internal_cycle(bus);
+    cpu.push_u16(bus, pc);
+    cpu.regs.pc = addr as u16;
   }
   // --- Miscellaneous
   /// HALT
@@ -682,8 +702,9 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn halt(self) {
+    let (cpu, _) = self;
     // TODO: DMG BUG
-    self.halt = true;
+    cpu.halt = true;
   }
   /// STOP
   ///
@@ -697,30 +718,34 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn di(self) {
-    self.ime = false;
-    self.ime_change = ImeChange::None;
+    let (cpu, _) = self;
+    cpu.ime = false;
+    cpu.ime_change = ImeChange::None;
   }
   /// EI
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn ei(self) {
-    self.ime_change = ImeChange::Soon;
+    let (cpu, _) = self;
+    cpu.ime_change = ImeChange::Soon;
   }
   /// CCF
   ///
   /// Flags: Z N H C
   ///        - 0 0 *
   fn ccf(self) {
-    self.regs.f = (ZERO & self.regs.f) |
-                  CARRY.test(!self.regs.f.contains(CARRY))
+    let (cpu, _) = self;
+    cpu.regs.f = (ZERO & cpu.regs.f) |
+                  CARRY.test(!cpu.regs.f.contains(CARRY))
   }
   /// SCF
   ///
   /// Flags: Z N H C
   ///        - 0 0 1
   fn scf(self) {
-    self.regs.f = (ZERO & self.regs.f) |
+    let (cpu, _) = self;
+    cpu.regs.f = (ZERO & cpu.regs.f) |
                   CARRY
   }
   /// NOP
@@ -734,28 +759,29 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        * - 0 *
   fn daa(self) {
+    let (cpu, _) = self;
     // DAA table in page 110 of the official "Game Boy Programming Manual"
     let mut carry = false;
-    if !self.regs.f.contains(ADD_SUBTRACT) {
-      if self.regs.f.contains(CARRY) || self.regs.a > 0x99 {
-        self.regs.a = self.regs.a.wrapping_add(0x60);
+    if !cpu.regs.f.contains(ADD_SUBTRACT) {
+      if cpu.regs.f.contains(CARRY) || cpu.regs.a > 0x99 {
+        cpu.regs.a = cpu.regs.a.wrapping_add(0x60);
         carry = true;
       }
-      if self.regs.f.contains(HALF_CARRY) || self.regs.a & 0x0f > 0x09 {
-        self.regs.a = self.regs.a.wrapping_add(0x06);
+      if cpu.regs.f.contains(HALF_CARRY) || cpu.regs.a & 0x0f > 0x09 {
+        cpu.regs.a = cpu.regs.a.wrapping_add(0x06);
       }
-    } else if self.regs.f.contains(CARRY) {
+    } else if cpu.regs.f.contains(CARRY) {
       carry = true;
-      self.regs.a = self.regs.a.wrapping_add(
-        if self.regs.f.contains(HALF_CARRY) { 0x9a }
+      cpu.regs.a = cpu.regs.a.wrapping_add(
+        if cpu.regs.f.contains(HALF_CARRY) { 0x9a }
         else { 0xa0 }
         );
-    } else if self.regs.f.contains(HALF_CARRY) {
-      self.regs.a = self.regs.a.wrapping_add(0xfa);
+    } else if cpu.regs.f.contains(HALF_CARRY) {
+      cpu.regs.a = cpu.regs.a.wrapping_add(0xfa);
     }
 
-    self.regs.f = ZERO.test(self.regs.a == 0) |
-                  (ADD_SUBTRACT & self.regs.f) |
+    cpu.regs.f = ZERO.test(cpu.regs.a == 0) |
+                  (ADD_SUBTRACT & cpu.regs.f) |
                   CARRY.test(carry);
   }
   /// CPL
@@ -763,11 +789,12 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - 1 1 -
   fn cpl(self) {
-    self.regs.a = !self.regs.a;
-    self.regs.f = (ZERO & self.regs.f) |
+    let (cpu, _) = self;
+    cpu.regs.a = !cpu.regs.a;
+    cpu.regs.f = (ZERO & cpu.regs.f) |
                   ADD_SUBTRACT |
                   HALF_CARRY |
-                  (CARRY & self.regs.f);
+                  (CARRY & cpu.regs.f);
   }
   // --- 16-bit operations
   // 16-bit loads
@@ -776,49 +803,54 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn load16_imm(self, reg: Reg16) {
-    let value = self.next_u16();
-    self.regs.write16(reg, value);
+    let (cpu, bus) = self;
+    let value = cpu.next_u16(bus);
+    cpu.regs.write16(reg, value);
   }
   /// LD (nn), SP
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn load16_nn_sp(self) {
-    let value = self.regs.sp;
-    let addr = self.next_u16();
-    self.write_cycle(addr, value as u8);
-    self.write_cycle((addr.wrapping_add_one()), (value >> 8) as u8);
+    let (cpu, bus) = self;
+    let value = cpu.regs.sp;
+    let addr = cpu.next_u16(bus);
+    cpu.write_cycle(bus, addr, value as u8);
+    cpu.write_cycle(bus, (addr.wrapping_add_one()), (value >> 8) as u8);
   }
   /// LD SP, HL
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn load16_sp_hl(self) {
-    let value = self.regs.read16(Reg16::HL);
-    self.regs.sp = value;
-    self.internal_cycle();
+    let (cpu, bus) = self;
+    let value = cpu.regs.read16(Reg16::HL);
+    cpu.regs.sp = value;
+    cpu.internal_cycle(bus);
   }
   /// LD HL, SP+e
   ///
   /// Flags: Z N H C
   ///        0 0 * *
   fn load16_hl_sp_e(self) {
-    let offset = self.next_u8() as i8 as u16;
-    let sp = self.regs.sp as u16;
+    let (cpu, bus) = self;
+    let offset = cpu.next_u8(bus) as i8 as u16;
+    let sp = cpu.regs.sp as u16;
     let value = sp.wrapping_add(offset);
-    self.regs.write16(Reg16::HL, value);
-    self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
+    cpu.regs.write16(Reg16::HL, value);
+    cpu.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, offset));
-    self.internal_cycle();
+    cpu.internal_cycle(bus);
   }
   /// PUSH rr
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn push16(self, reg: Reg16) {
-    let value = self.regs.read16(reg);
-    self.internal_cycle();
-    self.push_u16(value);
+    let (cpu, bus) = self;
+    let value = cpu.regs.read16(reg);
+    cpu.internal_cycle(bus);
+    cpu.push_u16(bus, value);
   }
   /// POP rr
   ///
@@ -826,8 +858,9 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   ///        - - - -
   /// Note! POP AF affects all flags
   fn pop16(self, reg: Reg16) {
-    let value = self.pop_u16();
-    self.regs.write16(reg, value);
+    let (cpu, bus) = self;
+    let value = cpu.pop_u16(bus);
+    cpu.regs.write16(reg, value);
   }
   // 16-bit arithmetic
   /// ADD HL, ss
@@ -835,55 +868,61 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - 0 * *
   fn add16(self, reg: Reg16) {
-    let hl = self.regs.read16(Reg16::HL);
-    let value = self.regs.read16(reg);
+    let (cpu, bus) = self;
+    let hl = cpu.regs.read16(Reg16::HL);
+    let value = cpu.regs.read16(reg);
     let result = hl.wrapping_add(value);
-    self.regs.f = (ZERO & self.regs.f) |
+    cpu.regs.f = (ZERO & cpu.regs.f) |
                   HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
                   CARRY.test(hl > 0xffff - value);
-    self.regs.write16(Reg16::HL, result);
-    self.internal_cycle();
+    cpu.regs.write16(Reg16::HL, result);
+    cpu.internal_cycle(bus);
   }
   /// ADD SP, e
   ///
   /// Flags: Z N H C
   ///        0 0 * *
   fn add16_sp_e(self) {
-    let val = self.next_u8() as i8 as i16 as u16;
-    let sp = self.regs.sp;
-    self.regs.sp = sp.wrapping_add(val);
-    self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
+    let (cpu, bus) = self;
+    let val = cpu.next_u8(bus) as i8 as i16 as u16;
+    let sp = cpu.regs.sp;
+    cpu.regs.sp = sp.wrapping_add(val);
+    cpu.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, val));
-    self.internal_cycle();
-    self.internal_cycle();
+    cpu.internal_cycle(bus);
+    cpu.internal_cycle(bus);
   }
   /// INC rr
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn inc16(self, reg: Reg16) {
-    let value = self.regs.read16(reg).wrapping_add_one();
-    self.regs.write16(reg, value);
-    self.internal_cycle();
+    let (cpu, bus) = self;
+    let value = cpu.regs.read16(reg).wrapping_add_one();
+    cpu.regs.write16(reg, value);
+    cpu.internal_cycle(bus);
   }
   /// DEC rr
   ///
   /// Flags: Z N H C
   ///        - - - -
   fn dec16(self, reg: Reg16) {
-    let value = self.regs.read16(reg).wrapping_sub_one();
-    self.regs.write16(reg, value);
-    self.internal_cycle();
+    let (cpu, bus) = self;
+    let value = cpu.regs.read16(reg).wrapping_sub_one();
+    cpu.regs.write16(reg, value);
+    cpu.internal_cycle(bus);
   }
   // --- Undefined
   fn undefined(self, op: u8) {
     panic!("Undefined opcode {}", op)
   }
   fn undefined_debug(self) {
-    self.hardware.trigger_emu_events(EE_DEBUG_OP);
+    let (_, bus) = self;
+    bus.trigger_emu_events(EE_DEBUG_OP);
   }
   fn cb_prefix(self) {
-    let op = self.next_u8();
-    ops::decode_cb(self, op)
+    let (cpu, bus) = self;
+    let op = cpu.next_u8(bus);
+    ops::decode_cb((cpu, bus), op)
   }
 }

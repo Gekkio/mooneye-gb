@@ -132,20 +132,6 @@ impl Hardware {
   pub fn key_up(&mut self, key: GbKey) {
     self.joypad.key_up(key);
   }
-  pub fn dump_mem(&self, addr: u16, chunks: usize) {
-    let start = addr;
-    let end = addr + (chunks as u16 * 8);
-    
-    let mut i = start;
-    while i < end {
-      println!("${:04x}: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}", i,
-               self.read_internal(i + 0), self.read_internal(i + 1),
-               self.read_internal(i + 2), self.read_internal(i + 3),
-               self.read_internal(i + 4), self.read_internal(i + 5),
-               self.read_internal(i + 6), self.read_internal(i + 7));
-      i += 8;
-    }
-  }
   fn write_internal(&mut self, addr: u16, value: u8) {
     match addr >> 8 {
       0x00 ... 0x7f => self.cartridge.write_control(addr, value),

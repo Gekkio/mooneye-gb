@@ -21,16 +21,16 @@ use cpu::registers::{
 use cpu::test::run_test;
 
 fn test_add16_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool {
-  let cpu = run_test(
+  let machine = run_test(
     &[0xe8, e as u8],
-    |cpu| {
-      cpu.regs.write16(Reg16::SP, sp);
+    |machine| {
+      machine.cpu.regs.write16(Reg16::SP, sp);
     }
   );
   let expected = sp.wrapping_add(e as i16 as u16);
-  cpu.hardware.clock_cycles() == 16 &&
-    cpu.regs.read16(Reg16::SP) == expected &&
-    check_flags(cpu.regs.f)
+  machine.hardware.clock_cycles() == 16 &&
+    machine.cpu.regs.read16(Reg16::SP) == expected &&
+    check_flags(machine.cpu.regs.f)
 }
 
 #[test]

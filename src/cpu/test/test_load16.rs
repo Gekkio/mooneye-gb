@@ -21,12 +21,12 @@ use cpu::test::run_test;
 fn test_load16(opcode: u8, x: u16, reg: Reg16) -> bool {
   let h = (x >> 8) as u8;
   let l = x as u8;
-  let cpu = run_test(
+  let machine = run_test(
     &[opcode, l, h],
     |_| {}
   );
-  cpu.hardware.clock_cycles() == 12 &&
-    cpu.regs.read16(reg) == x
+  machine.hardware.clock_cycles() == 12 &&
+    machine.cpu.regs.read16(reg) == x
 }
 
 #[test]
@@ -55,13 +55,13 @@ fn test_31() {
 
 #[test]
 fn test_08() {
-  let cpu = run_test(
+  let machine = run_test(
     &[0x08, 0x04, 0x00, 0xed, 0x00, 0x00], // LD (nn), SP
-    |cpu| {
-      cpu.regs.sp = 0x8042;
+    |machine| {
+      machine.cpu.regs.sp = 0x8042;
     }
   );
-  assert_eq!(cpu.hardware.clock_cycles(), 20);
-  assert_eq!(cpu.hardware.memory[0x04], 0x42);
-  assert_eq!(cpu.hardware.memory[0x05], 0x80);
+  assert_eq!(machine.hardware.clock_cycles(), 20);
+  assert_eq!(machine.hardware.memory[0x04], 0x42);
+  assert_eq!(machine.hardware.memory[0x05], 0x80);
 }

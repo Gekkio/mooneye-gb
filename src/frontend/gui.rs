@@ -48,44 +48,6 @@ impl Screen for WaitBootromScreen {
   }
 }
 
-pub struct WaitRomScreen {
-  title: ImStr<'static>,
-  error: Option<ImStr<'static>>
-}
-
-impl WaitRomScreen {
-  pub fn new() -> WaitRomScreen {
-    WaitRomScreen {
-      title: im_str!("Mooneye GB v{}", ::VERSION),
-      error: None
-    }
-  }
-  pub fn set_error(&mut self, text: String) {
-    self.error = Some(text.into());
-  }
-}
-
-impl Screen for WaitRomScreen {
-  fn render(&mut self, ui: &Ui) {
-    ui.window(im_str!("Help overlay"))
-      .title_bar(false)
-      .resizable(false)
-      .movable(false)
-      .always_auto_resize(true)
-      .position((f32::MIN, f32::MIN), ImGuiSetCond_Always)
-      .build(|| {
-        ui.text(self.title.clone());
-        ui.separator();
-        ui.text(im_str!("Drag and drop a Game Boy ROM file here to load it"));
-
-        if let Some(ref error) = self.error {
-          ui.separator();
-          ui.text_colored(ImVec4::new(1.0, 0.0, 0.0, 1.0), error.clone());
-        }
-      });
-  }
-}
-
 pub struct InGameScreen {
   pub fps: f64,
   pub perf: f64,

@@ -19,17 +19,17 @@ use cpu::registers::{Flags, Reg16};
 use cpu::test::run_test;
 
 fn test_push16(opcode: u8, reg: Reg16, x: u16) -> bool {
-  let cpu = run_test(
+  let machine = run_test(
     &[opcode, 0xed, 0x00, 0x00],
-    |cpu| {
-      cpu.regs.write16(reg, x);
-      cpu.regs.sp = 0x0004;
+    |machine| {
+      machine.cpu.regs.write16(reg, x);
+      machine.cpu.regs.sp = 0x0004;
     }
   );
-  cpu.hardware.clock_cycles() == 16 &&
-    cpu.regs.sp == 0x0002 &&
-    cpu.hardware.memory[0x03] == (x >> 8) as u8 &&
-    cpu.hardware.memory[0x02] == (x as u8)
+  machine.hardware.clock_cycles() == 16 &&
+    machine.cpu.regs.sp == 0x0002 &&
+    machine.hardware.memory[0x03] == (x >> 8) as u8 &&
+    machine.hardware.memory[0x02] == (x as u8)
 }
 
 #[test]
@@ -53,18 +53,18 @@ fn test_e5() {
 #[test]
 fn test_f5() {
   fn prop(a: u8, f: u8) -> bool {
-    let cpu = run_test(
+    let machine = run_test(
       &[0xf5, 0xed, 0x00, 0x00],
-      |cpu| {
-        cpu.regs.a = a;
-        cpu.regs.f = Flags::from_bits_truncate(f);
-        cpu.regs.sp = 0x0004;
+      |machine| {
+        machine.cpu.regs.a = a;
+        machine.cpu.regs.f = Flags::from_bits_truncate(f);
+        machine.cpu.regs.sp = 0x0004;
       }
     );
-    cpu.hardware.clock_cycles() == 16 &&
-      cpu.regs.sp == 0x0002 &&
-      cpu.hardware.memory[0x03] == a &&
-      cpu.hardware.memory[0x02] == (f & 0xF0)
+    machine.hardware.clock_cycles() == 16 &&
+      machine.cpu.regs.sp == 0x0002 &&
+      machine.hardware.memory[0x03] == a &&
+      machine.hardware.memory[0x02] == (f & 0xF0)
   }
   quickcheck(prop as fn(u8, u8) -> bool);
 }

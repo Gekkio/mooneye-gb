@@ -23,24 +23,24 @@ macro_rules! test_bit_r8(
     #[test]
     fn $test() {
       {
-        let cpu = run_test(
+        let machine = run_test(
           &[0xcb, $op],
-          |cpu| {
-            cpu.regs.$reg = 1 << $bit;
+          |machine| {
+            machine.cpu.regs.$reg = 1 << $bit;
           }
         );
-        assert_eq!(cpu.hardware.clock_cycles(), 8);
-        assert_eq!(cpu.regs.f, HALF_CARRY);
+        assert_eq!(machine.hardware.clock_cycles(), 8);
+        assert_eq!(machine.cpu.regs.f, HALF_CARRY);
       }
       {
-        let cpu = run_test(
+        let machine = run_test(
           &[0xcb, $op],
-          |cpu| {
-            cpu.regs.$reg = 0;
+          |machine| {
+            machine.cpu.regs.$reg = 0;
           }
         );
-        assert_eq!(cpu.hardware.clock_cycles(), 8);
-        assert_eq!(cpu.regs.f, ZERO | HALF_CARRY);
+        assert_eq!(machine.hardware.clock_cycles(), 8);
+        assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
       }
     }
   );
@@ -51,26 +51,26 @@ macro_rules! test_bit_hl(
     #[test]
     fn $test() {
       {
-        let cpu = run_test(
+        let machine = run_test(
           &[0xcb, $op, 0xed, 1 << $bit],
-          |cpu| {
-            cpu.regs.h = 0x00;
-            cpu.regs.l = 0x03;
+          |machine| {
+            machine.cpu.regs.h = 0x00;
+            machine.cpu.regs.l = 0x03;
           }
         );
-        assert_eq!(cpu.hardware.clock_cycles(), 12);
-        assert_eq!(cpu.regs.f, HALF_CARRY);
+        assert_eq!(machine.hardware.clock_cycles(), 12);
+        assert_eq!(machine.cpu.regs.f, HALF_CARRY);
       }
       {
-        let cpu = run_test(
+        let machine = run_test(
           &[0xcb, $op, 0xed, 0x00],
-          |cpu| {
-            cpu.regs.h = 0x00;
-            cpu.regs.l = 0x03;
+          |machine| {
+            machine.cpu.regs.h = 0x00;
+            machine.cpu.regs.l = 0x03;
           }
         );
-        assert_eq!(cpu.hardware.clock_cycles(), 12);
-        assert_eq!(cpu.regs.f, ZERO | HALF_CARRY);
+        assert_eq!(machine.hardware.clock_cycles(), 12);
+        assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
       }
     }
   );
