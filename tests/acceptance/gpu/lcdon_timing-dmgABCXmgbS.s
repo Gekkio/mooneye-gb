@@ -146,9 +146,9 @@ verify_results:
 
 verify_fail:
   ld a, (hl)
-  ld (v_fail_expect), a
-  ld a, (de)
   ld (v_fail_actual), a
+  ld a, (de)
+  ld (v_fail_expect), a
   ld a, c
   ld (v_fail_round), a
   pop de
