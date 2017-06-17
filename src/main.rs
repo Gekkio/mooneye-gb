@@ -25,6 +25,7 @@ extern crate glium;
 extern crate glium_sdl2;
 #[macro_use]
 extern crate imgui;
+extern crate imgui_glium_renderer;
 #[macro_use]
 extern crate log;
 extern crate nalgebra;

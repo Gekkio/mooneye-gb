@@ -16,7 +16,7 @@
 use glium::{Api, GliumCreationError, Surface, SwapBuffersError, Version};
 use glium_sdl2::{Display, DisplayBuild, GliumSdl2Error};
 use imgui::ImGui;
-use imgui::glium_renderer;
+use imgui_glium_renderer;
 use sdl2;
 use sdl2::{Sdl, EventPump, VideoSubsystem};
 use sdl2::controller::{Axis, Button};
@@ -54,7 +54,7 @@ pub struct SdlFrontend {
   event_pump: EventPump,
   display: Display,
   imgui: ImGui,
-  gui_renderer: glium_renderer::Renderer,
+  gui_renderer: imgui_glium_renderer::Renderer,
   renderer: Renderer,
   times: FrameTimes
 }
@@ -192,7 +192,7 @@ impl SdlFrontend {
     let mut imgui = ImGui::init();
     imgui.set_ini_filename(None);
     imgui.set_log_filename(None);
-    let gui_renderer = try!(glium_renderer::Renderer::init(&mut imgui, &display));
+    let gui_renderer = try!(imgui_glium_renderer::Renderer::init(&mut imgui, &display));
 
     Ok(SdlFrontend {
       sdl: sdl,

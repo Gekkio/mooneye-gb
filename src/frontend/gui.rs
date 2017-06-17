@@ -1,5 +1,5 @@
 use imgui::{ImGuiSetCond_Always, ImStr, ImVec4, Ui};
-use imgui::glium_renderer::RendererError;
+use imgui_glium_renderer::RendererError;
 use std::f32;
 
 use config::HardwareConfig;
