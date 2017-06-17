@@ -101,21 +101,21 @@ impl UpperHex for Joypad {
 /// Bits are inverted in get_register/set_register, so in JoypadReg
 /// a set bit is 1 as usual.
 bitflags!(
-  flags JoypadReg: u8 {
-    const JOYPAD_P10                = 1 << 0, // P10: →, A
-    const JOYPAD_P11                = 1 << 1, // P11: ←, B
-    const JOYPAD_P12                = 1 << 2, // P12: ↑, Select
-    const JOYPAD_P13                = 1 << 3, // P13: ↓, Start
-    const JOYPAD_SELECT_DIRECTIONAL = 1 << 4, // P14: Select dpad
-    const JOYPAD_SELECT_BUTTON      = 1 << 5, // P15: Select buttons
+  struct JoypadReg: u8 {
+    const JOYPAD_P10                = 1 << 0; // P10: →, A
+    const JOYPAD_P11                = 1 << 1; // P11: ←, B
+    const JOYPAD_P12                = 1 << 2; // P12: ↑, Select
+    const JOYPAD_P13                = 1 << 3; // P13: ↓, Start
+    const JOYPAD_SELECT_DIRECTIONAL = 1 << 4; // P14: Select dpad
+    const JOYPAD_SELECT_BUTTON      = 1 << 5; // P15: Select buttons
 
     /// Only select bits are writable
     const JOYPAD_WRITABLE =
-      JOYPAD_SELECT_DIRECTIONAL.bits | JOYPAD_SELECT_BUTTON.bits,
+      JOYPAD_SELECT_DIRECTIONAL.bits | JOYPAD_SELECT_BUTTON.bits;
 
     /// DMG: initial state 0xCF
     /// See docs/accuracy/joypad.markdown
-    const JOYPAD_INITIAL_STATE = JOYPAD_WRITABLE.bits
+    const JOYPAD_INITIAL_STATE = JOYPAD_WRITABLE.bits;
   }
 );
 

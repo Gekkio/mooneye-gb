@@ -202,10 +202,10 @@ impl Apu {
 }
 
 bitflags!(
-  flags Channels: u8 {
-    const CH_1 = 1 << 0,
-    const CH_2 = 1 << 1,
-    const CH_3 = 1 << 2,
-    const CH_4 = 1 << 3
+  struct Channels: u8 {
+    const CH_1 = 1 << 0;
+    const CH_2 = 1 << 1;
+    const CH_3 = 1 << 2;
+    const CH_4 = 1 << 3;
   }
 );

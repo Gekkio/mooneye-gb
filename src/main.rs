@@ -28,7 +28,8 @@ extern crate log;
 extern crate nalgebra;
 extern crate num_traits;
 extern crate podio;
-extern crate rustc_serialize;
+#[macro_use]
+extern crate serde_derive;
 extern crate sdl2;
 extern crate simplelog;
 extern crate url;
@@ -71,7 +72,7 @@ Options:
   -b FILE, --bootrom FILE  Use a boot ROM
 ");
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize)]
 struct Args {
   arg_rom: Option<String>,
   flag_bootrom: Option<String>,
@@ -94,7 +95,7 @@ fn read_boot_rom(path: &str, expected_model: Option<Model>) -> Bootrom {
 fn main() {
   let args: Args =
     Docopt::new(USAGE)
-    .and_then(|d| d.decode())
+    .and_then(|d| d.deserialize())
     .unwrap_or_else(|e| e.exit());
 
   TermLogger::init(LogLevelFilter::Debug, simplelog::Config::default())

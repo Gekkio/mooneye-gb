@@ -46,8 +46,8 @@ const CTRL_UNUSED_MASK: u8 = (1 << 1) | (1 << 2) | (1 << 3) |
                              (1 << 4) | (1 << 5) | (1 << 6);
 
 bitflags!(
-  flags Control: u8 {
-    const CTRL_CLOCK = 1 << 0,
-    const CTRL_START = 1 << 7
+  struct Control: u8 {
+    const CTRL_CLOCK = 1 << 0;
+    const CTRL_START = 1 << 7;
   }
 );

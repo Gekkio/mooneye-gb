@@ -36,8 +36,8 @@ impl fmt::Debug for EmuDuration {
 }
 
 bitflags!(
-  pub flags EmuEvents: u8 {
-    const EE_DEBUG_OP = 0b_0000_0001,
-    const EE_VSYNC    = 0b_0000_0010
+  pub struct EmuEvents: u8 {
+    const EE_DEBUG_OP = 0b_0000_0001;
+    const EE_VSYNC    = 0b_0000_0010;
   }
 );

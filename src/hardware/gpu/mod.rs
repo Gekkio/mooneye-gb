@@ -86,12 +86,12 @@ impl Sprite {
 }
 
 bitflags!(
-  flags SpriteFlags: u8 {
-    const SPRITE_UNUSED_MASK = 0b_0000_1111,
-    const SPRITE_PALETTE     = 0b_0001_0000,
-    const SPRITE_FLIPX       = 0b_0010_0000,
-    const SPRITE_FLIPY       = 0b_0100_0000,
-    const SPRITE_PRIORITY    = 0b_1000_0000
+  struct SpriteFlags: u8 {
+    const SPRITE_UNUSED_MASK = 0b_0000_1111;
+    const SPRITE_PALETTE     = 0b_0001_0000;
+    const SPRITE_FLIPX       = 0b_0010_0000;
+    const SPRITE_FLIPY       = 0b_0100_0000;
+    const SPRITE_PRIORITY    = 0b_1000_0000;
   }
 );
 
@@ -131,25 +131,25 @@ impl Palette {
 }
 
 bitflags!(
-  flags Control: u8 {
-    const CTRL_BG_ON = 1 << 0,
-    const CTRL_OBJ_ON = 1 << 1,
-    const CTRL_OBJ_SIZE = 1 << 2,
-    const CTRL_BG_MAP = 1 << 3,
-    const CTRL_BG_ADDR = 1 << 4,
-    const CTRL_WINDOW_ON = 1 << 5,
-    const CTRL_WINDOW_MAP = 1 << 6,
-    const CTRL_LCD_ON = 1 << 7
+  struct Control: u8 {
+    const CTRL_BG_ON = 1 << 0;
+    const CTRL_OBJ_ON = 1 << 1;
+    const CTRL_OBJ_SIZE = 1 << 2;
+    const CTRL_BG_MAP = 1 << 3;
+    const CTRL_BG_ADDR = 1 << 4;
+    const CTRL_WINDOW_ON = 1 << 5;
+    const CTRL_WINDOW_MAP = 1 << 6;
+    const CTRL_LCD_ON = 1 << 7;
   }
 );
 
 bitflags!(
-  flags Stat: u8 {
-    const STAT_COMPARE = 1 << 2,
-    const STAT_HBLANK_INT = 1 << 3,
-    const STAT_VBLANK_INT = 1 << 4,
-    const STAT_ACCESS_OAM_INT = 1 << 5,
-    const STAT_COMPARE_INT = 1 << 6
+  struct Stat: u8 {
+    const STAT_COMPARE = 1 << 2;
+    const STAT_HBLANK_INT = 1 << 3;
+    const STAT_VBLANK_INT = 1 << 4;
+    const STAT_ACCESS_OAM_INT = 1 << 5;
+    const STAT_COMPARE_INT = 1 << 6;
   }
 );
 
