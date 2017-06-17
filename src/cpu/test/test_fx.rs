@@ -21,7 +21,7 @@ fn test_f0() {
   let cpu = run_test(
     &[0xf0, 0x80], // LDH A, (n)
     |cpu| {
-      cpu.write_hiram(0x00, 0x42);
+      cpu.hardware.memory[0xff80] = 0x42;
     }
   );
   assert_eq!(cpu.clock_cycles(), 12);
@@ -33,7 +33,7 @@ fn test_f2() {
   let cpu = run_test(
     &[0xf2], // LDH A, (C)
     |cpu| {
-      cpu.write_hiram(0x00, 0x42);
+      cpu.hardware.memory[0xff80] = 0x42;
       cpu.regs.c = 0x80;
     }
   );

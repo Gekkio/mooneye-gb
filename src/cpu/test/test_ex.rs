@@ -27,7 +27,7 @@ fn test_e0() {
     }
   );
   assert_eq!(cpu.clock_cycles(), 12);
-  assert_eq!(cpu.read_hiram(0x00), 0x42);
+  assert_eq!(cpu.hardware.memory[0xff80], 0x42);
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn test_e2() {
     }
   );
   assert_eq!(cpu.clock_cycles(), 8);
-  assert_eq!(cpu.read_hiram(0x00), 0x42);
+  assert_eq!(cpu.hardware.memory[0xff80], 0x42);
 }
 
 #[test]

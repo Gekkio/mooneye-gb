@@ -19,6 +19,7 @@ use config::HardwareConfig;
 use emulation::EmuEvents;
 use frontend::{GbKey};
 use gameboy;
+use gameboy::{HiramData, HIRAM_EMPTY};
 use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
 use hardware::cartridge::Cartridge;
@@ -42,9 +43,11 @@ mod serial;
 mod timer;
 
 pub trait Bus {
-  fn write(&mut self, u16, u8);
-  fn read(&self, u16) -> u8;
+  fn fetch_cycle(&mut self, u16) -> u8;
+  fn read_cycle(&mut self, u16) -> u8;
+  fn write_cycle(&mut self, u16, u8);
   fn emulate(&mut self);
+  fn read(&self, u16) -> u8;
   fn ack_interrupt(&mut self) -> Option<Interrupt>;
   fn has_interrupt(&self) -> bool;
   fn trigger_emu_events(&mut self, EmuEvents);
@@ -54,6 +57,7 @@ pub struct Hardware {
   pub bootrom: Bootrom,
   pub cartridge: Cartridge,
   internal_ram: InternalRam,
+  hiram: HiramData,
   gpu: Gpu,
   apu: Apu,
   joypad: Joypad,
@@ -101,6 +105,7 @@ impl Hardware {
       bootrom: Bootrom::new(config.bootrom),
       cartridge: Cartridge::new(config.cartridge),
       internal_ram: InternalRam::new(),
+      hiram: HIRAM_EMPTY,
       gpu: Gpu::new(),
       apu: Apu::new(),
       joypad: Joypad::new(),
@@ -131,8 +136,10 @@ impl Hardware {
     let mut i = start;
     while i < end {
       println!("${:04x}: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}", i,
-               self.read(i + 0), self.read(i + 1), self.read(i + 2), self.read(i + 3),
-               self.read(i + 4), self.read(i + 5), self.read(i + 6), self.read(i + 7));
+               self.read_internal(i + 0), self.read_internal(i + 1),
+               self.read_internal(i + 2), self.read_internal(i + 3),
+               self.read_internal(i + 4), self.read_internal(i + 5),
+               self.read_internal(i + 6), self.read_internal(i + 7));
       i += 8;
     }
   }
@@ -182,6 +189,7 @@ impl Hardware {
           0x4a => self.gpu.set_window_y(value),
           0x4b => self.gpu.set_window_x(value),
           0x50 => self.bootrom.deactivate(),
+          0x80 ... 0xfe => self.hiram[(addr & 0x7f) as usize] = value,
           0xff => self.irq.set_interrupt_enable(value),
           _ => ()
         }
@@ -238,6 +246,7 @@ impl Hardware {
           0x49 => self.gpu.get_obj_palette1(),
           0x4a => self.gpu.get_window_y(),
           0x4b => self.gpu.get_window_x(),
+          0x80 ... 0xfe => self.hiram[(addr & 0x7f) as usize],
           0xff => self.irq.get_interrupt_enable(),
           _ => 0xff
         }
@@ -248,17 +257,20 @@ impl Hardware {
 }
 
 impl Bus for Hardware {
-  fn read(&self, addr: u16) -> u8 {
-    if self.oam_dma.state == OamDmaState::Active {
-      println!("Warning: read at ${:04x} during OAM DMA!", addr);
-    }
+  fn fetch_cycle(&mut self, addr: u16) -> u8 {
+    self.emulate();
     self.read_internal(addr)
   }
-  fn write(&mut self, addr: u16, value: u8) {
-    if self.oam_dma.state == OamDmaState::Active {
-      println!("Warning: write at ${:04x} = {:02x} during OAM DMA!", addr, value)
-    }
+  fn read_cycle(&mut self, addr: u16) -> u8 {
+    self.emulate();
+    self.read_internal(addr)
+  }
+  fn write_cycle(&mut self, addr: u16, value: u8) {
+    self.emulate();
     self.write_internal(addr, value)
+  }
+  fn read(&self, addr: u16) -> u8 {
+    self.read_internal(addr)
   }
   fn emulate(&mut self) {
     match self.oam_dma.state {

@@ -43,20 +43,28 @@ mod test_inc16;
 mod test_dec16;
 
 pub struct TestHardware {
-  memory: Vec<u8>
+  memory: Vec<u8>,
 }
 
 impl TestHardware {
-  fn from_memory(memory: Vec<u8>) -> TestHardware {
+  fn from_memory(input: &[u8]) -> TestHardware {
+    let mut memory = vec![0x00; 0x10000];
+    memory[0..input.len()].copy_from_slice(input);
     TestHardware {
-      memory: memory
+      memory: memory,
     }
   }
 }
 
 impl<'a> Bus for TestHardware {
-  fn write(&mut self, addr: u16, value: u8) {
+  fn fetch_cycle(&mut self, addr: u16) -> u8 {
+    self.memory[addr as usize]
+  }
+  fn write_cycle(&mut self, addr: u16, value: u8) {
     self.memory[addr as usize] = value;
+  }
+  fn read_cycle(&mut self, addr: u16) -> u8 {
+    self.read(addr)
   }
   fn read(&self, addr: u16) -> u8 {
     self.memory[addr as usize]
@@ -71,7 +79,7 @@ pub fn run_test<I: Fn(&mut Cpu<TestHardware>) -> ()>(instructions: &[u8], cpu_in
   let mut memory = instructions.to_vec();
   memory.push(0xed);
 
-  let mut cpu = Cpu::new(TestHardware::from_memory(memory));
+  let mut cpu = Cpu::new(TestHardware::from_memory(&memory));
   cpu_init(&mut cpu);
 
   while cpu.hardware.memory[cpu.regs.pc as usize] != 0xed {
@@ -82,7 +90,7 @@ pub fn run_test<I: Fn(&mut Cpu<TestHardware>) -> ()>(instructions: &[u8], cpu_in
 
 #[test]
 fn test_disasm_all_opcodes() {
-  let bus = TestHardware::from_memory(vec![0x00, 0x00, 0x00]);
+  let bus = TestHardware::from_memory(&vec![0x00, 0x00, 0x00]);
   let mut cpu = Cpu::new(bus);
 
   for op in 0..0xff {

@@ -16,7 +16,6 @@
 use std::fmt;
 
 use emulation::{EmuDuration, EmuTime, EE_DEBUG_OP};
-use gameboy::{HiramData, HIRAM_EMPTY};
 use hardware::Bus;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
 use cpu::registers::{
@@ -40,7 +39,6 @@ pub struct Cpu<H: Bus> {
   ime: bool,
   ime_change: ImeChange,
   halt: bool,
-  hiram: HiramData,
   pub hardware: H
 }
 
@@ -86,13 +84,13 @@ pub enum Addr {
 impl In8 for Addr {
   fn read<H: Bus>(&self, cpu: &mut Cpu<H>) -> u8 {
     let addr = cpu.indirect_addr(*self);
-    cpu.read_u8(addr)
+    cpu.read_cycle(addr)
   }
 }
 impl Out8 for Addr {
   fn write<H: Bus>(&self, cpu: &mut Cpu<H>, value: u8) {
     let addr = cpu.indirect_addr(*self);
-    cpu.write_u8(addr, value);
+    cpu.write_cycle(addr, value);
   }
 }
 
@@ -133,7 +131,6 @@ impl<H> Cpu<H> where H: Bus {
       ime: true,
       ime_change: ImeChange::None,
       halt: false,
-      hiram: HIRAM_EMPTY,
       hardware: hardware,
       time: EmuTime::zero()
     }
@@ -158,59 +155,54 @@ impl<H> Cpu<H> where H: Bus {
     self.time.rewind();
   }
 
-  pub fn read_hiram(&self, reladdr: u16) -> u8 {
-    self.hiram[reladdr as usize]
+  fn fetch_cycle(&mut self) -> u8 {
+    let addr = self.regs.pc;
+    self.regs.pc = self.regs.pc.wrapping_add(1);
+    self.time += EmuDuration::machine_cycles(1);
+    self.hardware.fetch_cycle(addr)
   }
-  pub fn write_hiram(&mut self, reladdr: u16, value: u8) {
-    self.hiram[reladdr as usize] = value;
+  fn read_cycle(&mut self, addr: u16) -> u8 {
+    self.time += EmuDuration::machine_cycles(1);
+    self.hardware.read_cycle(addr)
+  }
+  fn write_cycle(&mut self, addr: u16, value: u8) {
+    self.time += EmuDuration::machine_cycles(1);
+    self.hardware.write_cycle(addr, value);
+  }
+  fn halt_cycle(&mut self) {
+    if self.hardware.has_interrupt() {
+      self.halt = false;
+    } else {
+      self.time += EmuDuration::machine_cycles(1);
+      self.hardware.emulate();
+    }
+  }
+  fn internal_cycle(&mut self) {
+    self.time += EmuDuration::machine_cycles(1);
+    self.hardware.emulate();
   }
 
   fn next_u8(&mut self) -> u8 {
     let addr = self.regs.pc;
     self.regs.pc = self.regs.pc.wrapping_add(1);
-    self.read_u8(addr)
+    self.read_cycle(addr)
   }
   fn next_u16(&mut self) -> u16 {
     let l = self.next_u8();
     let h = self.next_u8();
     ((h as u16) << 8) | (l as u16)
   }
-  fn read_u8(&mut self, addr: u16) -> u8 {
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
-
-    if addr < 0xff80 || addr == 0xffff {
-      self.hardware.read(addr)
-    } else {
-      self.read_hiram(addr & 0x7f)
-    }
-  }
-  fn write_u8(&mut self, addr: u16, value: u8) {
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
-
-    if addr < 0xff80 || addr == 0xffff {
-      self.hardware.write(addr, value);
-    } else {
-      self.write_hiram(addr & 0x7f, value);
-    }
-  }
-
-  fn write_u16(&mut self, addr: u16, value: u16) {
-    self.write_u8(addr, value as u8);
-    self.write_u8((addr.wrapping_add_one()), (value >> 8) as u8);
-  }
 
   fn pop_u8(&mut self) -> u8 {
     let sp = self.regs.sp;
-    let value = self.read_u8(sp);
+    let value = self.read_cycle(sp);
     self.regs.sp = self.regs.sp.wrapping_add_one();
     value
   }
   fn push_u8(&mut self, value: u8) {
     self.regs.sp = self.regs.sp.wrapping_sub_one();
     let sp = self.regs.sp;
-    self.write_u8(sp, value);
+    self.write_cycle(sp, value);
   }
 
   fn pop_u16(&mut self) -> u16 {
@@ -247,12 +239,7 @@ impl<H> Cpu<H> where H: Bus {
 
   pub fn execute(&mut self) {
     if self.halt {
-      if self.hardware.has_interrupt() {
-        self.halt = false;
-      } else {
-        self.time += EmuDuration::machine_cycles(1);
-        self.hardware.emulate();
-      }
+      self.halt_cycle();
     } else {
       match self.ime_change {
         ImeChange::None => (),
@@ -271,12 +258,9 @@ impl<H> Cpu<H> where H: Bus {
           Some(interrupt) => {
             self.halt = false;
             self.ime = false;
-            self.time += EmuDuration::machine_cycles(1);
-            self.hardware.emulate();
-            self.time += EmuDuration::machine_cycles(1);
-            self.hardware.emulate();
-            self.time += EmuDuration::machine_cycles(1);
-            self.hardware.emulate();
+            self.internal_cycle();
+            self.internal_cycle();
+            self.internal_cycle();
             let pc = self.regs.pc;
             self.push_u16(pc);
             self.regs.pc = interrupt.get_addr();
@@ -284,7 +268,7 @@ impl<H> Cpu<H> where H: Bus {
         }
       }
 
-      let op = self.next_u8();
+      let op = self.fetch_cycle();
       ops::decode(self, op)
     }
   }
@@ -330,25 +314,21 @@ impl<H> Cpu<H> where H: Bus {
   }
   fn ctrl_jp(&mut self, addr: u16) {
     self.regs.pc = addr;
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
   fn ctrl_jr(&mut self, offset: i8) {
     self.regs.pc = self.regs.pc.wrapping_add(offset as u16);
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
   fn ctrl_call(&mut self, addr: u16) {
     let pc = self.regs.pc;
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
     self.push_u16(pc);
     self.regs.pc = addr;
   }
   fn ctrl_ret(&mut self) {
     self.regs.pc = self.pop_u16();
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
 }
 
@@ -693,8 +673,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   /// Flags: Z N H C
   ///        - - - -
   fn ret_cc(self, cond: Cond) {
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
     if cond.check(self.regs.f) {
       self.ctrl_ret();
     }
@@ -705,8 +684,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   ///        - - - -
   fn rst(self, addr: u8) {
     let pc = self.regs.pc;
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
     self.push_u16(pc);
     self.regs.pc = addr as u16;
   }
@@ -820,7 +798,8 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   fn load16_nn_sp(self) {
     let value = self.regs.sp;
     let addr = self.next_u16();
-    self.write_u16(addr, value);
+    self.write_cycle(addr, value as u8);
+    self.write_cycle((addr.wrapping_add_one()), (value >> 8) as u8);
   }
   /// LD SP, HL
   ///
@@ -829,8 +808,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   fn load16_sp_hl(self) {
     let value = self.regs.read16(Reg16::HL);
     self.regs.sp = value;
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
   /// LD HL, SP+e
   ///
@@ -843,8 +821,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
     self.regs.write16(Reg16::HL, value);
     self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, offset));
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
   /// PUSH rr
   ///
@@ -852,8 +829,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   ///        - - - -
   fn push16(self, reg: Reg16) {
     let value = self.regs.read16(reg);
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
     self.push_u16(value);
   }
   /// POP rr
@@ -878,8 +854,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
                   HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
                   CARRY.test(hl > 0xffff - value);
     self.regs.write16(Reg16::HL, result);
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
   /// ADD SP, e
   ///
@@ -891,10 +866,8 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
     self.regs.sp = sp.wrapping_add(val);
     self.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
                   CARRY.test(u16::test_add_carry_bit(7, sp, val));
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
+    self.internal_cycle();
   }
   /// INC rr
   ///
@@ -903,8 +876,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   fn inc16(self, reg: Reg16) {
     let value = self.regs.read16(reg).wrapping_add_one();
     self.regs.write16(reg, value);
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
   /// DEC rr
   ///
@@ -913,8 +885,7 @@ impl<'a, H> CpuOps for &'a mut Cpu<H> where H: Bus {
   fn dec16(self, reg: Reg16) {
     let value = self.regs.read16(reg).wrapping_sub_one();
     self.regs.write16(reg, value);
-    self.time += EmuDuration::machine_cycles(1);
-    self.hardware.emulate();
+    self.internal_cycle();
   }
   // --- Undefined
   fn undefined(self, op: u8) {
