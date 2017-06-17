@@ -21,15 +21,10 @@
 WLA ?= wla-gb
 WLALINK ?= wlalink
 
-LATEX ?= pdflatex
-IMCONVERT ?= convert
-
 BUILD_PATH := build
 
 SRC := $(filter-out ./common/%.s,$(shell find . -type f -name '*.s'))
 OBJS := $(addprefix $(BUILD_PATH)/, $(TARGETS:.s=.o))
-
-LATEX_SRC := $(shell find . -type f -name '*.tex')
 
 all: $(addprefix $(BUILD_PATH)/, $(patsubst %.s,%.gb, $(SRC)))
 
@@ -52,19 +47,7 @@ $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
 	@$(WLALINK) -S $< $(abspath $@)
 	@echo --- $(notdir $(basename $@))
 
-$(BUILD_PATH)/%.pdf: %.tex
-	@mkdir -p $(BUILD_PATH)/$(dir $<)
-	@$(LATEX) -halt-on-error -interaction=batchmode -output-directory=$(dir $@) $<
-
-$(BUILD_PATH)/%.png: $(BUILD_PATH)/%.pdf
-	@$(IMCONVERT) -density 150 $< -flatten $@
-
-allpdf: $(addprefix $(BUILD_PATH)/, $(patsubst %.tex,%.pdf, $(LATEX_SRC)))
-
-allpng: $(addprefix $(BUILD_PATH)/, $(patsubst %.tex,%.png, $(LATEX_SRC)))
-
 clean:
 	@rm -rf $(BUILD_PATH)
 
-.PRECIOUS: $(BUILD_PATH)/%.pdf
 .PHONY: clean all force
