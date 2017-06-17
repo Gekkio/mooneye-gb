@@ -279,6 +279,12 @@ Notes:
 | stat irq blocking           | :x:        | :x:  | :+1:     | :x:   | :+1: |
 | vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:  | :+1: |
 
+#### Serial
+
+| Test                        | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| --------------------------- | ---------- | ---- | -------- | ------| ---- |
+| boot sclk align dmgABCXmgb  | :x:        | :x:  | :+1:     | :x:   | :x:  |
+
 #### Timer
 
 | Test                 | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
