@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+#![windows_subsystem = "windows"]
+
 extern crate app_dirs;
 #[macro_use]
 extern crate bitflags;
