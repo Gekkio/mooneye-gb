@@ -350,9 +350,6 @@ impl<H> Cpu<H> where H: Bus {
     self.time += EmuDuration::machine_cycles(1);
     self.hardware.emulate();
   }
-  #[inline(never)]
-  fn possu(&mut self, value: u8) {
-  }
 }
 
 
