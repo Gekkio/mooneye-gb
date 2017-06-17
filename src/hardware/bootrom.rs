@@ -15,21 +15,23 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::ops::Index;
 
+use gameboy::BootromData;
+
 pub struct Bootrom {
-  data: Box<[u8]>,
+  data: Box<BootromData>,
   active: bool
 }
 
 impl Bootrom {
-  pub fn new(config: Option<Vec<u8>>) -> Bootrom {
-    let (installed, data) = match config {
+  pub fn new(config: Option<Box<BootromData>>) -> Bootrom {
+    let (active, data) = match config {
       Some(config_data) => (true, config_data),
-      None => (false, vec![])
+      None => (false, Box::new(BootromData::new()))
     };
 
     Bootrom {
-      data: data.into_boxed_slice(),
-      active: installed
+      data,
+      active,
     }
   }
 
@@ -40,6 +42,6 @@ impl Bootrom {
 impl Index<u16> for Bootrom {
   type Output = u8;
   fn index(&self, index: u16) -> &u8 {
-    &self.data[index as usize]
+    &self.data.0[index as usize]
   }
 }

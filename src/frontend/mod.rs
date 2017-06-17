@@ -31,6 +31,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 use url::Url;
 
+use errors::{MooneyeErrorKind, MooneyeResult};
 use config::{Bootrom, Cartridge, HardwareConfig};
 use emulation::{EmuTime, EmuDuration, EE_VSYNC};
 use gameboy;
@@ -234,7 +235,7 @@ impl SdlFrontend {
           Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
           Event::DropFile{filename, ..} => {
             let result = resolve_sdl_filename(filename)
-              .and_then(|path| Bootrom::from_path(&path).map_err(|e| format!("{}", e)));
+              .and_then(|path| Bootrom::from_path(&path).map_err(|e| MooneyeErrorKind::Msg(format!("{}", e)).into()));
             match result {
               Ok(bootrom) => {
                 if let Err(error) = bootrom.save_to_data_dir() {
@@ -430,11 +431,11 @@ fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
   }
 }
 
-fn resolve_sdl_filename(filename: String) -> Result<PathBuf, String> {
-  let mut url = "file://".to_owned();
-  url.push_str(&filename);
-  Url::parse(&url).map_err(|e| format!("{}", e))
-    .and_then(|url| url.to_file_path().map_err(|_| "Failed to parse path".to_owned()))
+fn resolve_sdl_filename(filename: String) -> MooneyeResult<PathBuf> {
+  let mut url_str = "file://".to_owned();
+  url_str.push_str(&filename);
+  let url = Url::parse(&url_str)?;
+  url.to_file_path().map_err(|_| MooneyeErrorKind::Msg("Failed to parse path".into()).into())
 }
 
 #[cfg(not(target_os = "macos"))]

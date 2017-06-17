@@ -19,9 +19,8 @@ use std::io::Read;
 use std::path::Path;
 use std::str;
 
+use errors::{MooneyeResult};
 use gameboy::ROM_BANK_SIZE;
-
-pub type CartridgeError = String;
 
 #[derive(Clone, Debug)]
 pub struct Cartridge {
@@ -42,15 +41,13 @@ impl Cartridge {
       ram_size: CartridgeRamSize::NoRam,
     }
   }
-  pub fn from_path(path: &Path) -> Result<Cartridge, CartridgeError> {
-    let mut file = try!(File::open(path).map_err(|e| format!("{}", e)));
+  pub fn from_path(path: &Path) -> MooneyeResult<Cartridge> {
+    let mut file = File::open(path)?;
     let mut data = vec!();
-    try!(file.read_to_end(&mut data).map_err(|e| {
-      format!("{}", e)
-    }));
+    file.read_to_end(&mut data)?;
     Cartridge::from_data(data)
   }
-  pub fn from_data(data: Vec<u8>) -> Result<Cartridge, CartridgeError> {
+  pub fn from_data(data: Vec<u8>) -> MooneyeResult<Cartridge> {
     let new_cartridge = data[0x14b] == 0x33;
 
     let title = {
@@ -74,13 +71,13 @@ impl Cartridge {
     }));
 
     if cartridge_type.should_have_ram() && ram_size == CartridgeRamSize::NoRam {
-      return Err(format!("{:?} cartridge without ram", cartridge_type))
+      bail!("{:?} cartridge without ram", cartridge_type)
     }
     if !cartridge_type.should_have_ram() && ram_size != CartridgeRamSize::NoRam {
-      return Err(format!("{:?} cartridge with ram size {:02x}", cartridge_type, data[0x149]))
+      bail!("{:?} cartridge with ram size {:02x}", cartridge_type, data[0x149])
     }
     if data.len() != rom_size.as_usize() {
-      return Err(format!("Expected {} bytes of cartridge ROM, got {:?}", rom_size.as_usize(), data.len()));
+      bail!("Expected {} bytes of cartridge ROM, got {:?}", rom_size.as_usize(), data.len());
     }
 
     Ok(Cartridge {

@@ -15,46 +15,44 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use app_dirs::{AppDataType, AppInfo, app_dir, get_app_dir};
 use crc::crc32;
-use podio::ReadPodExt;
-use std::convert::From;
 use std::env;
-use std::fmt;
 use std::fs::File;
 use std::io;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 
-use gameboy::BOOTROM_SIZE;
+use gameboy::BootromData;
+use errors::{MooneyeError, MooneyeErrorKind, MooneyeResult};
 use config::{Model, DEFAULT_MODEL_PRIORITY};
 
 const APP_INFO: AppInfo = AppInfo{name: "mooneye-gb", author: "Gekkio"};
 
-#[derive(Debug)]
 pub struct Bootrom {
   pub model: Model,
-  pub data: Vec<u8>,
+  pub data: Box<BootromData>,
 }
 
 impl Bootrom {
-  pub fn from_path(path: &Path) -> Result<Bootrom, BootromError> {
-    let mut file = try!(File::open(path));
-    let data = try!(file.read_exact(BOOTROM_SIZE));
+  pub fn from_path(path: &Path) -> MooneyeResult<Bootrom> {
+    let mut file = File::open(path)?;
+    let mut data = Box::new(BootromData::new());
+    file.read_exact(&mut data.0)?;
     Bootrom::from_data(data)
   }
-  pub fn from_data(data: Vec<u8>) -> Result<Bootrom, BootromError> {
-    let checksum = crc32::checksum_ieee(&data);
-    let model = try!(match checksum {
-      0xc2f5cc97 => Ok(Model::Dmg0),
-      0x59c8598e => Ok(Model::Dmg),
-      0xe6920754 => Ok(Model::Mgb),
-      0xec8a83b9 => Ok(Model::Sgb),
-      0x53d0dd63 => Ok(Model::Sgb2),
-      checksum => Err(BootromError::Checksum(checksum))
-    });
-    Ok(Bootrom {
-      model: model,
-      data: data,
-    })
+  pub fn from_data(data: Box<BootromData>) -> MooneyeResult<Bootrom> {
+    let checksum = crc32::checksum_ieee(&data.0);
+    let model = match checksum {
+      0xc2f5cc97 => Some(Model::Dmg0),
+      0x59c8598e => Some(Model::Dmg),
+      0xe6920754 => Some(Model::Mgb),
+      0xec8a83b9 => Some(Model::Sgb),
+      0x53d0dd63 => Some(Model::Sgb2),
+      _ => None,
+    };
+    match model {
+      Some(model) => Ok(Bootrom { model, data }),
+      None => Err(MooneyeErrorKind::BootromChecksum(checksum).into())
+    }
   }
   pub fn lookup(models: &[Model]) -> Option<Bootrom> {
     let mut candidates = vec![];
@@ -76,9 +74,9 @@ impl Bootrom {
       let path_str = path.to_string_lossy();
       debug!("Scanning {} for a boot ROM", path_str);
       match Bootrom::from_path(&path) {
-        Err(BootromError::Io(ref e)) if e.kind() == io::ErrorKind::NotFound => (),
-        Err(BootromError::Io(ref e)) => warn!("Warning: Boot rom \"{}\" ({})", path_str, e),
-        Err(BootromError::Checksum(ref e)) => warn!("Warning: Boot rom \"{}\" ({})", path_str, e),
+        Err(MooneyeError(MooneyeErrorKind::Io(ref e), _))
+          if e.kind() == io::ErrorKind::NotFound => (),
+        Err(ref e @ MooneyeError(_, _)) => warn!("Warning: Boot rom \"{}\" ({})", path_str, e),
         Ok(bootrom) => {
           info!("Using {} boot ROM from {}", bootrom.model, path_str);
           return Some(bootrom)
@@ -87,33 +85,13 @@ impl Bootrom {
     }
     None
   }
-  pub fn save_to_data_dir(&self) -> Result<(), io::Error> {
+  pub fn save_to_data_dir(&self) -> MooneyeResult<()> {
     if let Ok(dir) = app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
       let path = dir.join(self.model.bootrom_file_name());
-      let mut file = try!(File::create(&path));
-      try!(file.write_all(&self.data));
+      let mut file = File::create(&path)?;
+      try!(file.write_all(&self.data.0));
       info!("Saved {} boot ROM to {}", self.model, path.to_string_lossy());
     }
     Ok(())
   }
-}
-
-#[derive(Debug)]
-pub enum BootromError {
-  Io(io::Error),
-  Checksum(u32)
-}
-
-impl fmt::Display for BootromError {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    use self::BootromError::*;
-    match *self {
-      Io(ref e) => write!(f, "{}", e),
-      Checksum(crc32) => write!(f, "Unrecognized CRC32 checksum {}", crc32)
-    }
-  }
-}
-
-impl From<io::Error> for BootromError {
-  fn from(e: io::Error) -> Self { BootromError::Io(e) }
 }

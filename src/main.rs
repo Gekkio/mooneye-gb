@@ -21,6 +21,8 @@ extern crate bitflags;
 extern crate crc;
 extern crate docopt;
 #[macro_use]
+extern crate error_chain;
+#[macro_use]
 extern crate glium;
 extern crate glium_sdl2;
 #[macro_use]
@@ -30,7 +32,6 @@ extern crate imgui_glium_renderer;
 extern crate log;
 extern crate nalgebra;
 extern crate num_traits;
-extern crate podio;
 #[macro_use]
 extern crate serde_derive;
 extern crate sdl2;
@@ -41,6 +42,7 @@ extern crate url;
 extern crate quickcheck;
 
 use docopt::Docopt;
+use error_chain::ChainedError;
 use simplelog::{LogLevelFilter, TermLogger};
 use std::path::Path;
 use std::process;
@@ -48,9 +50,12 @@ use std::process;
 use config::{Bootrom, Cartridge, Model};
 use frontend::SdlFrontend;
 
+pub use errors::*;
+
 mod config;
 mod cpu;
 mod emulation;
+mod errors;
 mod frontend;
 mod gameboy;
 mod hardware;
@@ -95,7 +100,7 @@ fn read_boot_rom(path: &str, expected_model: Option<Model>) -> Bootrom {
   bootrom
 }
 
-fn main() {
+fn run() -> MooneyeResult<()> {
   let args: Args =
     Docopt::new(USAGE)
     .and_then(|d| d.deserialize())
@@ -103,6 +108,8 @@ fn main() {
 
   TermLogger::init(LogLevelFilter::Debug, simplelog::Config::default())
     .expect("Failed to initialize logging");
+
+  info!("Starting Mooneye GB v{}", VERSION);
 
   let bootrom =
     match (args.flag_model, args.flag_bootrom) {
@@ -126,13 +133,15 @@ fn main() {
       })
     });
 
-  let frontend = match SdlFrontend::init() {
-    Err(error) => panic!("{}", error),
-    Ok(frontend) => frontend
-  };
+  match SdlFrontend::init() {
+    Ok(frontend) => frontend.main(bootrom, cartridge).map_err(|err| format!("{}", err).into()),
+    Err(e) => bail!("{}", e)
+  }
+}
 
-  let result = frontend.main(bootrom, cartridge);
-  if let Err(error) = result {
-    panic!("{}", error);
+fn main() {
+  if let Err(ref e) = run() {
+    error!("{}", e.display());
+    process::exit(1);
   }
 }

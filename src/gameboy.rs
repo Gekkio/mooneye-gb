@@ -13,6 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+pub struct BootromData(pub [u8; 0x100]);
+
+impl BootromData {
+  pub fn new() -> BootromData { BootromData([0; 0x100]) }
+}
+
+impl Clone for BootromData {
+  fn clone(&self) -> BootromData { BootromData((*self).0) }
+}
+
 pub type HiramData = [u8; HIRAM_SIZE];
 pub type ScreenBuffer = [Color; SCREEN_PIXELS];
 
@@ -38,7 +48,6 @@ impl Color {
   }
 }
 
-pub const BOOTROM_SIZE: usize = 0x100;
 pub const CPU_SPEED_HZ: usize = 4_194_304;
 pub const HIRAM_SIZE: usize = 0x80;
 pub const HIRAM_EMPTY: HiramData = [0; HIRAM_SIZE];

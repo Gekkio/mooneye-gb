@@ -17,13 +17,14 @@ mod bootrom;
 mod cartridge;
 mod model;
 
-pub use self::bootrom::{Bootrom, BootromError};
+pub use self::bootrom::Bootrom;
 pub use self::cartridge::{Cartridge, CartridgeType, CartridgeRamSize, CartridgeRomSize};
 pub use self::model::{Model, DEFAULT_MODEL_PRIORITY};
+use gameboy::BootromData;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct HardwareConfig {
   pub model: Model,
-  pub bootrom: Option<Vec<u8>>,
-  pub cartridge: Cartridge
+  pub bootrom: Option<Box<BootromData>>,
+  pub cartridge: Cartridge,
 }
