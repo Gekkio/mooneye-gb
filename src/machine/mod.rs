@@ -37,11 +37,11 @@ impl Machine {
   pub fn emulate(&mut self, target_time: EmuTime) -> (EmuEvents, EmuTime) {
     loop {
       self.cpu.execute();
-      if !self.cpu.hardware().emu_events().is_empty() || self.cpu.time() >= target_time {
+      if !self.cpu.hardware().emu_events().is_empty() || self.cpu.hardware.emu_time() >= target_time {
         break;
       }
     }
-    (self.cpu.hardware().ack_emu_events(), self.cpu.time())
+    (self.cpu.hardware().ack_emu_events(), self.cpu.hardware.emu_time())
   }
   pub fn key_down(&mut self, key: GbKey) {
     self.cpu.hardware().key_down(key);

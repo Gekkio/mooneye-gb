@@ -26,7 +26,7 @@ fn test_dec16(opcode: u8, x: u16, reg: Reg16) -> bool {
     }
   );
   let expected = x.wrapping_sub(1);
-  cpu.clock_cycles() == 8 &&
+  cpu.hardware.clock_cycles() == 8 &&
     cpu.regs.read16(reg) == expected
 }
 

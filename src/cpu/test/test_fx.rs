@@ -24,7 +24,7 @@ fn test_f0() {
       cpu.hardware.memory[0xff80] = 0x42;
     }
   );
-  assert_eq!(cpu.clock_cycles(), 12);
+  assert_eq!(cpu.hardware.clock_cycles(), 12);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -37,7 +37,7 @@ fn test_f2() {
       cpu.regs.c = 0x80;
     }
   );
-  assert_eq!(cpu.clock_cycles(), 8);
+  assert_eq!(cpu.hardware.clock_cycles(), 8);
   assert_eq!(cpu.regs.a, 0x42);
 }
 
@@ -49,7 +49,7 @@ fn test_f3() {
       cpu.ime = true;
     }
   );
-  assert_eq!(cpu.clock_cycles(), 4);
+  assert_eq!(cpu.hardware.clock_cycles(), 4);
   assert_eq!(cpu.ime, false);
 }
 
@@ -61,6 +61,6 @@ fn test_fb() {
       cpu.ime = false;
     }
   );
-  assert_eq!(cpu.clock_cycles(), 4);
+  assert_eq!(cpu.hardware.clock_cycles(), 4);
   assert_eq!(cpu.ime_change, ImeChange::Soon);
 }

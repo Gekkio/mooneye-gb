@@ -25,7 +25,7 @@ fn test_load16(opcode: u8, x: u16, reg: Reg16) -> bool {
     &[opcode, l, h],
     |_| {}
   );
-  cpu.clock_cycles() == 12 &&
+  cpu.hardware.clock_cycles() == 12 &&
     cpu.regs.read16(reg) == x
 }
 
@@ -61,7 +61,7 @@ fn test_08() {
       cpu.regs.sp = 0x8042;
     }
   );
-  assert_eq!(cpu.clock_cycles(), 20);
+  assert_eq!(cpu.hardware.clock_cycles(), 20);
   assert_eq!(cpu.hardware.memory[0x04], 0x42);
   assert_eq!(cpu.hardware.memory[0x05], 0x80);
 }

@@ -23,17 +23,8 @@ pub struct EmuTime {
   clock_edges: u32
 }
 
-const REWIND_THRESHOLD: u32 = 0x80000000;
-
 impl EmuTime {
   pub fn zero() -> EmuTime { EmuTime { clock_edges: 0 } }
-  pub fn needs_rewind(&self) -> bool {
-    self.clock_edges >= REWIND_THRESHOLD
-  }
-  pub fn rewind(&mut self) {
-    assert!(self.needs_rewind());
-    self.clock_edges -= REWIND_THRESHOLD;
-  }
   pub fn as_duration(&self) -> EmuDuration { EmuDuration::clock_edges(self.clock_edges) }
 }
 

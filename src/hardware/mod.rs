@@ -16,7 +16,7 @@
 use std::fmt;
 
 use config::HardwareConfig;
-use emulation::EmuEvents;
+use emulation::{EmuDuration, EmuEvents, EmuTime};
 use frontend::{GbKey};
 use gameboy;
 use gameboy::{HiramData, HIRAM_EMPTY};
@@ -65,7 +65,8 @@ pub struct Hardware {
   pub timer: Timer,
   oam_dma: OamDma,
   irq: Irq,
-  emu_events: EmuEvents
+  emu_events: EmuEvents,
+  emu_time: EmuTime,
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
@@ -113,7 +114,8 @@ impl Hardware {
       timer: Timer::new(),
       oam_dma: OamDma::new(),
       irq: Irq::new(),
-      emu_events: EmuEvents::empty()
+      emu_events: EmuEvents::empty(),
+      emu_time: EmuTime::zero(),
     }
   }
   pub fn ack_emu_events(&mut self) -> EmuEvents {
@@ -122,6 +124,7 @@ impl Hardware {
     events
   }  
   pub fn emu_events(&self) -> EmuEvents { self.emu_events }
+  pub fn emu_time(&self) -> EmuTime { self.emu_time }
   pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { &self.gpu.back_buffer }
   pub fn key_down(&mut self, key: GbKey) {
     self.joypad.key_down(key, &mut self.irq);
@@ -258,14 +261,17 @@ impl Hardware {
 
 impl Bus for Hardware {
   fn fetch_cycle(&mut self, addr: u16) -> u8 {
+    self.emu_time += EmuDuration::machine_cycles(1);
     self.emulate();
     self.read_internal(addr)
   }
   fn read_cycle(&mut self, addr: u16) -> u8 {
+    self.emu_time += EmuDuration::machine_cycles(1);
     self.emulate();
     self.read_internal(addr)
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
+    self.emu_time += EmuDuration::machine_cycles(1);
     self.emulate();
     self.write_internal(addr, value)
   }
@@ -273,6 +279,7 @@ impl Bus for Hardware {
     self.read_internal(addr)
   }
   fn emulate(&mut self) {
+    self.emu_time += EmuDuration::machine_cycles(1);
     match self.oam_dma.state {
       OamDmaState::Requested => {
         self.oam_dma.addr = 0x00;

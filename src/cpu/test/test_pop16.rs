@@ -27,7 +27,7 @@ fn test_pop16(opcode: u8, x: u16, reg: Reg16) -> bool {
       cpu.regs.sp = 0x0002;
     }
   );
-  cpu.clock_cycles() == 12 &&
+  cpu.hardware.clock_cycles() == 12 &&
     cpu.regs.sp == 0x0004 &&
     cpu.regs.read16(reg) == x
 }
@@ -59,7 +59,7 @@ fn test_f1() {
         cpu.regs.sp = 0x0002;
       }
     );
-    cpu.clock_cycles() == 12 &&
+    cpu.hardware.clock_cycles() == 12 &&
       cpu.regs.a == a &&
       cpu.regs.f == Flags::from_bits_truncate(f)
   }

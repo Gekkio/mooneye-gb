@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-use emulation::{EmuDuration, EmuTime, EE_DEBUG_OP};
+use emulation::{EE_DEBUG_OP};
 use hardware::Bus;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
 use cpu::registers::{
@@ -34,7 +34,6 @@ pub mod registers;
 mod test;
 
 pub struct Cpu<H: Bus> {
-  time: EmuTime,
   pub regs: Registers,
   ime: bool,
   ime_change: ImeChange,
@@ -132,14 +131,11 @@ impl<H> Cpu<H> where H: Bus {
       ime_change: ImeChange::None,
       halt: false,
       hardware: hardware,
-      time: EmuTime::zero()
     }
   }
   pub fn hardware(&mut self) -> &mut H {
     &mut self.hardware
   }
-  pub fn time(&self) -> EmuTime { self.time }
-  pub fn clock_cycles(&self) -> u32 { self.time.as_duration().as_clock_edges() / 2 }
 
   pub fn get_pc(&self) -> u16 {
     self.regs.pc
@@ -151,34 +147,26 @@ impl<H> Cpu<H> where H: Bus {
       self.hardware.read(addr)
     }).to_disasm_str()
   }
-  pub fn rewind_time(&mut self) {
-    self.time.rewind();
-  }
 
   fn fetch_cycle(&mut self) -> u8 {
     let addr = self.regs.pc;
     self.regs.pc = self.regs.pc.wrapping_add(1);
-    self.time += EmuDuration::machine_cycles(1);
     self.hardware.fetch_cycle(addr)
   }
   fn read_cycle(&mut self, addr: u16) -> u8 {
-    self.time += EmuDuration::machine_cycles(1);
     self.hardware.read_cycle(addr)
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
-    self.time += EmuDuration::machine_cycles(1);
     self.hardware.write_cycle(addr, value);
   }
   fn halt_cycle(&mut self) {
     if self.hardware.has_interrupt() {
       self.halt = false;
     } else {
-      self.time += EmuDuration::machine_cycles(1);
       self.hardware.emulate();
     }
   }
   fn internal_cycle(&mut self) {
-    self.time += EmuDuration::machine_cycles(1);
     self.hardware.emulate();
   }
 

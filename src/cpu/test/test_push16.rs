@@ -26,7 +26,7 @@ fn test_push16(opcode: u8, reg: Reg16, x: u16) -> bool {
       cpu.regs.sp = 0x0004;
     }
   );
-  cpu.clock_cycles() == 16 &&
+  cpu.hardware.clock_cycles() == 16 &&
     cpu.regs.sp == 0x0002 &&
     cpu.hardware.memory[0x03] == (x >> 8) as u8 &&
     cpu.hardware.memory[0x02] == (x as u8)
@@ -61,7 +61,7 @@ fn test_f5() {
         cpu.regs.sp = 0x0004;
       }
     );
-    cpu.clock_cycles() == 16 &&
+    cpu.hardware.clock_cycles() == 16 &&
       cpu.regs.sp == 0x0002 &&
       cpu.hardware.memory[0x03] == a &&
       cpu.hardware.memory[0x02] == (f & 0xF0)

@@ -30,7 +30,7 @@ fn test_add16<F: Fn(Flags) -> bool>(opcode: u8,
     }
   );
   let expected = hl.wrapping_add(x);
-  cpu.clock_cycles() == 8 &&
+  cpu.hardware.clock_cycles() == 8 &&
     cpu.regs.read16(Reg16::HL) == expected &&    
     check_flags(cpu.regs.f)
 }

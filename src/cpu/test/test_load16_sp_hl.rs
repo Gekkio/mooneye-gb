@@ -27,7 +27,7 @@ fn test_f9() {
         cpu.regs.write16(Reg16::HL, hl);
       }
     );
-    cpu.clock_cycles() == 8 &&
+    cpu.hardware.clock_cycles() == 8 &&
       cpu.regs.read16(Reg16::SP) == hl
   }
   quickcheck(prop as fn(u16) -> bool);

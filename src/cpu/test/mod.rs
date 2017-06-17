@@ -44,6 +44,7 @@ mod test_dec16;
 
 pub struct TestHardware {
   memory: Vec<u8>,
+  t_cycles: usize,
 }
 
 impl TestHardware {
@@ -52,24 +53,31 @@ impl TestHardware {
     memory[0..input.len()].copy_from_slice(input);
     TestHardware {
       memory: memory,
+      t_cycles: 0,
     }
   }
+  fn clock_cycles(&self) -> usize { self.t_cycles }
 }
 
 impl<'a> Bus for TestHardware {
   fn fetch_cycle(&mut self, addr: u16) -> u8 {
+    self.t_cycles += 4;
     self.memory[addr as usize]
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
+    self.t_cycles += 4;
     self.memory[addr as usize] = value;
   }
   fn read_cycle(&mut self, addr: u16) -> u8 {
+    self.t_cycles += 4;
     self.read(addr)
   }
   fn read(&self, addr: u16) -> u8 {
     self.memory[addr as usize]
   }
-  fn emulate(&mut self) {}
+  fn emulate(&mut self) {
+    self.t_cycles += 4;
+  }
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
   fn has_interrupt(&self) -> bool { false }
   fn trigger_emu_events(&mut self, events: EmuEvents) { }
