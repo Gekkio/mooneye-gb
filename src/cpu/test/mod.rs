@@ -17,7 +17,7 @@ use cpu::Cpu;
 use cpu::disasm;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
 use emulation::EmuEvents;
-use hardware::Bus;
+use hardware::{Bus, FetchResult};
 use hardware::irq::Interrupt;
 
 mod cb_test;
@@ -67,9 +67,9 @@ impl TestHardware {
 }
 
 impl<'a> Bus for TestHardware {
-  fn fetch_cycle(&mut self, addr: u16) -> u8 {
+  fn fetch_cycle(&mut self, addr: u16, _: bool) -> FetchResult {
     self.t_cycles += 4;
-    self.memory[addr as usize]
+    FetchResult::Opcode(self.memory[addr as usize])
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
     self.t_cycles += 4;

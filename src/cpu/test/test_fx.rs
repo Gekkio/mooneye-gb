@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::ImeChange;
+use cpu::Ime;
 use cpu::test::run_test;
 
 #[test]
@@ -46,11 +46,11 @@ fn test_f3() {
   let machine = run_test(
     &[0xf3], // DI
     |machine| {
-      machine.cpu.ime = true;
+      machine.cpu.ime = Ime::Enabled;
     }
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
-  assert_eq!(machine.cpu.ime, false);
+  assert_eq!(machine.cpu.ime, Ime::Disabled);
 }
 
 #[test]
@@ -58,9 +58,9 @@ fn test_fb() {
   let machine = run_test(
     &[0xfb], // EI
     |machine| {
-      machine.cpu.ime = false;
+      machine.cpu.ime = Ime::Disabled;
     }
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
-  assert_eq!(machine.cpu.ime_change, ImeChange::Soon);
+  assert_eq!(machine.cpu.ime, Ime::Enabling);
 }

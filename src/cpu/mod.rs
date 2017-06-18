@@ -32,10 +32,17 @@ pub mod registers;
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[repr(u8)]
+pub enum Ime {
+  Disabled,
+  Enabling,
+  Enabled
+}
+
 pub struct Cpu {
   pub regs: Registers,
-  ime: bool,
-  ime_change: ImeChange,
+  ime: Ime,
   halt: bool,
 }
 
@@ -61,11 +68,6 @@ impl Cond {
       NC => !flags.contains(CARRY), C => flags.contains(CARRY),
     }
   }
-}
-
-#[derive(PartialEq, Eq, Debug)]
-enum ImeChange {
-  None, Soon, Now
 }
 
 pub struct Immediate8;
@@ -125,8 +127,7 @@ impl Cpu {
   pub fn new() -> Cpu {
     Cpu {
       regs: Registers::new(),
-      ime: true,
-      ime_change: ImeChange::None,
+      ime: Ime::Enabled,
       halt: false,
     }
   }
@@ -212,23 +213,13 @@ impl Cpu {
     if self.halt {
       self.halt_cycle(bus);
     } else {
-      match self.ime_change {
-        ImeChange::None => (),
-        ImeChange::Soon => {
-          self.ime_change = ImeChange::Now;
-        },
-        ImeChange::Now => {
-          self.ime = true;
-          self.ime_change = ImeChange::None;
-        }
-      }
-
-      if self.ime {
-        match bus.ack_interrupt() {
-          None => (),
-          Some(interrupt) => {
+      match self.ime {
+        Ime::Disabled => (),
+        Ime::Enabling => self.ime = Ime::Enabled,
+        Ime::Enabled => {
+          if let Some(interrupt) = bus.ack_interrupt() {
             self.halt = false;
-            self.ime = false;
+            self.ime = Ime::Disabled;
             self.internal_cycle(bus);
             self.internal_cycle(bus);
             self.internal_cycle(bus);
@@ -238,7 +229,6 @@ impl Cpu {
           }
         }
       }
-
       let op = self.fetch_cycle(bus);
       ops::decode((self, bus), op)
     }
@@ -637,8 +627,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///        - - - -
   fn reti(self) {
     let (cpu, bus) = self;
-    cpu.ime = true;
-    cpu.ime_change = ImeChange::None;
+    cpu.ime = Ime::Enabled;
     cpu.ctrl_ret(bus);
   }
   /// JP cc, nn
@@ -719,8 +708,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///        - - - -
   fn di(self) {
     let (cpu, _) = self;
-    cpu.ime = false;
-    cpu.ime_change = ImeChange::None;
+    cpu.ime = Ime::Disabled;
   }
   /// EI
   ///
@@ -728,7 +716,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///        - - - -
   fn ei(self) {
     let (cpu, _) = self;
-    cpu.ime_change = ImeChange::Soon;
+    cpu.ime = Ime::Enabling;
   }
   /// CCF
   ///
