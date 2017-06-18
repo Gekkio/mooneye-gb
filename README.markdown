@@ -276,6 +276,7 @@ Notes:
 | intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:   | :+1: |
 | intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:   | :+1: |
 | lcdon timing dmgABCXmgbS    | :x:        | :+1: | :x:      | :x:   | :x:  |
+| lcdon write timing GS       | :x:        | :x:  | :x:      | :x:   | :x:  |
 | stat irq blocking           | :x:        | :x:  | :+1:     | :x:   | :+1: |
 | vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:  | :+1: |
 

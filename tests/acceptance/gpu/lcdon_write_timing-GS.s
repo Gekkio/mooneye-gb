@@ -18,22 +18,13 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-; Tests the values of LY, STAT, and read accessibility of OAM and VRAM after
-; the PPU is enabled by writing to LCDC.
-; Expectations
-;   - line 0 starts with mode 0 and goes straight to mode 3
-;   - line 0 has different timings because the PPU is late by 2 T-cycles
-;   - line 1 and line 2 have normal timings
+; Tests whether writes to OAM and VRAM pass after the PPU is enabled by
+; writing to LCDC.
 
 ; Verified results:
-;   pass: DMG ABCX, MGB
-;   fail: DMG 0, CGB, AGB, AGS
+;   pass: DMG, MGB
+;   fail: CGB, AGB, AGS
 ;   untested: SGB, SGB2
-
-; On real hardware, failures can be grouped into three categories:
-;   DMG 0: freeze
-;   CGB before D: failure
-;   CGB D, E, AGB, AGS: different failure than pre-D CGBs
 
 .include "common.s"
 
@@ -42,37 +33,15 @@
   call clear_vram
   call clear_oam
 
-test_ly:
-  ld de, LY
-  call test_passes
-  ld de, expect_ly
-  call verify_results
-
-test_stat_lyc0:
-  xor a
-  ldh (<LYC), a
-  ld de, STAT
-  call test_passes
-  ld de, expect_stat_lyc0
-  call verify_results
-
-test_stat_lyc1:
-  ld a, $01
-  ldh (<LYC), a
-  ld de, STAT
-  call test_passes
-  ld de, expect_stat_lyc1
-  call verify_results
-
 test_oam_access:
   ld de, OAM
-  call test_passes
+  call run_tests
   ld de, expect_oam_access
   call verify_results
 
 test_vram_access:
   ld de, VRAM
-  call test_passes
+  call run_tests
   ld de, expect_vram_access
   call verify_results
 
@@ -82,44 +51,26 @@ test_finish:
 .bank 1 slot 1
 .section "Test_expectations" FREE
 
-; Each read in a test pass can be seen as equivalent to this:
-;   ldh (<LCDC), a
-;   nops XXX   <- cycle count goes here
-;   ld a, (de)
-cycle_counts:
-.db 0   17  60  110 130 174 224 244
-.db 1   18  61  111 131 175 225 245
-.db 2   19  62  112 132 176 226 246
-
-expect_ly:
-.db $00 $00 $00 $00 $01 $01 $01 $02
-.db $00 $00 $00 $01 $01 $01 $02 $02
-.db $00 $00 $00 $01 $01 $01 $02 $02
-.db "LY" $00
-
-expect_stat_lyc0:
-.db $84 $84 $87 $84 $82 $83 $80 $82
-.db $84 $87 $84 $80 $82 $80 $80 $82
-.db $84 $87 $84 $82 $83 $80 $82 $83
-.db "STAT LYC=0" $00
-
-expect_stat_lyc1:
-.db $80 $80 $83 $80 $86 $87 $84 $82
-.db $80 $83 $80 $80 $86 $84 $80 $82
-.db $80 $83 $80 $86 $87 $84 $82 $83
-.db "STAT LYC=1" $00
+; Each write in a test pass can be seen as equivalent to this:
+;   ldh (<LCDC), a <- PPU enabled
+;   nops XXX       <- nop count goes here
+;   ld (de), a
+nop_counts:
+.db 0   17  18  60  61  110 111
+.db 112 130 131 132 174 175 224 225
+.db 226 244 245 246
 
 expect_oam_access:
-.db $00 $00 $FF $00 $FF $FF $00 $FF
-.db $00 $FF $00 $FF $FF $00 $FF $FF
-.db $00 $FF $00 $FF $FF $00 $FF $FF
-.db "OAM access" $00
+.db $81 $81 $00 $00 $81 $81 $81
+.db $00 $00 $81 $00 $00 $81 $81 $81
+.db $00 $00 $81 $00
+.db "OAM write" $00
 
 expect_vram_access:
-.db $00 $00 $FF $00 $00 $FF $00 $00
-.db $00 $FF $00 $00 $FF $00 $00 $FF
-.db $00 $FF $00 $00 $FF $00 $00 $FF
-.db "VRAM access" $00
+.db $81 $81 $00 $00 $81 $81 $81
+.db $81 $81 $81 $00 $00 $81 $81 $81
+.db $81 $81 $81 $00
+.db "VRAM write" $00
 
 ; Inputs:
 ;   DE: test expectations pointer
@@ -127,7 +78,7 @@ verify_results:
   push de
 
   ld c, $00
-  ld hl, v_pass1_results
+  ld hl, v_test_results
 
 - ld a, (hl)
   ld b, a
@@ -138,7 +89,7 @@ verify_results:
   inc hl
   inc c
   ld a, c
-  cp 24
+  cp 19
   jr nz, -
 
   pop de
@@ -153,7 +104,7 @@ verify_fail:
   ld (v_fail_round), a
   pop de
   ld h, $00
-  ld l, 24
+  ld l, 19
   add hl, de
   ld a, l
   ld (v_fail_str_l), a
@@ -174,7 +125,7 @@ _verify_fail_cb:
 
   print_string_literal "Cycle:    $"
   push hl
-  ld hl, cycle_counts
+  ld hl, nop_counts
   ld b, $00
   ld a, (v_fail_round)
   ld c, a
@@ -199,9 +150,8 @@ _verify_fail_cb:
 .ends
 
 .ramsection "Test-State" slot 2
-  v_pass1_results dsb 8
-  v_pass2_results dsb 8
-  v_pass3_results dsb 8
+  v_test_code dsb 300
+  v_test_results dsb 19
   v_fail_round db
   v_fail_expect db
   v_fail_actual db
@@ -211,60 +161,87 @@ _verify_fail_cb:
 .ends
 
 .bank 1 slot 1
-.section "Test_passes" FREE
+.section "Test_case" FREE
 
 ; Inputs:
 ;   DE address to read
 ; Preserved: -
-test_passes:
+run_tests:
+  ld hl, nop_counts
+  ld bc, v_test_results
+  xor a
 
-.macro test_reads
-  ld a, (de)  ; 0
-  ld (hl+), a
-  nops 13
-  ld a, (de)  ; 17
-  ld (hl+), a
-  nops 39
-  ld a, (de)  ; 60
-  ld (hl+), a
-  nops 46
-  ld a, (de)  ; 110
-  ld (hl+), a
-  nops 16
-  ld a, (de)  ; 130
-  ld (hl+), a
-  nops 40
-  ld a, (de)  ; 174
-  ld (hl+), a
-  nops 46
-  ld a, (de)  ; 224
-  ld (hl+), a
-  nops 16
-  ld a, (de)  ; 244
-  ld (hl+), a
-.endm
+- cp 19
+  ret z
 
-test_pass1:
-  ld hl, v_pass1_results
-  ld a, $81
-  ldh (<LCDC), a
-  test_reads
+  push af
+  ld a, (hl+)
+  push hl
+  ld h, b
+  ld l, c
+
+  call test_case
+
+  ld b, h
+  ld c, l
+  pop hl
+  pop af
+  inc a
+
+  jr -
+
+; Inputs:
+;   A number of nops
+;   DE address to read
+;   HL test result pointer
+; Outputs:
+;   DE address to read
+;   HL test result pointer + 1
+test_case:
+  push hl
+  push de
+  push af
+  xor a
+  ld (OAM), a
+  ld (VRAM), a
+
+  ; Copy test case prologue code
+  ld hl, v_test_code
+  ld de, test_case_prologue
+  ld bc, test_case_epilogue - test_case_prologue
+  call memcpy
+
+  ; Add nops
+  pop af
+- and a
+  jr z, +
+  dec a
+  ld (hl), $00
+  inc hl
+  jr -
++
+
+  ; Copy test case epilogue code
+  ld de, test_case_epilogue
+  ld bc, test_case_end - test_case_epilogue
+  call memcpy
+
+  pop de
+  call v_test_code
   call disable_lcd_safe
 
-test_pass2:
-  ld hl, v_pass2_results
-  ld a, $81
-  ldh (<LCDC), a
-  nops 1
-  test_reads
-  call disable_lcd_safe
+  pop hl
+  ld a, (de)
+  ld (hl+), a
+  ret
 
-test_pass3:
-  ld hl, v_pass3_results
+test_case_prologue:
   ld a, $81
   ldh (<LCDC), a
-  nops 2
-  test_reads
-  jp disable_lcd_safe
+  ; nops will be added here
+test_case_epilogue:
+  ld (de), a
+  ret
+test_case_end:
 
 .ends

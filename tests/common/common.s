@@ -455,6 +455,11 @@ _print_results_halt_\@:
     print_string_literal "TEST FAILED"
 +   ret
 
+  ; Inputs:
+  ;   A: number of bytes
+  ;   HL: source address
+  ; Outputs: -
+  ; Preserved: -
   dump_mem:
     ld (memdump_len), a
     ld a, l
