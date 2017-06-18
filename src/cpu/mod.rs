@@ -16,7 +16,8 @@
 use std::fmt;
 
 use emulation::{EE_DEBUG_OP};
-use hardware::Bus;
+use hardware::{Bus, FetchResult};
+use hardware::irq::Interrupt;
 use cpu::registers::{
   Registers, Reg8, Reg16, Flags,
   ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
@@ -132,10 +133,18 @@ impl Cpu {
     }
   }
 
-  fn fetch_cycle<H: Bus>(&mut self, bus: &mut H) -> u8 {
-    let addr = self.regs.pc;
-    self.regs.pc = self.regs.pc.wrapping_add(1);
-    bus.fetch_cycle(addr)
+  fn fetch_cycle<H: Bus>(&mut self, bus: &mut H) {
+    let ack_interrupt = self.ime == Ime::Enabled;
+    if let Ime::Enabling = self.ime {
+      self.ime = Ime::Enabled;
+    }
+    match bus.fetch_cycle(self.regs.pc, ack_interrupt) {
+      FetchResult::Opcode(op) => {
+        self.regs.pc = self.regs.pc.wrapping_add(1);
+        ops::decode((self, bus), op)
+      },
+      FetchResult::Interrupt(interrupt) => self.dispatch_interrupt(bus, interrupt),
+    }
   }
   fn read_cycle<H: Bus>(&self, bus: &mut H, addr: u16) -> u8 {
     bus.read_cycle(addr)
@@ -213,25 +222,19 @@ impl Cpu {
     if self.halt {
       self.halt_cycle(bus);
     } else {
-      match self.ime {
-        Ime::Disabled => (),
-        Ime::Enabling => self.ime = Ime::Enabled,
-        Ime::Enabled => {
-          if let Some(interrupt) = bus.ack_interrupt() {
-            self.halt = false;
-            self.ime = Ime::Disabled;
-            self.internal_cycle(bus);
-            self.internal_cycle(bus);
-            self.internal_cycle(bus);
-            let pc = self.regs.pc;
-            self.push_u16(bus, pc);
-            self.regs.pc = interrupt.get_addr();
-          }
-        }
-      }
-      let op = self.fetch_cycle(bus);
-      ops::decode((self, bus), op)
+      self.fetch_cycle(bus);
     }
+  }
+
+  fn dispatch_interrupt<H: Bus>(&mut self, bus: &mut H, interrupt: Interrupt) {
+    self.halt = false;
+    self.ime = Ime::Disabled;
+    self.internal_cycle(bus);
+    self.internal_cycle(bus);
+    self.internal_cycle(bus);
+    let pc = self.regs.pc;
+    self.push_u16(bus, pc);
+    self.regs.pc = interrupt.get_addr();
   }
 
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
