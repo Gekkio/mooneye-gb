@@ -1,4 +1,4 @@
-use imgui::{ImGuiSetCond_Always, ImStr, ImVec4, Ui};
+use imgui::{ImGuiSetCond_Always, ImString, ImVec4, Ui};
 use imgui_glium_renderer::RendererError;
 use std::f32;
 
@@ -17,12 +17,12 @@ pub trait Screen {
 
 #[derive(Default)]
 pub struct WaitBootromScreen {
-  error: Option<ImStr<'static>>
+  error: Option<ImString>
 }
 
 impl WaitBootromScreen {
   pub fn set_error(&mut self, text: String) {
-    self.error = Some(text.into());
+    self.error = Some(ImString::new(text).unwrap());
   }
 }
 
@@ -42,7 +42,7 @@ impl Screen for WaitBootromScreen {
 
         if let Some(ref error) = self.error {
           ui.separator();
-          ui.text_colored(ImVec4::new(1.0, 0.0, 0.0, 1.0), error.clone());
+          ui.text_colored(ImVec4::new(1.0, 0.0, 0.0, 1.0), &error);
         }
       });
   }
@@ -51,8 +51,8 @@ impl Screen for WaitBootromScreen {
 pub struct InGameScreen {
   pub fps: f64,
   pub perf: f64,
-  model: ImStr<'static>,
-  cartridge_title: ImStr<'static>,
+  model: ImString,
+  cartridge_title: ImString,
   show_info_overlay: bool
 }
 
@@ -61,8 +61,8 @@ impl InGameScreen {
     InGameScreen {
       fps: 0.0,
       perf: 0.0,
-      model: im_str!("{}", config.model),
-      cartridge_title: im_str!("{}", config.cartridge.title),
+      model: ImString::new(format!("{}", config.model)).unwrap(),
+      cartridge_title: ImString::new(format!("{}", config.cartridge.title)).unwrap(),
       show_info_overlay: false
     }
   }
@@ -82,8 +82,8 @@ impl Screen for InGameScreen {
         .always_auto_resize(true)
         .position((0.0, 0.0), ImGuiSetCond_Always)
         .build(|| {
-          ui.text(self.model.clone());
-          ui.text(self.cartridge_title.clone());
+          ui.text(&self.model);
+          ui.text(&self.cartridge_title);
           ui.text(im_str!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
         });
     }
