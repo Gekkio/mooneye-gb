@@ -57,7 +57,6 @@ test_round2:
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
   ld ($4000), a
-  xor a
   call copy_bank_data
 .endr
 
@@ -67,27 +66,24 @@ test_round2:
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
   ld ($4000), a
-  xor a
   call check_bank_data
   jp nc, fail_round2
 .endr
 
 ; Now, if we copy data to the RAM, we should see the same data
 test_round3:
-  xor a
   call copy_bank_data
-
-  xor a
   call check_bank_data
   jp c, fail_round3
 
 ; Switching RAM banks shouldn't have an effect because we only have one bank in mode 1
 test_round4:
+  xor a
+  ld ($6000), a
+
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
   ld ($4000), a
-
-  xor a
   call check_bank_data
   jp c, fail_round4
 .endr
@@ -98,58 +94,36 @@ test_round5:
   ld ($6000), a
 
 .repeat 4 INDEX bank
-  ld a, bank
-  or %11111100 ; set high bits to expose bugs
+  ld a, bank | %11111100 ; set high bits to expose bugs
   ld ($4000), a
-
-  xor a
   call check_bank_data
   jp c, fail_round5
 .endr
 
 test_finish:
+  call clear_ram
   test_ok
 
-; Inputs:
-;   A bank number
 copy_bank_data:
-  sla a
-  sla a
-  sla a
-  sla a
-  ld d, >bank_data
-  ld e, a
-  push de
-
+  ld de, bank_data
   ld hl, $A000
   ld bc, 16
   call memcpy
 
+  ld de, bank_data
   ld hl, $B000
   ld bc, 16
-  pop de
-  call memcpy
+  jp memcpy
 
-  ret
-
-; Inputs:
-;   A bank number to compare to
 check_bank_data:
-  sla a
-  sla a
-  sla a
-  sla a
-  ld d, >bank_data
-  ld e, a
-  push de
-
+  ld de, bank_data
   ld hl, $A000
   ld bc, 16
   call memcmp
 
-  pop de
   ret c
 
+  ld de, bank_data
   ld hl, $B000
   ld bc, 16
   jp memcmp
@@ -187,16 +161,21 @@ clear_ram:
   ret
 
 fail_round1:
+  call clear_ram
   test_failure_string "FAIL: Round 1"
 
 fail_round2:
+  call clear_ram
   test_failure_string "FAIL: Round 2"
 
 fail_round3:
+  call clear_ram
   test_failure_string "FAIL: Round 3"
 
 fail_round4:
+  call clear_ram
   test_failure_string "FAIL: Round 4"
 
 fail_round5:
+  call clear_ram
   test_failure_string "FAIL: Round 5"

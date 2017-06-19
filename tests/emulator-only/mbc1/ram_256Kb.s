@@ -75,18 +75,21 @@ test_round2:
 
 ; Now, mode is 0 so if we switch banks and copy data to RAM, we are actually writing to bank 0
 test_round3:
-.repeat 4 INDEX bank
-  ld a, 3 - bank
-  or %11111100 ; set high bits to expose bugs
-  ld ($4000), a
-  ld a, 3 - bank
+  xor a
+  ld ($6000), a
 
+.repeat 4 INDEX bank
+  ld a, bank | %11111100 ; set high bits to expose bugs
+  ld ($4000), a
+  ld a, bank
   call copy_bank_data
 .endr
 
 ; All "banks" should show the last written data because of mode 0
 .repeat 4 INDEX bank
-  xor a
+  ld a, bank | %11111100 ; set high bits to expose bugs
+  ld ($4000), a
+  ld a, 3
   call check_bank_data
   jp c, fail_round3
 .endr
@@ -97,25 +100,25 @@ test_round4:
   ld ($6000), a
 
 .repeat 3 INDEX bank
-  ld a, bank + 1
-  or %11111100 ; set high bits to expose bugs
+  ld a, (bank + 1) | %11111100 ; set high bits to expose bugs
   ld ($4000), a
 
   ld hl, all_00
-  ld de, $B000
+  ld de, $A000
   ld bc, 16
   call memcmp
 
-  jp nc, fail_round4
+  jp c, fail_round4
 
   ld hl, all_00
   ld de, $B000
   ld bc, 16
   call memcmp
 
-  jp nc, fail_round4
+  jp c, fail_round4
 .endr
 
+; Let's actually write to all of the banks
 test_round5:
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
@@ -141,7 +144,6 @@ test_round6:
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
   ld ($4000), a
-
   xor a
   call check_bank_data
   jp c, fail_round6
@@ -169,9 +171,7 @@ copy_bank_data:
   ld hl, $B000
   ld bc, 16
   pop de
-  call memcpy
-
-  ret
+  jp memcpy
 
 ; Inputs:
 ;   A bank number to compare to
