@@ -2,11 +2,7 @@
 
 set -e
 
-CARGO_FLAGS=""
-
-if [ -n "${CI}" ]; then
-    CARGO_FLAGS="--release"
-fi
+CARGO_FLAGS="--release"
 
 make -C tests clean
 make WLAFLAGS="-DACCEPTANCE_TEST=1" -C tests all
