@@ -27,8 +27,7 @@
 
 ; Verified results:
 ;   pass: DMG ABCX, MGB
-;   fail: DMG 0, CGB, AGB, AGS
-;   untested: SGB, SGB2
+;   fail: DMG 0, SGB, SGB2, CGB, AGB, AGS
 
 .include "common.s"
 

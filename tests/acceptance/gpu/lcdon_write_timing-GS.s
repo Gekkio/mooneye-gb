@@ -22,9 +22,8 @@
 ; writing to LCDC.
 
 ; Verified results:
-;   pass: DMG, MGB
+;   pass: DMG, MGB, SGB, SGB2
 ;   fail: CGB, AGB, AGS
-;   untested: SGB, SGB2
 
 .include "common.s"
 

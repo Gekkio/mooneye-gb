@@ -26,9 +26,8 @@
 ;   - line 1 and line 2 have normal timings
 
 ; Verified results:
-;   pass: DMG ABCX, MGB
+;   pass: DMG ABCX, MGB, SGB, SGB2
 ;   fail: DMG 0, CGB, AGB, AGS
-;   untested: SGB, SGB2
 
 ; On real hardware, failures can be grouped into three categories:
 ;   DMG 0: freeze
