@@ -206,8 +206,8 @@ Notes:
 * cpu_instrs fails on MGB/SGB2 hardware and emulators emulating them correctly.
   The ROM incorrectly detects the device as CGB, and attempts to perform a CPU
   speed change which causes a freeze (STOP instruction with joypad disabled)
-* dmg_sound-2 test #10 fails on DMG-CPU A, DMG-CPU C, and MGB
-* MESS incorrectly passes dmg_sound-2 on MGB
+* dmg_sound-2 test #10 fails on DMG-CPU A, DMG-CPU C, MGB, and SGB2
+* MESS incorrectly passes dmg_sound-2 on MGB and SGB2
 
 ### Mooneye GB acceptance tests
 
