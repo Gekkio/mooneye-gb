@@ -23,22 +23,22 @@ use util::int::IntExt;
 
 #[derive(Debug, Clone)]
 struct Mbc1State {
-  bank_2b: u8,
-  rom_bank: u8,
-  ram_banking: bool
+  bank1: u8,
+  bank2: u8,
+  mode: bool
 }
 
 impl Mbc1State {
   fn rom_offsets(&self, multicart: bool) -> (usize, usize) {
-    let upper_bits = if multicart { self.bank_2b << 4 } else { self.bank_2b << 5 };
-    let lower_bits = if multicart { self.rom_bank & 0b1111 } else { self.rom_bank };
+    let upper_bits = if multicart { self.bank2 << 4 } else { self.bank2 << 5 };
+    let lower_bits = if multicart { self.bank1 & 0b1111 } else { self.bank1 };
 
-    let lower_bank = if self.ram_banking { upper_bits as usize } else { 0b00 };
+    let lower_bank = if self.mode { upper_bits as usize } else { 0b00 };
     let upper_bank = (upper_bits | lower_bits) as usize;
     (ROM_BANK_SIZE * lower_bank, ROM_BANK_SIZE * upper_bank)
   }
   fn ram_offset(&self) -> usize {
-    let bank = if self.ram_banking { self.bank_2b as usize } else { 0b00 };
+    let bank = if self.mode { self.bank2 as usize } else { 0b00 };
     (RAM_BANK_SIZE * bank)
   }
 }
@@ -78,7 +78,7 @@ impl Mbc {
        Rom |  RomRam |  RomRamBattery => Mbc::None,
       Mbc1 | Mbc1Ram | Mbc1RamBattery => Mbc::Mbc1 {
         multicart: is_mbc1_multicart(rom),
-        state: Mbc1State { bank_2b: 0b00, rom_bank: 0b00001, ram_banking: false },
+        state: Mbc1State { bank1: 0b00001, bank2: 0b00, mode: false },
       },
       Mbc2           | Mbc2RamBattery => Mbc::Mbc2,
       Mbc3 | Mbc3Ram | Mbc3RamBattery => Mbc::Mbc3
@@ -133,16 +133,16 @@ impl Cartridge {
             self.ram_accessible = (value & 0b1111) == 0b1010;
           },
           0x20 ... 0x3f => {
-            state.rom_bank = if value & 0b11111 == 0b00000 { 0b00001 } else { value & 0b11111 };
+            state.bank1 = if value & 0b11111 == 0b00000 { 0b00001 } else { value & 0b11111 };
             self.rom_offsets = state.rom_offsets(multicart);
           },
           0x40 ... 0x5f => {
-            state.bank_2b = value & 0b11;
+            state.bank2 = value & 0b11;
             self.rom_offsets = state.rom_offsets(multicart);
             self.ram_offset = state.ram_offset();
           },
           0x60 ... 0x7f => {
-            state.ram_banking = (value & 0b1) == 0b1;
+            state.mode = (value & 0b1) == 0b1;
             self.rom_offsets = state.rom_offsets(multicart);
             self.ram_offset = state.ram_offset();
           },
