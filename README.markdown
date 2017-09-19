@@ -280,6 +280,12 @@ Notes:
 | stat irq blocking           | :x:        | :x:  | :+1:     | :x:   | :+1: |
 | vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:  | :+1: |
 
+#### Interrupt handling
+
+| Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
+| --------------------------- | ---------- | ---- | -------- | ------ | ---- |
+| ie push                     | :x:        | :x:  | :x:      | :x:    | :x:  |
+
 #### Serial
 
 | Test                        | mooneye-gb | BGB  | Gambatte | Higan | MESS |
