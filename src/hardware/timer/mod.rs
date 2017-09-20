@@ -89,7 +89,6 @@ impl Timer {
     self.modulo = value;
   }
   pub fn set_control(&mut self, value: u8) {
-    println!("TIMER CONTROL {:08b}", value);
     self.enabled = (value & (1 << 2)) != 0;
     self.input_clock = InputClock::from_u8(value & 0x3).unwrap();
     self.timer_cycles = self.input_clock.cycles();

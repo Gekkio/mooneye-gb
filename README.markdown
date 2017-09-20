@@ -284,7 +284,7 @@ Notes:
 
 | Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
 | --------------------------- | ---------- | ---- | -------- | ------ | ---- |
-| ie push                     | :x:        | :x:  | :x:      | :x:    | :x:  |
+| ie push                     | :+1:       | :x:  | :x:      | :x:    | :x:  |
 
 #### Serial
 

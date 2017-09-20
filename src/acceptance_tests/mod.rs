@@ -21,11 +21,13 @@ mod fixture;
 #[test]
 fn add_sp_e_timing() { run_test("acceptance/add_sp_e_timing") }
 
-// #[test]
-// fn boot_hwio_dmg_abcx_mgb() { run_test_with_models("acceptance/boot_hwio-dmgABCXmgb", &[Dmg, Mgb]) }
+#[test]
+#[ignore]
+fn boot_hwio_dmg_0() { run_test_with_model("acceptance/boot_hwio-dmg0", Dmg0) }
 
-// #[test]
-// fn boot_hwio_dmg_0() { run_test_with_model("acceptance/boot_hwio-dmg0", Dmg0) }
+#[test]
+#[ignore]
+fn boot_hwio_dmg_abcx_mgb() { run_test_with_models("acceptance/boot_hwio-dmgABCXmgb", &[Dmg, Mgb]) }
 
 #[test]
 fn boot_hwio_s() { run_test_with_models("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
@@ -148,13 +150,88 @@ fn gpu_intr_2_0_timing() { run_test("acceptance/gpu/intr_2_0_timing") }
 fn gpu_intr_2_mode0_timing() { run_test("acceptance/gpu/intr_2_mode0_timing") }
 
 #[test]
+#[ignore]
+fn gpu_intr_2_mode0_timing_sprites() { run_test("acceptance/gpu/intr_2_mode0_timing_sprites") }
+
+#[test]
 fn gpu_intr_2_mode3_timing() { run_test("acceptance/gpu/intr_2_mode3_timing") }
 
 #[test]
 fn gpu_intr_2_oam_ok_timing() { run_test("acceptance/gpu/intr_2_oam_ok_timing") }
 
 #[test]
+#[ignore]
+fn gpu_lcdon_timing_dmg_abcx_mgb_s() { run_test("acceptance/gpu/lcdon_timing-dmgABCXmgbS") }
+
+#[test]
+#[ignore]
+fn gpu_lcdon_write_timing_gs() { run_test("acceptance/gpu/lcdon_write_timing-GS") }
+
+#[test]
+#[ignore]
+fn gpu_stat_irq_blocking() { run_test("acceptance/gpu/stat_irq_blocking") }
+
+#[test]
 fn gpu_vblank_stat_intr_gs() { run_test("acceptance/gpu/vblank_stat_intr-GS") }
+
+#[test]
+fn interrupts_ie_push() { run_test("acceptance/interrupts/ie_push") }
+
+#[test]
+#[ignore]
+fn serial_boot_sclk_align_dmg_abcx_mgb() { run_test("acceptance/serial/boot_sclk_align-dmgABCXmgb") }
+
+#[test]
+#[ignore]
+fn timer_div_write() { run_test("acceptance/timer/div_write") }
+
+#[test]
+#[ignore]
+fn timer_rapid_toggle() { run_test("acceptance/timer/rapid_toggle") }
+
+#[test]
+#[ignore]
+fn timer_tim00() { run_test("acceptance/timer/tim00") }
+
+#[test]
+#[ignore]
+fn timer_tim00_div_trigger() { run_test("acceptance/timer/tim00_div_trigger") }
+
+#[test]
+#[ignore]
+fn timer_tim01() { run_test("acceptance/timer/tim01") }
+
+#[test]
+#[ignore]
+fn timer_tim01_div_trigger() { run_test("acceptance/timer/tim01_div_trigger") }
+
+#[test]
+#[ignore]
+fn timer_tim10() { run_test("acceptance/timer/tim10") }
+
+#[test]
+#[ignore]
+fn timer_tim10_div_trigger() { run_test("acceptance/timer/tim10_div_trigger") }
+
+#[test]
+#[ignore]
+fn timer_tim11() { run_test("acceptance/timer/tim11") }
+
+#[test]
+#[ignore]
+fn timer_tim11_div_trigger() { run_test("acceptance/timer/tim11_div_trigger") }
+
+#[test]
+#[ignore]
+fn timer_tima_reload() { run_test("acceptance/timer/tima_reload") }
+
+#[test]
+#[ignore]
+fn timer_tima_write_reloading() { run_test("acceptance/timer/tima_write_reloading") }
+
+#[test]
+#[ignore]
+fn timer_tma_write_reloading() { run_test("acceptance/timer/tma_write_reloading") }
 
 #[test]
 fn mbc1_rom_512kb() { run_test("emulator-only/mbc1/rom_512Kb") }

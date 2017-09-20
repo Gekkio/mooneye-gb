@@ -16,8 +16,7 @@
 use std::fmt;
 
 use emulation::{EE_DEBUG_OP};
-use hardware::{Bus, FetchResult};
-use hardware::irq::Interrupt;
+use hardware::{Bus};
 use cpu::registers::{
   Registers, Reg8, Reg16, Flags,
   ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
@@ -139,11 +138,11 @@ impl Cpu {
       self.ime = Ime::Enabled;
     }
     match bus.fetch_cycle(self.regs.pc, ack_interrupt) {
-      FetchResult::Opcode(op) => {
+      Some(op) => {
         self.regs.pc = self.regs.pc.wrapping_add(1);
         ops::decode((self, bus), op)
       },
-      FetchResult::Interrupt(interrupt) => self.dispatch_interrupt(bus, interrupt),
+      None => self.dispatch_interrupt(bus),
     }
   }
   fn read_cycle<H: Bus>(&self, bus: &mut H, addr: u16) -> u8 {
@@ -226,15 +225,16 @@ impl Cpu {
     }
   }
 
-  fn dispatch_interrupt<H: Bus>(&mut self, bus: &mut H, interrupt: Interrupt) {
+  fn dispatch_interrupt<H: Bus>(&mut self, bus: &mut H) {
     self.halt = false;
     self.ime = Ime::Disabled;
     self.internal_cycle(bus);
     self.internal_cycle(bus);
-    self.internal_cycle(bus);
     let pc = self.regs.pc;
-    self.push_u16(bus, pc);
-    self.regs.pc = interrupt.get_addr();
+    self.push_u8(bus, (pc >> 8) as u8);
+    let interrupt = bus.ack_interrupt();
+    self.push_u8(bus, pc as u8);
+    self.regs.pc = interrupt.map(|i| i.get_addr()).unwrap_or(0x0000);
   }
 
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
