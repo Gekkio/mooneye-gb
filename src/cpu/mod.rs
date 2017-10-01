@@ -133,16 +133,20 @@ impl Cpu {
   }
 
   fn fetch_cycle<H: Bus>(&mut self, bus: &mut H) {
-    let ack_interrupt = self.ime == Ime::Enabled;
-    if let Ime::Enabling = self.ime {
-      self.ime = Ime::Enabled;
-    }
-    match bus.fetch_cycle(self.regs.pc, ack_interrupt) {
-      Some(op) => {
-        self.regs.pc = self.regs.pc.wrapping_add(1);
-        ops::decode((self, bus), op)
+    let result = bus.fetch_cycle(self.regs.pc);
+    let interrupt = match self.ime {
+      Ime::Enabled => result.interrupt,
+      Ime::Enabling => {
+        self.ime = Ime::Enabled;
+        false
       },
-      None => self.dispatch_interrupt(bus),
+      _ => false,
+    };
+    if interrupt {
+      self.dispatch_interrupt(bus)
+    } else {
+      self.regs.pc = self.regs.pc.wrapping_add(1);
+      ops::decode((self, bus), result.opcode)
     }
   }
   fn read_cycle<H: Bus>(&self, bus: &mut H, addr: u16) -> u8 {

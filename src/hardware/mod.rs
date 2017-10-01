@@ -42,8 +42,14 @@ mod joypad;
 mod serial;
 mod timer;
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct FetchResult {
+  pub opcode: u8,
+  pub interrupt: bool,
+}
+
 pub trait Bus {
-  fn fetch_cycle(&mut self, u16, bool) -> Option<u8>;
+  fn fetch_cycle(&mut self, u16) -> FetchResult;
   fn read_cycle(&mut self, u16) -> u8;
   fn write_cycle(&mut self, u16, u8);
   fn emulate(&mut self);
@@ -246,15 +252,16 @@ impl Hardware {
 }
 
 impl Bus for Hardware {
-  fn fetch_cycle(&mut self, addr: u16, ack_interrupt: bool) -> Option<u8> {
-    if ack_interrupt && self.has_interrupt() {
-      self.emu_time += EmuDuration::machine_cycles(1);
-      self.emulate();
-      return None;
-    }
+  fn fetch_cycle(&mut self, addr: u16) -> FetchResult {
+    let interrupt = self.has_interrupt();
     self.emu_time += EmuDuration::machine_cycles(1);
     self.emulate();
-    Some(self.read_internal(addr))
+
+    let opcode = self.read_internal(addr);
+    FetchResult {
+      opcode,
+      interrupt,
+    }
   }
   fn read_cycle(&mut self, addr: u16) -> u8 {
     self.emu_time += EmuDuration::machine_cycles(1);
