@@ -18,7 +18,7 @@ use std::time::{Duration, Instant};
 
 use config::{Bootrom, Cartridge, HardwareConfig, Model};
 use config::DEFAULT_MODEL_PRIORITY;
-use emulation::{EmuDuration, EmuTime, EE_DEBUG_OP};
+use emulation::{EmuDuration, EmuTime, EmuEvents};
 use gameboy;
 use machine::Machine;
 
@@ -50,7 +50,7 @@ pub fn run_test_with_model(name: &str, model: Model) {
     }
     let (events, end_time) = machine.emulate(emu_time + pulse_duration);
     emu_time = end_time;
-    if events.contains(EE_DEBUG_OP) {
+    if events.contains(EmuEvents::DEBUG_OP) {
       registers = Some(machine.regs());
       break;
     }

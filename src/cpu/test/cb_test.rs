@@ -13,9 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::registers::{
-  ZERO, HALF_CARRY
-};
+use cpu::registers::Flags;
 use cpu::test::run_test;
 
 macro_rules! test_bit_r8(
@@ -30,7 +28,7 @@ macro_rules! test_bit_r8(
           }
         );
         assert_eq!(machine.hardware.clock_cycles(), 8);
-        assert_eq!(machine.cpu.regs.f, HALF_CARRY);
+        assert_eq!(machine.cpu.regs.f, Flags::HALF_CARRY);
       }
       {
         let machine = run_test(
@@ -40,7 +38,7 @@ macro_rules! test_bit_r8(
           }
         );
         assert_eq!(machine.hardware.clock_cycles(), 8);
-        assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
+        assert_eq!(machine.cpu.regs.f, Flags::ZERO | Flags::HALF_CARRY);
       }
     }
   );
@@ -59,7 +57,7 @@ macro_rules! test_bit_hl(
           }
         );
         assert_eq!(machine.hardware.clock_cycles(), 12);
-        assert_eq!(machine.cpu.regs.f, HALF_CARRY);
+        assert_eq!(machine.cpu.regs.f, Flags::HALF_CARRY);
       }
       {
         let machine = run_test(
@@ -70,7 +68,7 @@ macro_rules! test_bit_hl(
           }
         );
         assert_eq!(machine.hardware.clock_cycles(), 12);
-        assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
+        assert_eq!(machine.cpu.regs.f, Flags::ZERO | Flags::HALF_CARRY);
       }
     }
   );

@@ -15,11 +15,10 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-use emulation::{EE_DEBUG_OP};
+use emulation::EmuEvents;
 use hardware::{Bus};
 use cpu::registers::{
   Registers, Reg8, Reg16, Flags,
-  ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
 };
 use util::int::IntExt;
 
@@ -64,8 +63,8 @@ impl Cond {
   fn check(&self, flags: Flags) -> bool {
     use self::Cond::*;
     match *self {
-      NZ => !flags.contains(ZERO),  Z => flags.contains(ZERO),
-      NC => !flags.contains(CARRY), C => flags.contains(CARRY),
+      NZ => !flags.contains(Flags::ZERO),  Z => flags.contains(Flags::ZERO),
+      NC => !flags.contains(Flags::CARRY), C => flags.contains(Flags::CARRY),
     }
   }
 }
@@ -242,42 +241,42 @@ impl Cpu {
   }
 
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
-    let cy = if use_carry && self.regs.f.contains(CARRY) { 1 } else { 0 };
+    let cy = if use_carry && self.regs.f.contains(Flags::CARRY) { 1 } else { 0 };
     let result = self.regs.a.wrapping_sub(value).wrapping_sub(cy);
-    self.regs.f = ZERO.test(result == 0) |
-                  ADD_SUBTRACT |
-                  CARRY.test((self.regs.a as u16) < (value as u16) + (cy as u16)) |
-                  HALF_CARRY.test((self.regs.a & 0xf) < (value & 0xf) + cy);
+    self.regs.f = Flags::ZERO.test(result == 0) |
+                  Flags::ADD_SUBTRACT |
+                  Flags::CARRY.test((self.regs.a as u16) < (value as u16) + (cy as u16)) |
+                  Flags::HALF_CARRY.test((self.regs.a & 0xf) < (value & 0xf) + cy);
     result
   }
   fn alu_rl(&mut self, value: u8, set_zero: bool) -> u8 {
-    let ci = if self.regs.f.contains(CARRY) { 1 } else { 0 };
+    let ci = if self.regs.f.contains(Flags::CARRY) { 1 } else { 0 };
     let co = value & 0x80;
     let new_value = (value << 1) | ci;
-    self.regs.f = ZERO.test(set_zero && new_value == 0) |
-                  CARRY.test(co != 0);
+    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) |
+                  Flags::CARRY.test(co != 0);
     new_value
   }
   fn alu_rlc(&mut self, value: u8, set_zero: bool) -> u8 {
     let co = value & 0x80;
     let new_value = value.rotate_left(1);
-    self.regs.f = ZERO.test(set_zero && new_value == 0) |
-                  CARRY.test(co != 0);
+    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) |
+                  Flags::CARRY.test(co != 0);
     new_value
   }
   fn alu_rr(&mut self, value: u8, set_zero: bool) -> u8 {
-    let ci = if self.regs.f.contains(CARRY) { 1 } else { 0 };
+    let ci = if self.regs.f.contains(Flags::CARRY) { 1 } else { 0 };
     let co = value & 0x01;
     let new_value = (value >> 1) | (ci << 7);
-    self.regs.f = ZERO.test(set_zero && new_value == 0) |
-                  CARRY.test(co != 0);
+    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) |
+                  Flags::CARRY.test(co != 0);
     new_value
   }
   fn alu_rrc(&mut self, value: u8, set_zero: bool) -> u8 {
     let co = value & 0x01;
     let new_value = value.rotate_right(1);
-    self.regs.f = ZERO.test(set_zero && new_value == 0) |
-                  CARRY.test(co != 0);
+    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) |
+                  Flags::CARRY.test(co != 0);
     new_value
   }
   fn ctrl_jp<H: Bus>(&mut self, bus: &mut H, addr: u16) {
@@ -324,9 +323,9 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let value = in8.read(cpu, bus);
     let (result, carry) = cpu.regs.a.overflowing_add(value);
     let half_carry = (cpu.regs.a & 0x0f).checked_add(value | 0xf0).is_none();
-    cpu.regs.f = ZERO.test(result == 0) |
-                  CARRY.test(carry) |
-                  HALF_CARRY.test(half_carry);
+    cpu.regs.f = Flags::ZERO.test(result == 0) |
+                  Flags::CARRY.test(carry) |
+                  Flags::HALF_CARRY.test(half_carry);
     cpu.regs.a = result;
   }
   /// ADC s
@@ -336,11 +335,11 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   fn adc<I: In8>(self, in8: I) {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
-    let cy = if cpu.regs.f.contains(CARRY) { 1 } else { 0 };
+    let cy = if cpu.regs.f.contains(Flags::CARRY) { 1 } else { 0 };
     let result = cpu.regs.a.wrapping_add(value).wrapping_add(cy);
-    cpu.regs.f = ZERO.test(result == 0) |
-                  CARRY.test(cpu.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
-                  HALF_CARRY.test((cpu.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
+    cpu.regs.f = Flags::ZERO.test(result == 0) |
+                  Flags::CARRY.test(cpu.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
+                  Flags::HALF_CARRY.test((cpu.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
     cpu.regs.a = result;
   }
   /// SUB s
@@ -378,8 +377,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a &= value;
-    cpu.regs.f = ZERO.test(cpu.regs.a == 0) |
-                  HALF_CARRY;
+    cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0) |
+                  Flags::HALF_CARRY;
   }
   /// OR s
   ///
@@ -389,7 +388,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a |= value;
-    cpu.regs.f = ZERO.test(cpu.regs.a == 0);
+    cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0);
   }
   /// XOR s
   ///
@@ -399,7 +398,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a ^= value;
-    cpu.regs.f = ZERO.test(cpu.regs.a == 0)
+    cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0)
   }
   /// INC s
   ///
@@ -409,9 +408,9 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = value.wrapping_add_one();
-    cpu.regs.f = ZERO.test(new_value == 0) |
-                  HALF_CARRY.test(value & 0xf == 0xf) |
-                  (CARRY & cpu.regs.f);
+    cpu.regs.f = Flags::ZERO.test(new_value == 0) |
+                  Flags::HALF_CARRY.test(value & 0xf == 0xf) |
+                  (Flags::CARRY & cpu.regs.f);
     io.write(cpu, bus, new_value);
   }
   /// DEC s
@@ -422,10 +421,10 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = value.wrapping_sub_one();
-    cpu.regs.f = ZERO.test(new_value == 0) |
-                  ADD_SUBTRACT |
-                  HALF_CARRY.test(value & 0xf == 0) |
-                  (CARRY & cpu.regs.f);
+    cpu.regs.f = Flags::ZERO.test(new_value == 0) |
+                 Flags::ADD_SUBTRACT |
+                 Flags::HALF_CARRY.test(value & 0xf == 0) |
+                 (Flags::CARRY & cpu.regs.f);
     io.write(cpu, bus, new_value);
   }
   /// RLCA
@@ -513,8 +512,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let value = io.read(cpu, bus);
     let co = value & 0x80;
     let new_value = value << 1;
-    cpu.regs.f = ZERO.test(new_value == 0) |
-                  CARRY.test(co != 0);
+    cpu.regs.f = Flags::ZERO.test(new_value == 0) |
+                  Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
   }
   /// SRA s
@@ -527,8 +526,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let co = value & 0x01;
     let hi = value & 0x80;
     let new_value = (value >> 1) | hi;
-    cpu.regs.f = ZERO.test(new_value == 0) |
-                  CARRY.test(co != 0);
+    cpu.regs.f = Flags::ZERO.test(new_value == 0) |
+                  Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
   }
   /// SRL s
@@ -540,8 +539,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let value = io.read(cpu, bus);
     let co = value & 0x01;
     let new_value = value >> 1;
-    cpu.regs.f = ZERO.test(new_value == 0) |
-                  CARRY.test(co != 0);
+    cpu.regs.f = Flags::ZERO.test(new_value == 0) |
+                  Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
   }
   /// SWAP s
@@ -552,7 +551,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = (value >> 4) | (value << 4);
-    cpu.regs.f = ZERO.test(value == 0);
+    cpu.regs.f = Flags::ZERO.test(value == 0);
     io.write(cpu, bus, new_value);
   }
   /// BIT b, s
@@ -562,9 +561,9 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   fn bit<I: In8>(self, bit: usize, in8: I) {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus) & (1 << bit);
-    cpu.regs.f = ZERO.test(value == 0) |
-                  HALF_CARRY |
-                  (CARRY & cpu.regs.f);
+    cpu.regs.f = Flags::ZERO.test(value == 0) |
+                  Flags::HALF_CARRY |
+                  (Flags::CARRY & cpu.regs.f);
   }
   /// SET b, s
   ///
@@ -731,8 +730,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///        - 0 0 *
   fn ccf(self) {
     let (cpu, _) = self;
-    cpu.regs.f = (ZERO & cpu.regs.f) |
-                  CARRY.test(!cpu.regs.f.contains(CARRY))
+    cpu.regs.f = (Flags::ZERO & cpu.regs.f) |
+                  Flags::CARRY.test(!cpu.regs.f.contains(Flags::CARRY))
   }
   /// SCF
   ///
@@ -740,8 +739,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///        - 0 0 1
   fn scf(self) {
     let (cpu, _) = self;
-    cpu.regs.f = (ZERO & cpu.regs.f) |
-                  CARRY
+    cpu.regs.f = (Flags::ZERO & cpu.regs.f) |
+                  Flags::CARRY
   }
   /// NOP
   ///
@@ -757,27 +756,27 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, _) = self;
     // DAA table in page 110 of the official "Game Boy Programming Manual"
     let mut carry = false;
-    if !cpu.regs.f.contains(ADD_SUBTRACT) {
-      if cpu.regs.f.contains(CARRY) || cpu.regs.a > 0x99 {
+    if !cpu.regs.f.contains(Flags::ADD_SUBTRACT) {
+      if cpu.regs.f.contains(Flags::CARRY) || cpu.regs.a > 0x99 {
         cpu.regs.a = cpu.regs.a.wrapping_add(0x60);
         carry = true;
       }
-      if cpu.regs.f.contains(HALF_CARRY) || cpu.regs.a & 0x0f > 0x09 {
+      if cpu.regs.f.contains(Flags::HALF_CARRY) || cpu.regs.a & 0x0f > 0x09 {
         cpu.regs.a = cpu.regs.a.wrapping_add(0x06);
       }
-    } else if cpu.regs.f.contains(CARRY) {
+    } else if cpu.regs.f.contains(Flags::CARRY) {
       carry = true;
       cpu.regs.a = cpu.regs.a.wrapping_add(
-        if cpu.regs.f.contains(HALF_CARRY) { 0x9a }
+        if cpu.regs.f.contains(Flags::HALF_CARRY) { 0x9a }
         else { 0xa0 }
         );
-    } else if cpu.regs.f.contains(HALF_CARRY) {
+    } else if cpu.regs.f.contains(Flags::HALF_CARRY) {
       cpu.regs.a = cpu.regs.a.wrapping_add(0xfa);
     }
 
-    cpu.regs.f = ZERO.test(cpu.regs.a == 0) |
-                  (ADD_SUBTRACT & cpu.regs.f) |
-                  CARRY.test(carry);
+    cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0) |
+                  (Flags::ADD_SUBTRACT & cpu.regs.f) |
+                  Flags::CARRY.test(carry);
   }
   /// CPL
   ///
@@ -786,10 +785,10 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   fn cpl(self) {
     let (cpu, _) = self;
     cpu.regs.a = !cpu.regs.a;
-    cpu.regs.f = (ZERO & cpu.regs.f) |
-                  ADD_SUBTRACT |
-                  HALF_CARRY |
-                  (CARRY & cpu.regs.f);
+    cpu.regs.f = (Flags::ZERO & cpu.regs.f) |
+                  Flags::ADD_SUBTRACT |
+                  Flags::HALF_CARRY |
+                  (Flags::CARRY & cpu.regs.f);
   }
   // --- 16-bit operations
   // 16-bit loads
@@ -833,8 +832,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let sp = cpu.regs.sp as u16;
     let value = sp.wrapping_add(offset);
     cpu.regs.write16(Reg16::HL, value);
-    cpu.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
-                  CARRY.test(u16::test_add_carry_bit(7, sp, offset));
+    cpu.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
+                  Flags::CARRY.test(u16::test_add_carry_bit(7, sp, offset));
     cpu.internal_cycle(bus);
   }
   /// PUSH rr
@@ -867,9 +866,9 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let hl = cpu.regs.read16(Reg16::HL);
     let value = cpu.regs.read16(reg);
     let result = hl.wrapping_add(value);
-    cpu.regs.f = (ZERO & cpu.regs.f) |
-                  HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
-                  CARRY.test(hl > 0xffff - value);
+    cpu.regs.f = (Flags::ZERO & cpu.regs.f) |
+                  Flags::HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
+                  Flags::CARRY.test(hl > 0xffff - value);
     cpu.regs.write16(Reg16::HL, result);
     cpu.internal_cycle(bus);
   }
@@ -882,8 +881,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let val = cpu.next_u8(bus) as i8 as i16 as u16;
     let sp = cpu.regs.sp;
     cpu.regs.sp = sp.wrapping_add(val);
-    cpu.regs.f = HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
-                  CARRY.test(u16::test_add_carry_bit(7, sp, val));
+    cpu.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
+      Flags::CARRY.test(u16::test_add_carry_bit(7, sp, val));
     cpu.internal_cycle(bus);
     cpu.internal_cycle(bus);
   }
@@ -913,7 +912,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   }
   fn undefined_debug(self) {
     let (_, bus) = self;
-    bus.trigger_emu_events(EE_DEBUG_OP);
+    bus.trigger_emu_events(EmuEvents::DEBUG_OP);
   }
   fn cb_prefix(self) {
     let (cpu, bus) = self;

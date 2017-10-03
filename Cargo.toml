@@ -10,15 +10,15 @@ acceptance_tests = []
 
 [dependencies]
 app_dirs = "1.1"
-bitflags = "0.9"
+bitflags = "1.0"
 crc = "1.3"
 docopt = "0.8"
-error-chain = "0.10"
-glium_sdl2 = { git = "https://github.com/Gekkio/glium-sdl2.git", branch = "glium0.16-sdl0.30" }
-imgui = "0.0.14"
-imgui-glium-renderer = "0.0.14"
+error-chain = "0.11"
+glium_sdl2 = { git = "https://github.com/Gekkio/glium-sdl2.git", branch = "glium0.17-sdl0.30" }
+imgui = "0.0.15"
+imgui-glium-renderer = "0.0.15"
 log = "0.3"
-nalgebra = "0.12"
+nalgebra = "0.13"
 num-traits = "0.1"
 serde = "1.0"
 serde_derive = "1.0"
@@ -27,7 +27,7 @@ simplelog = "0.4"
 url = "1.5"
 
 [dependencies.glium]
-version = "0.16"
+version = "0.17"
 default-features = false
 
 [dev-dependencies]

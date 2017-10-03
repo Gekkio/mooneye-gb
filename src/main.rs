@@ -141,7 +141,8 @@ fn run() -> MooneyeResult<()> {
 
 fn main() {
   if let Err(ref e) = run() {
-    error!("{}", e.display());
+    error!("{}", e.display_chain());
+
     process::exit(1);
   }
 }

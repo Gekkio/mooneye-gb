@@ -30,51 +30,51 @@ use hardware::irq::{Irq, Interrupt};
 /// # Joypad interrupt
 /// Whenever a key is pressed, a joypad interrupt is requested.
 pub struct Joypad {
-  pressed_directional: JoypadReg,
-  pressed_button: JoypadReg,
-  register: JoypadReg
+  pressed_directional: P1,
+  pressed_button: P1,
+  register: P1
 }
 
 impl Joypad {
   pub fn new() -> Joypad {
     Joypad {
-      pressed_directional: JoypadReg::empty(),
-      pressed_button: JoypadReg::empty(),
-      register: JOYPAD_INITIAL_STATE
+      pressed_directional: P1::empty(),
+      pressed_button: P1::empty(),
+      register: P1::INITIAL_STATE
     }
   }
 
   pub fn get_register(&self) -> u8 {
-    // Invert bits, so 0 means "set". Unused bits in JoypadReg are 0,
+    // Invert bits, so 0 means "set". Unused bits in P1 are 0,
     // so they automatically become 1 and no mask is needed
     !self.register.bits
   }
   pub fn set_register(&mut self, value: u8) {
-    // Invert bits before converting to JoypadReg
-    self.register = JoypadReg::from_bits_truncate(!value);
+    // Invert bits before converting to P1
+    self.register = P1::from_bits_truncate(!value);
     self.update_register();
   }
 
   pub fn key_down(&mut self, key: GbKey, irq: &mut Irq) {
-    self.pressed_directional.insert(JoypadReg::directional(&key));
-    self.pressed_button.insert(JoypadReg::button(&key));
+    self.pressed_directional.insert(P1::directional(&key));
+    self.pressed_button.insert(P1::button(&key));
     self.update_register();
     irq.request_interrupt(Interrupt::Joypad);
   }
   pub fn key_up(&mut self, key: GbKey) {
-    self.pressed_directional.remove(JoypadReg::directional(&key));
-    self.pressed_button.remove(JoypadReg::button(&key));
+    self.pressed_directional.remove(P1::directional(&key));
+    self.pressed_button.remove(P1::button(&key));
     self.update_register();
   }
 
   /// Updates the register state based on select bits P14-P15 and the
   /// pressed buttons
   fn update_register(&mut self) {
-    self.register &= JOYPAD_WRITABLE;
-    if self.register.contains(JOYPAD_SELECT_DIRECTIONAL) {
+    self.register &= P1::WRITABLE;
+    if self.register.contains(P1::SELECT_DIRECTIONAL) {
       self.register.insert(self.pressed_directional);
     }
-    if self.register.contains(JOYPAD_SELECT_BUTTON) {
+    if self.register.contains(P1::SELECT_BUTTON) {
       self.register.insert(self.pressed_button);
     }
   }
@@ -98,44 +98,44 @@ impl UpperHex for Joypad {
 
 /// P1 register
 ///
-/// Bits are inverted in get_register/set_register, so in JoypadReg
+/// Bits are inverted in get_register/set_register, so in P1
 /// a set bit is 1 as usual.
 bitflags!(
-  struct JoypadReg: u8 {
-    const JOYPAD_P10                = 1 << 0; // P10: →, A
-    const JOYPAD_P11                = 1 << 1; // P11: ←, B
-    const JOYPAD_P12                = 1 << 2; // P12: ↑, Select
-    const JOYPAD_P13                = 1 << 3; // P13: ↓, Start
-    const JOYPAD_SELECT_DIRECTIONAL = 1 << 4; // P14: Select dpad
-    const JOYPAD_SELECT_BUTTON      = 1 << 5; // P15: Select buttons
+  struct P1: u8 {
+    const P10                = 1 << 0; // P10: →, A
+    const P11                = 1 << 1; // P11: ←, B
+    const P12                = 1 << 2; // P12: ↑, Select
+    const P13                = 1 << 3; // P13: ↓, Start
+    const SELECT_DIRECTIONAL = 1 << 4; // P14: Select dpad
+    const SELECT_BUTTON      = 1 << 5; // P15: Select buttons
 
     /// Only select bits are writable
-    const JOYPAD_WRITABLE =
-      JOYPAD_SELECT_DIRECTIONAL.bits | JOYPAD_SELECT_BUTTON.bits;
+    const WRITABLE =
+      P1::SELECT_DIRECTIONAL.bits | P1::SELECT_BUTTON.bits;
 
     /// DMG: initial state 0xCF
     /// See docs/accuracy/joypad.markdown
-    const JOYPAD_INITIAL_STATE = JOYPAD_WRITABLE.bits;
+    const INITIAL_STATE = P1::WRITABLE.bits;
   }
 );
 
-impl JoypadReg {
-  fn directional(key: &GbKey) -> JoypadReg {
+impl P1 {
+  fn directional(key: &GbKey) -> P1 {
     match *key {
-      GbKey::Right => JOYPAD_P10,
-      GbKey::Left => JOYPAD_P11,
-      GbKey::Up => JOYPAD_P12,
-      GbKey::Down => JOYPAD_P13,
-      _ => JoypadReg::empty()
+      GbKey::Right => P1::P10,
+      GbKey::Left => P1::P11,
+      GbKey::Up => P1::P12,
+      GbKey::Down => P1::P13,
+      _ => P1::empty()
     }
   }
-  fn button(key: &GbKey) -> JoypadReg {
+  fn button(key: &GbKey) -> P1 {
     match *key {
-      GbKey::A => JOYPAD_P10,
-      GbKey::B => JOYPAD_P11,
-      GbKey::Select => JOYPAD_P12,
-      GbKey::Start => JOYPAD_P13,
-      _ => JoypadReg::empty()
+      GbKey::A => P1::P10,
+      GbKey::B => P1::P11,
+      GbKey::Select => P1::P12,
+      GbKey::Start => P1::P13,
+      _ => P1::empty()
     }
   }
 }

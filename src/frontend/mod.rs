@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use glium::{Api, GliumCreationError, Surface, SwapBuffersError, Version};
+use glium::{Api, Surface, SwapBuffersError, Version};
 use glium_sdl2::{Display, DisplayBuild, GliumSdl2Error};
 use imgui::ImGui;
 use imgui_glium_renderer;
@@ -33,7 +33,7 @@ use url::Url;
 
 use errors::{MooneyeErrorKind, MooneyeResult};
 use config::{Bootrom, Cartridge, HardwareConfig};
-use emulation::{EmuTime, EmuDuration, EE_VSYNC};
+use emulation::{EmuTime, EmuDuration, EmuEvents};
 use gameboy;
 use machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
@@ -101,8 +101,8 @@ impl From<sdl2::IntegerOrSdlError> for FrontendError {
   }
 }
 
-impl From<GliumCreationError<GliumSdl2Error>> for FrontendError {
-  fn from(e: GliumCreationError<GliumSdl2Error>) -> FrontendError {
+impl From<GliumSdl2Error> for FrontendError {
+  fn from(e: GliumSdl2Error) -> FrontendError {
     FrontendError::Renderer(format!("{:?}", e))
   }
 }
@@ -359,7 +359,7 @@ impl SdlFrontend {
       loop {
         let (events, end_time) = machine.emulate(target_time);
 
-        if events.contains(EE_VSYNC) {
+        if events.contains(EmuEvents::VSYNC) {
           self.renderer.update_pixels(machine.screen_buffer());
         }
 

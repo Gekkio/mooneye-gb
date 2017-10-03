@@ -13,9 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::registers::{
-  Flags, ZERO
-};
+use cpu::registers::Flags;
 use cpu::test::run_test;
 
 #[test]
@@ -78,5 +76,5 @@ fn test_ee_zero() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x00);
-  assert_eq!(machine.cpu.regs.f, ZERO);
+  assert_eq!(machine.cpu.regs.f, Flags::ZERO);
 }

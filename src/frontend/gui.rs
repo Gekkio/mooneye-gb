@@ -22,7 +22,7 @@ pub struct WaitBootromScreen {
 
 impl WaitBootromScreen {
   pub fn set_error(&mut self, text: String) {
-    self.error = Some(ImString::new(text).unwrap());
+    self.error = Some(ImString::new(text));
   }
 }
 
@@ -61,8 +61,8 @@ impl InGameScreen {
     InGameScreen {
       fps: 0.0,
       perf: 0.0,
-      model: ImString::new(format!("{}", config.model)).unwrap(),
-      cartridge_title: ImString::new(format!("{}", config.cartridge.title)).unwrap(),
+      model: ImString::new(format!("{}", config.model)),
+      cartridge_title: ImString::new(format!("{}", config.cartridge.title)),
       show_info_overlay: false
     }
   }

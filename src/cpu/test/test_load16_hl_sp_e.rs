@@ -15,9 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use quickcheck::quickcheck;
 
-use cpu::registers::{
-  Flags, Reg16, HALF_CARRY, CARRY
-};
+use cpu::registers::{Flags, Reg16};
 use cpu::test::run_test;
 
 fn test_load16_hl_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool {
@@ -41,7 +39,7 @@ fn test_f8() {
 
 #[test]
 fn test_f8_overflow_inc() {
-  assert!(test_load16_hl_sp_e(0xffff, 1, |f| f == HALF_CARRY | CARRY));
+  assert!(test_load16_hl_sp_e(0xffff, 1, |f| f == Flags::HALF_CARRY | Flags::CARRY));
 }
 
 #[test]

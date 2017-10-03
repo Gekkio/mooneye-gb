@@ -17,14 +17,14 @@ use util::int::IntExt;
 
 pub struct Irq {
   int_flag: InterruptType,
-  int_enable: InterruptType
+  int_enable: u8,
 }
 
 impl Irq {
   pub fn new() -> Irq {
     Irq {
       int_flag: InterruptType::empty(),
-      int_enable: InterruptType::empty()
+      int_enable: 0x00,
     }
   }
   pub fn get_interrupt_flag(&self) -> u8 {
@@ -33,23 +33,23 @@ impl Irq {
     self.int_flag.bits | IF_UNUSED_MASK
   }
   pub fn get_interrupt_enable(&self) -> u8 {
-    self.int_enable.bits
+    self.int_enable
   }
   pub fn set_interrupt_flag(&mut self, value: u8) {
-    self.int_flag = InterruptType::from_bits_truncate(value) & IF_USABLE;
+    self.int_flag = InterruptType::from_bits_truncate(value);
   }
   pub fn set_interrupt_enable(&mut self, value: u8) {
-    self.int_enable = InterruptType::from_bits_truncate(value);
+    self.int_enable = value;
   }
   pub fn request_interrupt(&mut self, interrupt: Interrupt) {
     self.int_flag |= InterruptType::from_bits_truncate(interrupt as u8);
   }
   pub fn ack_interrupt(&mut self) -> Option<Interrupt> {
-    let highest_priority = (self.int_enable & self.int_flag).isolate_highest_priority();
+    let highest_priority = (InterruptType::from_bits_truncate(self.int_enable) & self.int_flag).isolate_highest_priority();
     self.int_flag -= highest_priority;
     Interrupt::from_u8(highest_priority.bits)
   }
-  pub fn has_interrupt(&self) -> bool { (self.int_enable & self.int_flag) != InterruptType::empty() }
+  pub fn has_interrupt(&self) -> bool { (InterruptType::from_bits_truncate(self.int_enable) & self.int_flag) != InterruptType::empty() }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -86,15 +86,11 @@ impl Interrupt {
 
 bitflags!(
   pub struct InterruptType: u8 {
-    const INT_VBLANK = 1 << 0;
-    const INT_LCDSTAT = 1 << 1;
-    const INT_TIMER_OVERFLOW = 1 << 2;
-    const INT_SERIAL_IO_DONE = 1 << 3;
-    const INT_JOYPAD = 1 << 4;
-    const IF_USABLE =
-      INT_VBLANK.bits | INT_LCDSTAT.bits | INT_TIMER_OVERFLOW.bits |
-      INT_SERIAL_IO_DONE.bits | INT_JOYPAD.bits;
-    const IE_USABLE = 0xff;
+    const VBLANK = 1 << 0;
+    const LCDSTAT = 1 << 1;
+    const TIMER_OVERFLOW = 1 << 2;
+    const SERIAL_IO_DONE = 1 << 3;
+    const JOYPAD = 1 << 4;
   }
 );
 

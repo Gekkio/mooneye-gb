@@ -16,7 +16,7 @@
 use std::fmt;
 use std::cmp::Ordering;
 
-use emulation::{EmuEvents, EE_VSYNC};
+use emulation::EmuEvents;
 use gameboy;
 use gameboy::Color;
 use hardware::irq::{Irq, Interrupt};
@@ -87,11 +87,11 @@ impl Sprite {
 
 bitflags!(
   struct SpriteFlags: u8 {
-    const SPRITE_UNUSED_MASK = 0b_0000_1111;
-    const SPRITE_PALETTE     = 0b_0001_0000;
-    const SPRITE_FLIPX       = 0b_0010_0000;
-    const SPRITE_FLIPY       = 0b_0100_0000;
-    const SPRITE_PRIORITY    = 0b_1000_0000;
+    const UNUSED_MASK = 0b_0000_1111;
+    const PALETTE     = 0b_0001_0000;
+    const FLIPX       = 0b_0010_0000;
+    const FLIPY       = 0b_0100_0000;
+    const PRIORITY    = 0b_1000_0000;
   }
 );
 
@@ -132,24 +132,24 @@ impl Palette {
 
 bitflags!(
   struct Control: u8 {
-    const CTRL_BG_ON = 1 << 0;
-    const CTRL_OBJ_ON = 1 << 1;
-    const CTRL_OBJ_SIZE = 1 << 2;
-    const CTRL_BG_MAP = 1 << 3;
-    const CTRL_BG_ADDR = 1 << 4;
-    const CTRL_WINDOW_ON = 1 << 5;
-    const CTRL_WINDOW_MAP = 1 << 6;
-    const CTRL_LCD_ON = 1 << 7;
+    const BG_ON = 1 << 0;
+    const OBJ_ON = 1 << 1;
+    const OBJ_SIZE = 1 << 2;
+    const BG_MAP = 1 << 3;
+    const BG_ADDR = 1 << 4;
+    const WINDOW_ON = 1 << 5;
+    const WINDOW_MAP = 1 << 6;
+    const LCD_ON = 1 << 7;
   }
 );
 
 bitflags!(
   struct Stat: u8 {
-    const STAT_COMPARE = 1 << 2;
-    const STAT_HBLANK_INT = 1 << 3;
-    const STAT_VBLANK_INT = 1 << 4;
-    const STAT_ACCESS_OAM_INT = 1 << 5;
-    const STAT_COMPARE_INT = 1 << 6;
+    const COMPARE = 1 << 2;
+    const HBLANK_INT = 1 << 3;
+    const VBLANK_INT = 1 << 4;
+    const ACCESS_OAM_INT = 1 << 5;
+    const COMPARE_INT = 1 << 6;
   }
 );
 
@@ -211,7 +211,7 @@ impl Gpu {
     self.control.bits
   }
   pub fn get_stat(&self) -> u8 {
-    if !self.control.contains(CTRL_LCD_ON) { STAT_UNUSED_MASK } else {
+    if !self.control.contains(Control::LCD_ON) { STAT_UNUSED_MASK } else {
       self.mode.bits() | self.stat.bits | STAT_UNUSED_MASK
     }
   }
@@ -244,26 +244,26 @@ impl Gpu {
   }
   pub fn set_control(&mut self, value: u8) {
     let new_control = Control::from_bits_truncate(value);
-    if !new_control.contains(CTRL_LCD_ON) && self.control.contains(CTRL_LCD_ON) {
+    if !new_control.contains(Control::LCD_ON) && self.control.contains(Control::LCD_ON) {
       if self.mode != Mode::VBlank {
         panic!("Warning! LCD off, but not in VBlank");
       }
       self.current_line = 0;
     }
-    if new_control.contains(CTRL_LCD_ON) && !self.control.contains(CTRL_LCD_ON) {
+    if new_control.contains(Control::LCD_ON) && !self.control.contains(Control::LCD_ON) {
       self.mode = Mode::HBlank;
       self.cycles = Mode::AccessOam.cycles(self.scroll_x);
-      self.stat.insert(STAT_COMPARE);
+      self.stat.insert(Stat::COMPARE);
     }
     self.control = new_control;
   }
   pub fn set_stat(&mut self, value: u8) {
     let new_stat = Stat::from_bits_truncate(value);
-    self.stat = (self.stat & STAT_COMPARE) |
-                (new_stat & STAT_HBLANK_INT) |
-                (new_stat & STAT_VBLANK_INT) |
-                (new_stat & STAT_ACCESS_OAM_INT) |
-                (new_stat & STAT_COMPARE_INT);
+    self.stat = (self.stat & Stat::COMPARE) |
+                (new_stat & Stat::HBLANK_INT) |
+                (new_stat & Stat::VBLANK_INT) |
+                (new_stat & Stat::ACCESS_OAM_INT) |
+                (new_stat & Stat::COMPARE_INT);
   }
   pub fn set_scroll_y(&mut self, value: u8) {
     self.scroll_y = value;
@@ -361,7 +361,7 @@ impl Gpu {
     self.cycles += self.mode.cycles(self.scroll_x);
     match self.mode {
       Mode::AccessOam => {
-        if self.stat.contains(STAT_ACCESS_OAM_INT) {
+        if self.stat.contains(Stat::ACCESS_OAM_INT) {
           irq.request_interrupt(Interrupt::LcdStat);
         }
       },
@@ -369,10 +369,10 @@ impl Gpu {
       },
       Mode::VBlank => {
         irq.request_interrupt(Interrupt::VBlank);
-        if self.stat.contains(STAT_VBLANK_INT) {
+        if self.stat.contains(Stat::VBLANK_INT) {
           irq.request_interrupt(Interrupt::LcdStat);
         }
-        if self.stat.contains(STAT_ACCESS_OAM_INT) {
+        if self.stat.contains(Stat::ACCESS_OAM_INT) {
           irq.request_interrupt(Interrupt::LcdStat);
         }
       },
@@ -380,14 +380,14 @@ impl Gpu {
     }
   }
   pub fn emulate(&mut self, irq: &mut Irq, emu_events: &mut EmuEvents) {
-    if !self.control.contains(CTRL_LCD_ON) {
+    if !self.control.contains(Control::LCD_ON) {
       return;
     }
 
     self.cycles -= 1;
     if self.cycles == 1 && self.mode == Mode::AccessVram {
       // STAT mode=0 interrupt happens one cycle before the actual mode switch!
-      if self.stat.contains(STAT_HBLANK_INT) {
+      if self.stat.contains(Stat::HBLANK_INT) {
         irq.request_interrupt(Interrupt::LcdStat);
       }
     }
@@ -408,7 +408,7 @@ impl Gpu {
         if self.current_line < 144 {
           self.switch_mode(Mode::AccessOam, irq);
         } else {
-          emu_events.insert(EE_VSYNC);
+          emu_events.insert(EmuEvents::VSYNC);
           self.switch_mode(Mode::VBlank, irq);
         }
         self.check_compare_interrupt(irq);
@@ -427,10 +427,10 @@ impl Gpu {
   }
   fn check_compare_interrupt(&mut self, irq: &mut Irq) {
     if self.current_line != self.compare_line {
-      self.stat.remove(STAT_COMPARE);
+      self.stat.remove(Stat::COMPARE);
     } else {
-      self.stat.insert(STAT_COMPARE);
-      if self.stat.contains(STAT_COMPARE_INT) {
+      self.stat.insert(Stat::COMPARE);
+      if self.stat.contains(Stat::COMPARE_INT) {
         irq.request_interrupt(Interrupt::LcdStat);
       }
     }
@@ -441,10 +441,10 @@ impl Gpu {
     let pixels = &mut self.back_buffer[slice_start .. slice_end];
     let mut bg_prio = [false; gameboy::SCREEN_WIDTH];
 
-    if self.control.contains(CTRL_BG_ON) {
-      let addr_select = self.control.contains(CTRL_BG_ADDR);
+    if self.control.contains(Control::BG_ON) {
+      let addr_select = self.control.contains(Control::BG_ADDR);
       let tile_map =
-        if self.control.contains(CTRL_BG_MAP) { &self.tile_map2 }
+        if self.control.contains(Control::BG_MAP) { &self.tile_map2 }
         else { &self.tile_map1 };
 
       let y = self.current_line.wrapping_add(self.scroll_y);
@@ -471,11 +471,11 @@ impl Gpu {
         pixels[i] = color;
       }
     }
-    if self.control.contains(CTRL_WINDOW_ON) && self.window_y <= self.current_line {
+    if self.control.contains(Control::WINDOW_ON) && self.window_y <= self.current_line {
       let window_x = self.window_x.wrapping_sub(7);
-      let addr_select = self.control.contains(CTRL_BG_ADDR);
+      let addr_select = self.control.contains(Control::BG_ADDR);
       let tile_map =
-        if self.control.contains(CTRL_WINDOW_MAP) { &self.tile_map2 }
+        if self.control.contains(Control::WINDOW_MAP) { &self.tile_map2 }
         else { &self.tile_map1 };
 
       let y = self.current_line - self.window_y;
@@ -505,9 +505,9 @@ impl Gpu {
         pixels[i] = color;
       }
     }
-    if self.control.contains(CTRL_OBJ_ON) {
+    if self.control.contains(Control::OBJ_ON) {
       let size =
-        if self.control.contains(CTRL_OBJ_SIZE) { 16 } else { 8 };
+        if self.control.contains(Control::OBJ_SIZE) { 16 } else { 8 };
 
       let current_line = self.current_line;
 
@@ -528,11 +528,11 @@ impl Gpu {
 
       for (_, sprite) in sprites_to_draw {
         let palette =
-          if sprite.flags.contains(SPRITE_PALETTE) { &self.obj_palette1 }
+          if sprite.flags.contains(SpriteFlags::PALETTE) { &self.obj_palette1 }
           else { &self.obj_palette0 };
         let mut tile_num = sprite.tile_num as usize;
         let mut line =
-          if sprite.flags.contains(SPRITE_FLIPY) {
+          if sprite.flags.contains(SpriteFlags::FLIPY) {
             size - current_line.wrapping_sub(sprite.y) - 1
           } else {
             current_line.wrapping_sub(sprite.y)
@@ -548,14 +548,14 @@ impl Gpu {
 
         for x in (0..8).rev() {
           let bit =
-            if sprite.flags.contains(SPRITE_FLIPX) {
+            if sprite.flags.contains(SpriteFlags::FLIPX) {
               7 - x
             } else { x } as usize;
           let raw_color = Color::from_u8((data2.bit(bit) << 1) | data1.bit(bit));
           let color = palette.get(&raw_color);
           let target_x = sprite.x.wrapping_add(7 - x);
           if target_x < gameboy::SCREEN_WIDTH as u8 && raw_color != Color::Off {
-            if !sprite.flags.contains(SPRITE_PRIORITY) || !bg_prio[target_x as usize] {
+            if !sprite.flags.contains(SpriteFlags::PRIORITY) || !bg_prio[target_x as usize] {
               pixels[target_x as usize] = color;
             }
           }

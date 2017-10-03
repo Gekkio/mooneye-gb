@@ -13,10 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::registers::{
-  Flags,
-  ZERO, ADD_SUBTRACT, HALF_CARRY, CARRY
-};
+use cpu::registers::Flags;
 use cpu::test::run_test;
 
 #[test]
@@ -65,7 +62,7 @@ fn test_04_zero() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.b, 0x00);
-  assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
+  assert_eq!(machine.cpu.regs.f, Flags::ZERO | Flags::HALF_CARRY);
 }
 
 #[test]
@@ -78,7 +75,7 @@ fn test_04_half_carry() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.b, 0x10);
-  assert_eq!(machine.cpu.regs.f, HALF_CARRY);
+  assert_eq!(machine.cpu.regs.f, Flags::HALF_CARRY);
 }
 
 #[test]
@@ -91,7 +88,7 @@ fn test_05() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.b, 0x41);
-  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT);
+  assert_eq!(machine.cpu.regs.f, Flags::ADD_SUBTRACT);
 }
 
 #[test]
@@ -104,7 +101,7 @@ fn test_05_zero() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.b, 0x00);
-  assert_eq!(machine.cpu.regs.f, ZERO | ADD_SUBTRACT);
+  assert_eq!(machine.cpu.regs.f, Flags::ZERO | Flags::ADD_SUBTRACT);
 }
 
 #[test]
@@ -117,7 +114,7 @@ fn test_05_half_carry() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.b, 0xff);
-  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT | HALF_CARRY);
+  assert_eq!(machine.cpu.regs.f, Flags::ADD_SUBTRACT | Flags::HALF_CARRY);
 }
 
 #[test]
@@ -153,7 +150,7 @@ fn test_07_carry() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0xef);
-  assert_eq!(machine.cpu.regs.f, CARRY);
+  assert_eq!(machine.cpu.regs.f, Flags::CARRY);
 }
 
 #[test]
@@ -192,7 +189,7 @@ fn test_0c_zero() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.c, 0x00);
-  assert_eq!(machine.cpu.regs.f, ZERO | HALF_CARRY);
+  assert_eq!(machine.cpu.regs.f, Flags::ZERO | Flags::HALF_CARRY);
 }
 
 #[test]
@@ -205,7 +202,7 @@ fn test_0c_half_carry() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.c, 0x10);
-  assert_eq!(machine.cpu.regs.f, HALF_CARRY);
+  assert_eq!(machine.cpu.regs.f, Flags::HALF_CARRY);
 }
 
 #[test]
@@ -218,7 +215,7 @@ fn test_0d() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.c, 0x41);
-  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT);
+  assert_eq!(machine.cpu.regs.f, Flags::ADD_SUBTRACT);
 }
 
 #[test]
@@ -231,7 +228,7 @@ fn test_0d_zero() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.c, 0x00);
-  assert_eq!(machine.cpu.regs.f, ZERO | ADD_SUBTRACT);
+  assert_eq!(machine.cpu.regs.f, Flags::ZERO | Flags::ADD_SUBTRACT);
 }
 
 #[test]
@@ -244,7 +241,7 @@ fn test_0d_half_carry() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.c, 0xff);
-  assert_eq!(machine.cpu.regs.f, ADD_SUBTRACT | HALF_CARRY);
+  assert_eq!(machine.cpu.regs.f, Flags::ADD_SUBTRACT | Flags::HALF_CARRY);
 }
 
 #[test]
@@ -267,7 +264,7 @@ fn test_0f() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x77);
-  assert!(!machine.cpu.regs.f.contains(CARRY));
+  assert!(!machine.cpu.regs.f.contains(Flags::CARRY));
 }
 
 #[test]
@@ -280,5 +277,5 @@ fn test_0f_carry() {
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0xf7);
-  assert!(machine.cpu.regs.f.contains(CARRY));
+  assert!(machine.cpu.regs.f.contains(Flags::CARRY));
 }

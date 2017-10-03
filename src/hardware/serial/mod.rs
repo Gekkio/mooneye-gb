@@ -36,7 +36,7 @@ impl Serial {
   }
   pub fn set_control(&mut self, value: u8) {
     self.control = Control::from_bits_truncate(value);
-    if self.control.contains(CTRL_START) {
+    if self.control.contains(Control::START) {
       // println!("Serial transfer {:02x} {}, control = {:08b}", self.data, char::from_u32(self.data as u32).unwrap_or('?'), self.control.bits);
     }
   }
@@ -47,7 +47,7 @@ const CTRL_UNUSED_MASK: u8 = (1 << 1) | (1 << 2) | (1 << 3) |
 
 bitflags!(
   struct Control: u8 {
-    const CTRL_CLOCK = 1 << 0;
-    const CTRL_START = 1 << 7;
+    const CLOCK = 1 << 0;
+    const START = 1 << 7;
   }
 );
