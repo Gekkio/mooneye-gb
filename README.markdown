@@ -57,6 +57,7 @@ All test ROMs are manually run with these devices:
 | Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          | [M10280516](https://gbhwdb.gekkio.fi/consoles/mgb/M10280516.html)               |
 | Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         | [SGB2 Unit #1 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb2/gekkio-1.html) |
 | Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB          |                                                                                 |
+| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB A        |                                                                                 |
 | Game Boy Color      | CGB-001  | CGB-CPU-02   | CPU CGB B        |                                                                                 |
 | Game Boy Color      | CGB-001  | CGB-CPU-03   | CPU CGB C        |                                                                                 |
 | Game Boy Color      | CGB-001  | CGB-CPU-05   | CPU CGB D        |                                                                                 |
@@ -65,13 +66,6 @@ All test ROMs are manually run with these devices:
 | Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        | [AH12465671](https://gbhwdb.gekkio.fi/consoles/agb/AH12465671.html)             |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        |                                                                                 |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      |                                                                                 |
-
-These devices will also be used, but results for old tests have not yet been
-verified:
-
-| Device              | Model    | Mainboard    | CPU              | Detailed information                                                            |
-| ------------------- | -------- | ------------ | -----------      | ----                                                                            |
-| Game Boy Color      | CGB-001  | CGB-CPU-01   | CPU CGB A        |                                                                                 |
 
 ### Additional devices
 
@@ -200,6 +194,7 @@ These emulators are omitted:
 | instr timing      | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
 | mem timing 2      | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
 | oam bug 2         | :x:        | :x:  | :x:      | :x:   | :x:  |
+| cgb sound 2       |            | :+1: | :+1:     | :x:   | :+1: |
 
 Notes:
 
@@ -208,6 +203,8 @@ Notes:
   speed change which causes a freeze (STOP instruction with joypad disabled)
 * dmg_sound-2 test #10 fails on DMG-CPU A, DMG-CPU C, MGB, and SGB2
 * MESS incorrectly passes dmg_sound-2 on MGB and SGB2
+* oam_bug-2 fails on all CGB, AGB, and AGS devices
+* cgb_sound-2 test #03 fails on CPU CGB, CPU CGB A, and CPU CGB B
 
 ### Mooneye GB acceptance tests
 
