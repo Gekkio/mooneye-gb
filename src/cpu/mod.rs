@@ -722,7 +722,10 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///        - - - -
   fn ei(self) {
     let (cpu, _) = self;
-    cpu.ime = Ime::Enabling;
+    cpu.ime = match cpu.ime {
+      Ime::Disabled => Ime::Enabling,
+      _ => cpu.ime,
+    }
   }
   /// CCF
   ///
