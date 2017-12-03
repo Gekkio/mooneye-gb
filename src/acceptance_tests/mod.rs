@@ -66,6 +66,9 @@ fn di_timing_gs() { run_test("acceptance/di_timing-GS") }
 fn div_timing() { run_test("acceptance/div_timing") }
 
 #[test]
+fn ei_sequence() { run_test("acceptance/ei_sequence") }
+
+#[test]
 fn ei_timing() { run_test("acceptance/ei_timing") }
 
 #[test]
