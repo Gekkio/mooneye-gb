@@ -237,6 +237,9 @@ fn timer_tima_write_reloading() { run_test("acceptance/timer/tima_write_reloadin
 fn timer_tma_write_reloading() { run_test("acceptance/timer/tma_write_reloading") }
 
 #[test]
+fn mbc1_bits_ram_en() { run_test("emulator-only/mbc1/bits_ram_en") }
+
+#[test]
 fn mbc1_rom_512kb() { run_test("emulator-only/mbc1/rom_512Kb") }
 
 #[test]
