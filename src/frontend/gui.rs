@@ -1,4 +1,4 @@
-use imgui::{ImGuiSetCond_Always, ImString, ImVec4, Ui};
+use imgui::{ImGuiCol, ImGuiCond, ImString, ImVec4, Ui};
 use imgui_glium_renderer::RendererError;
 use std::f32;
 
@@ -33,7 +33,7 @@ impl Screen for WaitBootromScreen {
       .resizable(false)
       .movable(false)
       .always_auto_resize(true)
-      .position((f32::MIN, f32::MIN), ImGuiSetCond_Always)
+      .position((f32::MIN, f32::MIN), ImGuiCond::Always)
       .build(|| {
         ui.text(im_str!("Mooneye GB requires a boot ROM to run"));
         ui.text(im_str!("Drag and drop here a boot rom of one of these types:"));
@@ -74,18 +74,19 @@ impl InGameScreen {
 impl Screen for InGameScreen {
   fn render(&mut self, ui: &Ui) {
     if self.show_info_overlay {
-      ui.window(im_str!("Info overlay"))
-        .bg_alpha(0.4)
-        .title_bar(false)
-        .resizable(false)
-        .movable(false)
-        .always_auto_resize(true)
-        .position((0.0, 0.0), ImGuiSetCond_Always)
-        .build(|| {
-          ui.text(&self.model);
-          ui.text(&self.cartridge_title);
-          ui.text(im_str!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
-        });
+      ui.with_color_var(ImGuiCol::WindowBg, (0.0, 0.0, 0.0, 0.4), || {
+        ui.window(im_str!("Info overlay"))
+          .title_bar(false)
+          .resizable(false)
+          .movable(false)
+          .always_auto_resize(true)
+          .position((0.0, 0.0), ImGuiCond::Always)
+          .build(|| {
+            ui.text(&self.model);
+            ui.text(&self.cartridge_title);
+            ui.text(im_str!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
+          });
+      });
     }
   }
 }
