@@ -30,6 +30,7 @@ pub trait CpuOps {
   // --- 8-bit operations
   // 8-bit loads
   fn load<O: Out8, I: In8>(self, O, I) -> Self::R;
+  fn ld_b_b(self) -> Self::R; // Magic no-op debug breakpoint
   // 8-bit arithmetic
   fn add<I: In8>(self, I) -> Self::R;
   fn adc<I: In8>(self, I) -> Self::R;
@@ -93,7 +94,6 @@ pub trait CpuOps {
   fn dec16(self, Reg16) -> Self::R;
   // --- Other
   fn undefined(self, u8) -> Self::R;
-  fn undefined_debug(self) -> Self::R;
   fn cb_prefix(self) -> Self::R;
 }
 
@@ -105,7 +105,7 @@ pub fn decode<O: CpuOps>(ops: O, op: u8) -> O::R {
     0x79 => ops.load(A, C), 0x7a => ops.load(A, D),
     0x7b => ops.load(A, E), 0x7c => ops.load(A, H),
     0x7d => ops.load(A, L), 0x7e => ops.load(A, Addr::HL),
-    0x47 => ops.load(B, A), 0x40 => ops.load(B, B),
+    0x47 => ops.load(B, A), 0x40 => ops.ld_b_b(),
     0x41 => ops.load(B, C), 0x42 => ops.load(B, D),
     0x43 => ops.load(B, E), 0x44 => ops.load(B, H),
     0x45 => ops.load(B, L), 0x46 => ops.load(B, Addr::HL),
@@ -241,9 +241,8 @@ pub fn decode<O: CpuOps>(ops: O, op: u8) -> O::R {
     0x0b => ops.dec16(BC), 0x1b => ops.dec16(DE),
     0x2b => ops.dec16(HL), 0x3b => ops.dec16(SP),
     0xcb => ops.cb_prefix(),
-    0xed => ops.undefined_debug(),
     0xd3 | 0xdb | 0xdd | 0xe3 | 0xe4 |
-    0xeb | 0xec | 0xf4 | 0xfc | 0xfd => ops.undefined(op),
+    0xeb | 0xec | 0xed | 0xf4 | 0xfc | 0xfd => ops.undefined(op),
     _ => unreachable!("Unknown opcode 0x{:0x}", op)
   }
 }

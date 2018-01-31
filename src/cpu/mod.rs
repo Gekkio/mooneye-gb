@@ -313,6 +313,11 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let value = in8.read(cpu, bus);
     out8.write(cpu, bus, value);
   }
+  // Magic breakpoint
+  fn ld_b_b(self) {
+    let (_, bus) = self;
+    bus.trigger_emu_events(EmuEvents::DEBUG_OP);
+  }
   // 8-bit arithmetic
   /// ADD s
   ///
@@ -912,10 +917,6 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   // --- Undefined
   fn undefined(self, op: u8) {
     panic!("Undefined opcode {}", op)
-  }
-  fn undefined_debug(self) {
-    let (_, bus) = self;
-    bus.trigger_emu_events(EmuEvents::DEBUG_OP);
   }
   fn cb_prefix(self) {
     let (cpu, bus) = self;

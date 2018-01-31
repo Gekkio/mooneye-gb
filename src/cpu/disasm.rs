@@ -99,7 +99,6 @@ pub enum Instr {
   Inc16(Reg16),
   Dec16(Reg16),
   Undefined(u8),
-  UndefinedDebug
 }
 
 pub trait ToDisasmStr {
@@ -245,7 +244,6 @@ impl ToDisasmStr for Instr {
       Inc16(reg) => unary_op("INC", reg),
       Dec16(reg) => unary_op("DEC", reg),
       Undefined(op) => (format!("${:02x} ??", op)).into(),
-      UndefinedDebug => null_op("DBG")
     }
   }
 }
@@ -301,6 +299,10 @@ impl<'a, 'b> CpuOps for &'a mut Disasm<'b> {
   // 8-bit loads
   fn load<O: Out8, I: In8>(self, out8: O, in8: I) -> Instr {
     Instr::Load(out8.resolve(self), in8.resolve(self))
+  }
+  // Magic breakpoint
+  fn ld_b_b(self) -> Instr {
+    Instr::Load(Operand8::Register(Reg8::B), Operand8::Register(Reg8::B))
   }
   // 8-bit arithmetic
   fn add<I: In8>(self, in8: I) -> Instr { Instr::Add(in8.resolve(self)) }
@@ -373,7 +375,6 @@ impl<'a, 'b> CpuOps for &'a mut Disasm<'b> {
   fn dec16(self, reg: Reg16) -> Instr { Instr::Dec16(reg) }
   // --- Undefined
   fn undefined(self, op: u8) -> Instr { Instr::Undefined(op) }
-  fn undefined_debug(self) -> Instr { Instr::UndefinedDebug }
   fn cb_prefix(self) -> Instr {
     let op = self.next_u8();
     ops::decode_cb(self, op)

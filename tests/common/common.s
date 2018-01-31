@@ -51,9 +51,7 @@ _delay_long_time_\@:
 
 
 .macro halt_execution
-  .ifdef ACCEPTANCE_TEST
-    .db $ED ; Magic undefined opcode
-  .endif
+  ld b, b ; magic breakpoint
 - nop
   jr -
 .endm
