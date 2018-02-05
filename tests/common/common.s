@@ -37,7 +37,7 @@
   ld b, a
   ld a, <iterations
   ld c, a
-  ; = 4 cycles
+  ; = 6 cycles
 
 _delay_long_time_\@:
   dec bc
@@ -46,7 +46,7 @@ _delay_long_time_\@:
   jr nz, _delay_long_time_\@
   ; = iterations * 7 - 1 cycles
 
-  ; total: iterations * 7 + 3 cycles
+  ; total: iterations * 7 + 5 cycles
 .endm
 
 
