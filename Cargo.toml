@@ -18,13 +18,13 @@ glium_sdl2 = { git = "https://github.com/Gekkio/glium-sdl2.git", branch = "glium
 imgui = "0.0.18"
 imgui-glium-renderer = "0.0.18"
 log = "0.4"
-nalgebra = "0.13"
-num-traits = "0.1"
+nalgebra = "0.14"
+num-traits = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
 sdl2 = "0.31"
-simplelog = "0.4"
-url = "1.5"
+simplelog = "0.5"
+url = "1.7"
 
 [dependencies.glium]
 version = "0.19"

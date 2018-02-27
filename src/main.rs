@@ -43,7 +43,7 @@ extern crate quickcheck;
 
 use docopt::Docopt;
 use error_chain::ChainedError;
-use simplelog::{LogLevelFilter, TermLogger};
+use simplelog::{LevelFilter, TermLogger};
 use std::path::Path;
 use std::process;
 
@@ -106,7 +106,7 @@ fn run() -> MooneyeResult<()> {
     .and_then(|d| d.deserialize())
     .unwrap_or_else(|e| e.exit());
 
-  TermLogger::init(LogLevelFilter::Debug, simplelog::Config::default())
+  TermLogger::init(LevelFilter::Debug, simplelog::Config::default())
     .expect("Failed to initialize logging");
 
   info!("Starting Mooneye GB v{}", VERSION);
