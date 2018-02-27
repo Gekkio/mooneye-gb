@@ -13,19 +13,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use app_dirs::{AppDataType, AppInfo, app_dir, get_app_dir};
 use crc::crc32;
+use directories::ProjectDirectories;
 use std::env;
-use std::fs::File;
+use std::fs::{File, create_dir_all};
 use std::io;
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use gameboy::BootromData;
 use errors::{MooneyeError, MooneyeErrorKind, MooneyeResult};
 use config::{Model, DEFAULT_MODEL_PRIORITY};
-
-const APP_INFO: AppInfo = AppInfo{name: "mooneye-gb", author: "Gekkio"};
 
 pub struct Bootrom {
   pub model: Model,
@@ -58,10 +56,9 @@ impl Bootrom {
     let mut candidates = vec![];
     let models = if models.is_empty() { &DEFAULT_MODEL_PRIORITY } else { models };
 
-    if let Ok(dir) = get_app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
-      for model in models {
-        candidates.push(dir.join(model.bootrom_file_name()));
-      }
+    let dir = bootrom_dir();
+    for model in models {
+      candidates.push(dir.join(model.bootrom_file_name()));
     }
 
     if let Ok(cwd) = env::current_dir() {
@@ -86,12 +83,20 @@ impl Bootrom {
     None
   }
   pub fn save_to_data_dir(&self) -> MooneyeResult<()> {
-    if let Ok(dir) = app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
-      let path = dir.join(self.model.bootrom_file_name());
-      let mut file = File::create(&path)?;
-      try!(file.write_all(&self.data.0));
-      info!("Saved {} boot ROM to {}", self.model, path.to_string_lossy());
-    }
+    let mut path = bootrom_dir();
+    create_dir_all(&path)?;
+    path.push(self.model.bootrom_file_name());
+
+    let mut file = File::create(&path)?;
+    try!(file.write_all(&self.data.0));
+    info!("Saved {} boot ROM to {}", self.model, path.to_string_lossy());
     Ok(())
   }
+}
+
+fn bootrom_dir() -> PathBuf {
+  let dirs = ProjectDirectories::from_project_name("mooneye-gb");
+  let mut dir = dirs.project_data_roaming_dir().to_owned();
+  dir.push("bootroms");
+  dir
 }
