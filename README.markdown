@@ -107,7 +107,7 @@ verified:
 
 | Device              | Model    | Mainboard    | CPU              | Detailed information                                                          |
 | ------------------- | -------- | ------------ | -----------      | ----                                                                          |
-| Game Boy Player     | DOL-017  | DOL-GBS-20   | CPU CGB A E      |                                                                               |
+| Game Boy Player     | DOL-017  | DOL-GBS-20   | CPU CGB A E      | [GBS Unit #3 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/gbs/gekkio-3.html) |
 
 I'm still looking for the following mainboards, but these are probably not
 required for reverse engineering:
