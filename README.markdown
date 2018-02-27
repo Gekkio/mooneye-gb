@@ -102,9 +102,12 @@ units.
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-30 | CPU AGB B E      | [XEH20137204](https://gbhwdb.gekkio.fi/consoles/ags/XEH20137204.html)         |
 | Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E      | [XU72764025-1](https://gbhwdb.gekkio.fi/consoles/ags/XU72764025-1.html)       |
 
-I'm still looking for the following CPU:
+These devices will also be used, but results for old tests have not yet been
+verified:
 
-* CPU AGB A E (seen in some later versions of GBS)
+| Device              | Model    | Mainboard    | CPU              | Detailed information                                                          |
+| ------------------- | -------- | ------------ | -----------      | ----                                                                          |
+| Game Boy Player     | DOL-017  | DOL-GBS-20   | CPU CGB A E      |                                                                               |
 
 I'm still looking for the following mainboards, but these are probably not
 required for reverse engineering:
@@ -114,7 +117,6 @@ required for reverse engineering:
 * SGB-N-10
 * C/AGS-CPU-20
 * DOL-GBS-01
-* DOL-GBS-20
 
 **For now, the focus is on DMG/MGB/SGB/SGB2 emulation, so not all tests pass on
 CGB/AGB/AGS or emulators emulating those devices.**
