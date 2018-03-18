@@ -269,7 +269,13 @@ Notes:
 | reg f          | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
 | unused_hwio GS | :+1:       | :x:  | :+1:     | :x:   | :+1: |
 
-#### GPU
+#### Interrupt handling
+
+| Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
+| --------------------------- | ---------- | ---- | -------- | ------ | ---- |
+| ie push                     | :+1:       | :x:  | :x:      | :x:    | :x:  |
+
+#### PPU
 
 | Test                        | mooneye-gb | BGB  | Gambatte | Higan | MESS |
 | --------------------------- | ---------- | ---- | -------- | ------| ---- |
@@ -285,12 +291,6 @@ Notes:
 | stat irq blocking           | :x:        | :x:  | :+1:     | :x:   | :+1: |
 | stat lyc onoff              | :x:        | :x:  | :x:      | :x:   | :x:  |
 | vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:  | :+1: |
-
-#### Interrupt handling
-
-| Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
-| --------------------------- | ---------- | ---- | -------- | ------ | ---- |
-| ie push                     | :+1:       | :x:  | :x:      | :x:    | :x:  |
 
 #### Serial
 
@@ -359,7 +359,7 @@ Notes:
 | ------------- | ---------- | ---- | -------- | ----- | ---- |
 | unused hwio C |            | :x:  |          |       | :x:  |
 
-#### GPU
+#### PPU
 
 | Test               | mooneye-gb | BGB  | Gambatte | Higan | MESS |
 | ------------------ | ---------- | ---- | -------- | ----- | ---- |

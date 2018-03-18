@@ -141,48 +141,48 @@ fn bits_reg_f() { run_test("acceptance/bits/reg_f") }
 fn bits_unused_hwio_gs() { run_test("acceptance/bits/unused_hwio-GS") }
 
 #[test]
-fn gpu_hblank_ly_scx_timing_gs() { run_test("acceptance/gpu/hblank_ly_scx_timing-GS") }
-
-#[test]
-fn gpu_intr_1_2_timing_gs() { run_test("acceptance/gpu/intr_1_2_timing-GS") }
-
-#[test]
-fn gpu_intr_2_0_timing() { run_test("acceptance/gpu/intr_2_0_timing") }
-
-#[test]
-fn gpu_intr_2_mode0_timing() { run_test("acceptance/gpu/intr_2_mode0_timing") }
-
-#[test]
-#[ignore]
-fn gpu_stat_lyc_onoff() { run_test("acceptance/gpu/stat_lyc_onoff") }
-
-#[test]
-#[ignore]
-fn gpu_intr_2_mode0_timing_sprites() { run_test("acceptance/gpu/intr_2_mode0_timing_sprites") }
-
-#[test]
-fn gpu_intr_2_mode3_timing() { run_test("acceptance/gpu/intr_2_mode3_timing") }
-
-#[test]
-fn gpu_intr_2_oam_ok_timing() { run_test("acceptance/gpu/intr_2_oam_ok_timing") }
-
-#[test]
-#[ignore]
-fn gpu_lcdon_timing_dmg_abcx_mgb_s() { run_test("acceptance/gpu/lcdon_timing-dmgABCXmgbS") }
-
-#[test]
-#[ignore]
-fn gpu_lcdon_write_timing_gs() { run_test("acceptance/gpu/lcdon_write_timing-GS") }
-
-#[test]
-#[ignore]
-fn gpu_stat_irq_blocking() { run_test("acceptance/gpu/stat_irq_blocking") }
-
-#[test]
-fn gpu_vblank_stat_intr_gs() { run_test("acceptance/gpu/vblank_stat_intr-GS") }
-
-#[test]
 fn interrupts_ie_push() { run_test("acceptance/interrupts/ie_push") }
+
+#[test]
+fn ppu_hblank_ly_scx_timing_gs() { run_test("acceptance/ppu/hblank_ly_scx_timing-GS") }
+
+#[test]
+fn ppu_intr_1_2_timing_gs() { run_test("acceptance/ppu/intr_1_2_timing-GS") }
+
+#[test]
+fn ppu_intr_2_0_timing() { run_test("acceptance/ppu/intr_2_0_timing") }
+
+#[test]
+fn ppu_intr_2_mode0_timing() { run_test("acceptance/ppu/intr_2_mode0_timing") }
+
+#[test]
+#[ignore]
+fn ppu_stat_lyc_onoff() { run_test("acceptance/ppu/stat_lyc_onoff") }
+
+#[test]
+#[ignore]
+fn ppu_intr_2_mode0_timing_sprites() { run_test("acceptance/ppu/intr_2_mode0_timing_sprites") }
+
+#[test]
+fn ppu_intr_2_mode3_timing() { run_test("acceptance/ppu/intr_2_mode3_timing") }
+
+#[test]
+fn ppu_intr_2_oam_ok_timing() { run_test("acceptance/ppu/intr_2_oam_ok_timing") }
+
+#[test]
+#[ignore]
+fn ppu_lcdon_timing_dmg_abcx_mgb_s() { run_test("acceptance/ppu/lcdon_timing-dmgABCXmgbS") }
+
+#[test]
+#[ignore]
+fn ppu_lcdon_write_timing_gs() { run_test("acceptance/ppu/lcdon_write_timing-GS") }
+
+#[test]
+#[ignore]
+fn ppu_stat_irq_blocking() { run_test("acceptance/ppu/stat_irq_blocking") }
+
+#[test]
+fn ppu_vblank_stat_intr_gs() { run_test("acceptance/ppu/vblank_stat_intr-GS") }
 
 #[test]
 #[ignore]
