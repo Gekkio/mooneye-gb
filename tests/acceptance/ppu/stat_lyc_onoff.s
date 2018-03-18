@@ -27,7 +27,6 @@
 
 .include "common.s"
 
-  ld hl, fail_intr
   ld a, %01000000
   ldh (<STAT), a
   ld a, INTR_STAT
@@ -36,6 +35,7 @@
 ; In this round we turn off the PPU while the comparison bit is true,
 ; and run tests where comparison bit changes
 round1:
+  ld hl, fail_intr_round1
   wait_vblank
   ld a, $90
   ldh (<LYC), a
@@ -73,6 +73,7 @@ round1:
 ; and run tests where comparison bit doesn't change
 round2:
   di
+  ld hl, fail_intr_round2
   wait_vblank
   ld a, $90
   ldh (<LYC), a
@@ -111,8 +112,8 @@ round2:
 ; In this round we turn off the PPU while the comparison bit is false,
 ; and run tests where comparison bit doesn't change
 round3:
-  test_ok
   di
+  ld hl, fail_intr_round2
   wait_vblank
   xor a
   ldh (<LYC), a
@@ -169,14 +170,17 @@ round4:
   ld hl, finish
   ldh (<LCDC), a
   di
-  test_failure_string "Fail: no intr"
+  test_failure_string "Fail: r4 no intr"
 
 finish:
   test_ok
 
-; Interrupts should not happen except in the last step
-fail_intr:
-  test_failure_string "Fail: intr"
+fail_intr_round1:
+  test_failure_string "Fail: r1 intr"
+fail_intr_round2:
+  test_failure_string "Fail: r2 intr"
+fail_intr_round3:
+  test_failure_string "Fail: r3 intr"
 
 .org INTR_VEC_STAT
   jp hl
