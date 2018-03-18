@@ -283,6 +283,7 @@ Notes:
 | lcdon timing dmgABCXmgbS    | :x:        | :+1: | :x:      | :x:   | :x:  |
 | lcdon write timing GS       | :x:        | :x:  | :x:      | :x:   | :x:  |
 | stat irq blocking           | :x:        | :x:  | :+1:     | :x:   | :+1: |
+| stat lyc onoff              | :x:        | :x:  | :x:      | :x:   | :x:  |
 | vblank stat intr GS         | :+1:       | :+1: | :x:      | :+1:  | :+1: |
 
 #### Interrupt handling

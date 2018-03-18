@@ -215,6 +215,7 @@ _test_ok_cb_\@:
 
 
 .macro print_results ARGS cb
+  di
   call disable_lcd_safe
   call reset_screen
   call print_load_font

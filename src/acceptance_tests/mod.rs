@@ -154,6 +154,10 @@ fn gpu_intr_2_mode0_timing() { run_test("acceptance/gpu/intr_2_mode0_timing") }
 
 #[test]
 #[ignore]
+fn gpu_stat_lyc_onoff() { run_test("acceptance/gpu/stat_lyc_onoff") }
+
+#[test]
+#[ignore]
 fn gpu_intr_2_mode0_timing_sprites() { run_test("acceptance/gpu/intr_2_mode0_timing_sprites") }
 
 #[test]
