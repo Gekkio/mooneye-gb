@@ -144,6 +144,9 @@ fn bits_unused_hwio_gs() { run_test("acceptance/bits/unused_hwio-GS") }
 fn interrupts_ie_push() { run_test("acceptance/interrupts/ie_push") }
 
 #[test]
+fn oam_dma_basic() { run_test("acceptance/oam_dma/basic") }
+
+#[test]
 #[ignore]
 fn oam_dma_reg_read() { run_test("acceptance/oam_dma/reg_read") }
 
