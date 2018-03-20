@@ -106,8 +106,8 @@ hwio_data:
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF28
 .db %00000000, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF30
 .db %00000000, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF38
-.db %11111111, $91, $83, $00, $00, $01, $00, $FF, $FC ; $FF40
-.db %11111111, $FF, $FF, $00, $00, $FF, $FF, $FF, $FF ; $FF48
+.db %11111101, $91, $83, $00, $00, $01, $00, $FF, $FC ; $FF40
+.db %00111111, $FF, $FF, $00, $00, $FF, $FF, $FF, $FF ; $FF48
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF50
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF58
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF60
