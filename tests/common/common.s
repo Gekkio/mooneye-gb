@@ -378,6 +378,15 @@ _print_results_halt_\@:
   ; Inputs: -
   ; Outputs: -
   ; Preserved: E
+  clear_wram:
+    ld hl, WRAM
+    ld bc, WRAM_LEN
+    xor a
+    jp memset
+
+  ; Inputs: -
+  ; Outputs: -
+  ; Preserved: E
   clear_vram:
     ld hl, VRAM
     ld bc, VRAM_LEN

@@ -151,6 +151,10 @@ fn oam_dma_basic() { run_test("acceptance/oam_dma/basic") }
 fn oam_dma_reg_read() { run_test("acceptance/oam_dma/reg_read") }
 
 #[test]
+#[ignore]
+fn oam_dma_sources_dmg_abcx_mgb_s() { run_test("acceptance/oam_dma/sources-dmgABCXmgbS") }
+
+#[test]
 fn ppu_hblank_ly_scx_timing_gs() { run_test("acceptance/ppu/hblank_ly_scx_timing-GS") }
 
 #[test]

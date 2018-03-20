@@ -41,10 +41,12 @@
 .define INTR_VEC_JOYPAD $60
 
 .define VRAM  $8000
+.define WRAM  $C000
 .define OAM   $FE00
 .define HIRAM $FF80
 
 .define VRAM_LEN  $2000
+.define WRAM_LEN  $2000
 .define OAM_LEN   $A0
 .define HIRAM_LEN $7F
 
