@@ -275,6 +275,12 @@ Notes:
 | --------------------------- | ---------- | ---- | -------- | ------ | ---- |
 | ie push                     | :+1:       | :x:  | :x:      | :x:    | :x:  |
 
+#### OAM DMA
+
+| Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
+| --------------------------- | ---------- | ---- | -------- | ------ | ---- |
+| reg_read                    | :x:        | :+1: | :+1:     | :x:    | :x:  |
+
 #### PPU
 
 | Test                        | mooneye-gb | BGB  | Gambatte | Higan | MESS |
