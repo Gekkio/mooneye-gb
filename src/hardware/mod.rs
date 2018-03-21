@@ -306,7 +306,6 @@ impl Hardware {
 impl Bus for Hardware {
   fn fetch_cycle(&mut self, addr: u16) -> FetchResult {
     let interrupt = self.has_interrupt();
-    self.emu_time += EmuDuration::machine_cycles(1);
     self.emulate();
 
     let opcode = self.read_internal(addr);
@@ -316,12 +315,10 @@ impl Bus for Hardware {
     }
   }
   fn read_cycle(&mut self, addr: u16) -> u8 {
-    self.emu_time += EmuDuration::machine_cycles(1);
     self.emulate();
     self.read_internal(addr)
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
-    self.emu_time += EmuDuration::machine_cycles(1);
     self.emulate();
     self.write_internal(addr, value)
   }
