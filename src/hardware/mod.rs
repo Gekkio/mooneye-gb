@@ -75,35 +75,62 @@ pub struct Hardware {
   emu_time: EmuTime,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
-enum OamDmaState {
-  Inactive,
-  Requested,
-  Active
-}
-
 struct OamDma {
-  state: OamDmaState,
+  bus: Option<ExternalBus>,
   source: u8,
-  addr: u8
+  requested: Option<u8>,
+  starting: Option<u8>,
+  addr: u16,
 }
 
 impl OamDma {
   fn new() -> OamDma {
     OamDma {
-      state: OamDmaState::Inactive,
-      source: 0x00,
-      addr: 0x00
+      bus: None,
+      source: 0xff,
+      requested: None,
+      starting: None,
+      addr: 0x0000,
     }
+  }
+  fn request(&mut self, value: u8) {
+    self.requested = Some(value);
   }
   fn start(&mut self, value: u8) {
-    if value > 0xdf {
-      panic!("Invalid OAM DMA {:02x}", value);
-    }
+    self.bus = Some(ExternalBus::from_oam_dma_source(value));
     self.source = value;
-    self.state = OamDmaState::Requested;
+    self.addr = (value as u16) << 8;
   }
-  fn is_oam_available(&self) -> bool { self.addr == 0x00 }
+  fn stop(&mut self) {
+    self.bus = None;
+  }
+  fn emulate(&mut self) -> Option<u16> {
+    if self.is_active() {
+      let addr = self.addr;
+      self.addr = self.addr.wrapping_add(1);
+      if self.addr as u8 >= 0xa0 {
+        self.stop();
+      }
+      Some(addr)
+    } else {
+      None
+    }
+  }
+  fn is_active(&self) -> bool { self.bus.is_some() }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+enum ExternalBus {
+  Video, Main,
+}
+
+impl ExternalBus {
+  fn from_oam_dma_source(source: u8) -> ExternalBus {
+    match source {
+      0x80 ... 0x9f => ExternalBus::Video,
+      _ => ExternalBus::Main,
+    }
+  }
 }
 
 impl Hardware {
@@ -128,7 +155,7 @@ impl Hardware {
     let events = self.emu_events;
     self.emu_events = EmuEvents::empty();
     events
-  }  
+  }
   pub fn emu_events(&self) -> EmuEvents { self.emu_events }
   pub fn emu_time(&self) -> EmuTime { self.emu_time }
   pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { &self.gpu.back_buffer }
@@ -153,7 +180,7 @@ impl Hardware {
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>
-            if self.oam_dma.is_oam_available() {
+            if !self.oam_dma.is_active() {
               self.gpu.write_oam(addr as u8, value)
             },
           _ => ()
@@ -177,7 +204,7 @@ impl Hardware {
           0x43 => self.gpu.set_scroll_x(value),
           0x44 => self.gpu.reset_current_line(),
           0x45 => self.gpu.set_compare_line(value),
-          0x46 => self.oam_dma.start(value),
+          0x46 => self.oam_dma.request(value),
           0x47 => self.gpu.set_bg_palette(value),
           0x48 => self.gpu.set_obj_palette0(value),
           0x49 => self.gpu.set_obj_palette1(value),
@@ -211,7 +238,7 @@ impl Hardware {
       0xfe => {
         match addr & 0xff {
           0x00 ... 0x9f =>
-            if !self.oam_dma.is_oam_available() { 0xff } else {
+            if self.oam_dma.is_active() { 0xff } else {
               self.gpu.read_oam(addr as u8)
             },
           // 0x00 ... 0x9f => handle_oam!(),
@@ -236,6 +263,7 @@ impl Hardware {
           0x43 => self.gpu.get_scroll_x(),
           0x44 => self.gpu.get_current_line(),
           0x45 => self.gpu.get_compare_line(),
+          0x46 => self.oam_dma.source,
           0x47 => self.gpu.get_bg_palette(),
           0x48 => self.gpu.get_obj_palette0(),
           0x49 => self.gpu.get_obj_palette1(),
@@ -249,6 +277,30 @@ impl Hardware {
       _ => panic!("Unsupported read at ${:04x}", addr)
     }
   }
+  fn emulate_oam_dma(&mut self) {
+    if let Some(addr) = self.oam_dma.emulate() {
+      let value = match addr >> 8 {
+        0x00 ... 0x7f => self.cartridge.read_rom_bank0(addr),
+        0x80 ... 0x97 => self.gpu.read_character_ram(addr - 0x8000),
+        0x98 ... 0x9b => self.gpu.read_tile_map1(addr - 0x9800),
+        0x9c ... 0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
+        0xa0 ... 0xbf => self.cartridge.read_ram(addr - 0xa000),
+        0xc0 ... 0xcf => self.work_ram.read_lower(addr),
+        0xd0 ... 0xdf => self.work_ram.read_upper(addr),
+        0xe0 ... 0xef => self.work_ram.read_lower(addr),
+        0xf0 ... 0xff => self.work_ram.read_upper(addr),
+        _ => unreachable!("Unreachable OAM DMA read from ${:04x}", addr)
+      };
+      self.gpu.write_oam(addr as u8, value);
+    }
+    if let Some(source) = self.oam_dma.starting.take() {
+      self.oam_dma.start(source);
+    }
+    if let Some(source) = self.oam_dma.requested.take() {
+      self.oam_dma.starting = Some(source);
+    }
+  }
+
 }
 
 impl Bus for Hardware {
@@ -278,23 +330,7 @@ impl Bus for Hardware {
   }
   fn emulate(&mut self) {
     self.emu_time += EmuDuration::machine_cycles(1);
-    match self.oam_dma.state {
-      OamDmaState::Requested => {
-        self.oam_dma.addr = 0x00;
-        self.oam_dma.state = OamDmaState::Active;
-      },
-      OamDmaState::Active if self.oam_dma.addr >= 0xa0 => {
-        self.oam_dma.addr = 0x00;
-        self.oam_dma.state = OamDmaState::Inactive;
-      },
-      OamDmaState::Active => {
-        let source_addr = ((self.oam_dma.source as u16) << 8) | self.oam_dma.addr as u16;
-        let value = self.read_internal(source_addr);
-        self.gpu.write_oam(self.oam_dma.addr, value);
-        self.oam_dma.addr += 1;
-      },
-      _ => ()
-    }
+    self.emulate_oam_dma();
     self.timer.emulate(&mut self.irq);
     self.gpu.emulate(&mut self.irq, &mut self.emu_events);
     self.apu.emulate();
