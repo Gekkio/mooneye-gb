@@ -16,7 +16,7 @@
 use std::collections::VecDeque;
 use std::time::Instant;
 
-use emulation::EmuDuration;
+use emulation::EmuTime;
 
 const HISTORY_SIZE: usize = 128;
 
@@ -33,18 +33,18 @@ impl PerfCounter {
       last_time: Instant::now()
     }
   }
-  pub fn update(&mut self, emu_duration: EmuDuration, current_time: Instant) {
+  pub fn update(&mut self, duration: EmuTime, current_time: Instant) {
     let delta = current_time - self.last_time;
     let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
 
-    let clock_edges_per_s = emu_duration.as_clock_edges() as f64 / delta_s;
+    let machine_cycles_per_s = duration.machine_cycles as f64 / delta_s;
 
     self.make_room_for_new_element();
-    self.history.push_front(clock_edges_per_s);
+    self.history.push_front(machine_cycles_per_s);
 
     self.last_time = current_time;
   }
-  pub fn get_clock_edges_per_s(&self) -> f64 {
+  pub fn get_machine_cycles_per_s (&self) -> f64 {
     let sum = self.history.iter().fold(0.0, |acc, &item| acc + item);
     sum / self.history.len() as f64
   }

@@ -33,7 +33,7 @@ use url::Url;
 
 use errors::{MooneyeErrorKind, MooneyeResult};
 use config::{Bootrom, Cartridge, HardwareConfig};
-use emulation::{EmuTime, EmuDuration, EmuEvents};
+use emulation::{EmuTime, EmuEvents};
 use gameboy;
 use machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
@@ -284,7 +284,7 @@ impl SdlFrontend {
       fps_counter.update(self.times.last_time);
       screen.fps = fps_counter.get_fps();
       screen.perf =
-        100.0 * perf_counter.get_clock_edges_per_s() / 2.0 / gameboy::CPU_SPEED_HZ as f64;
+        100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / gameboy::CPU_SPEED_HZ as f64;
 
       for event in self.event_pump.poll_iter() {
         match event {
@@ -347,15 +347,14 @@ impl SdlFrontend {
       let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
       let ui = self.imgui.frame((width, height), (width, height), delta_s);
-
-      let clock_edges =
+      let machine_cycles = EmuTime::from_machine_cycles(
         if turbo {
-          EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32 / 60)
+          gameboy::CPU_SPEED_HZ as u64 / 60
         } else {
-          EmuDuration::clock_cycles((delta * gameboy::CPU_SPEED_HZ as u32).as_secs() as u32)
-        };
+          ((delta * gameboy::CPU_SPEED_HZ as u32).as_secs() as u64)
+        } / 4);
 
-      let target_time = emu_time + clock_edges;
+      let target_time = emu_time + machine_cycles;
       loop {
         let (events, end_time) = machine.emulate(target_time);
 

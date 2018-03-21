@@ -14,26 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
-
-pub use self::time::EmuTime;
-
-mod time;
-
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub struct EmuDuration(u32);
-
-impl EmuDuration {
-  pub fn clock_edges(amount: u32) -> EmuDuration { EmuDuration(amount) }
-  pub fn clock_cycles(amount: u32) -> EmuDuration { EmuDuration(amount * 2) }
-  pub fn machine_cycles(amount: u32) -> EmuDuration { EmuDuration(amount * 8) }
-  pub fn as_clock_edges(self) -> u32 { self.0 }
-}
-
-impl fmt::Debug for EmuDuration {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", self.0)
-  }
-}
+use std::ops::{Add, AddAssign, Sub};
 
 bitflags!(
   pub struct EmuEvents: u8 {
@@ -41,3 +22,45 @@ bitflags!(
     const VSYNC    = 0b_0000_0010;
   }
 );
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct EmuTime {
+  pub machine_cycles: u64,
+}
+
+impl EmuTime {
+  pub fn zero() -> EmuTime { EmuTime { machine_cycles: 0 } }
+  pub fn from_machine_cycles(machine_cycles: u64) -> EmuTime {
+    EmuTime { machine_cycles }
+  }
+}
+
+impl fmt::Display for EmuTime {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "{} machine cycles", self.machine_cycles)
+  }
+}
+
+impl Add<EmuTime> for EmuTime {
+  type Output = EmuTime;
+  fn add(self, rhs: EmuTime) -> EmuTime {
+    EmuTime {
+      machine_cycles: self.machine_cycles + rhs.machine_cycles,
+    }
+  }
+}
+
+impl AddAssign<EmuTime> for EmuTime {
+  fn add_assign(&mut self, rhs: EmuTime) {
+    self.machine_cycles += rhs.machine_cycles;
+  }
+}
+
+impl Sub<EmuTime> for EmuTime {
+  type Output = EmuTime;
+  fn sub(self, rhs: EmuTime) -> EmuTime {
+    EmuTime {
+      machine_cycles: self.machine_cycles - rhs.machine_cycles,
+    }
+  }
+}

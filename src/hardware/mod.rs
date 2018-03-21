@@ -16,7 +16,7 @@
 use std::fmt;
 
 use config::HardwareConfig;
-use emulation::{EmuDuration, EmuEvents, EmuTime};
+use emulation::{EmuEvents, EmuTime};
 use frontend::{GbKey};
 use gameboy;
 use gameboy::{HiramData, HIRAM_EMPTY};
@@ -326,7 +326,7 @@ impl Bus for Hardware {
     self.read_internal(addr)
   }
   fn emulate(&mut self) {
-    self.emu_time += EmuDuration::machine_cycles(1);
+    self.emu_time += EmuTime::from_machine_cycles(1);
     self.emulate_oam_dma();
     self.timer.emulate(&mut self.irq);
     self.gpu.emulate(&mut self.irq, &mut self.emu_events);

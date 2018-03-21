@@ -18,7 +18,7 @@ use std::time::{Duration, Instant};
 
 use config::{Bootrom, Cartridge, HardwareConfig, Model};
 use config::DEFAULT_MODEL_PRIORITY;
-use emulation::{EmuDuration, EmuTime, EmuEvents};
+use emulation::{EmuTime, EmuEvents};
 use gameboy;
 use machine::Machine;
 
@@ -38,7 +38,7 @@ pub fn run_test_with_model(name: &str, model: Model) {
 
   let max_duration = Duration::from_secs(120);
   let start_time = Instant::now();
-  let pulse_duration = EmuDuration::clock_cycles(gameboy::CPU_SPEED_HZ as u32);
+  let pulse_duration = EmuTime::from_machine_cycles(gameboy::CPU_SPEED_HZ as u64 / 4);
 
   let mut machine = Machine::new(hardware_config);
   let mut registers = None;
