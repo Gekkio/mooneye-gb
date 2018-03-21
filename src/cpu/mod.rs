@@ -126,7 +126,7 @@ impl Cpu {
   pub fn new() -> Cpu {
     Cpu {
       regs: Registers::new(),
-      ime: Ime::Enabled,
+      ime: Ime::Disabled,
       halt: false,
     }
   }
