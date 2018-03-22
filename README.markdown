@@ -280,8 +280,8 @@ Notes:
 | Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
 | --------------------------- | ---------- | ---- | -------- | ------ | ---- |
 | basic                       | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
-| reg_read                    | :x:        | :+1: | :+1:     | :x:    | :x:  |
-| sources dmgABCXmgbS         | :x:        | :+1: | :x:      | :x:    | :x:  |
+| reg_read                    | :+1:       | :+1: | :+1:     | :x:    | :x:  |
+| sources dmgABCXmgbS         | :+1:       | :+1: | :x:      | :x:    | :x:  |
 
 #### PPU
 
