@@ -37,14 +37,15 @@
 .bank 0 slot 0
 .org $0100
   nop
-  jp $0150
+  jp $7D00
 
-.org $0150
+.bank 1 slot 1
+.org $3D00
   di
 
 enable_cartridge_ram:
   ld a, $0a
-  ld ($0000), a
+  ld ($1000), a
 
 copy_data:
   ld hl, $a000
@@ -54,7 +55,7 @@ copy_data:
 
 disable_cartridge_ram:
   xor a
-  ld ($0000), a
+  ld ($1000), a
 
 compare_data:
   ld hl, $0000
@@ -70,6 +71,11 @@ finish:
   ld sp, $ffff
   ld a, c
   ldh ($80), a
+
+  @check_lcd:
+    ldh a, (<LCDC)
+    and %10000000
+    jr z, @clear_tilemap
 
   @wait_vblank:
     ldh a, (<LY)
@@ -210,6 +216,5 @@ tilemap_sadface:
   .db $00 $00 $00 $00 $FF $FF $00 $00 $00 $00 $00 $00 $00 $00 $FF $FF $00 $00 $00 $00
   .db $00 $00 $00 $FF $FF $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $FF $FF $00 $00 $00
 
-.bank 1 slot 1
 .org $4000 - 3
-  jp $0150
+  jp $7D00
