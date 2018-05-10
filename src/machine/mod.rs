@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use config::HardwareConfig;
-use cpu::Cpu;
+use cpu::{Cpu, Step};
 use cpu::registers::Registers;
 use emulation::{EmuTime, EmuEvents};
 use frontend::{GbKey};
@@ -27,22 +27,26 @@ mod perf_counter;
 pub struct Machine {
   cpu: Cpu,
   hardware: Hardware,
+  step: Step,
 }
 
 impl Machine {
   pub fn new(config: HardwareConfig) -> Machine {
     Machine {
       cpu: Cpu::new(),
-      hardware: Hardware::new(config)
+      hardware: Hardware::new(config),
+      step: Step::Initial,
     }
   }
   pub fn emulate(&mut self, target_time: EmuTime) -> (EmuEvents, EmuTime) {
+    let mut step = self.step;
     loop {
-      self.cpu.execute(&mut self.hardware);
+      step = self.cpu.execute_step(&mut self.hardware, step);
       if !self.hardware.emu_events().is_empty() || self.hardware.emu_time() >= target_time {
         break;
       }
     }
+    self.step = step;
     (self.hardware.ack_emu_events(), self.hardware.emu_time())
   }
   pub fn key_down(&mut self, key: GbKey) {

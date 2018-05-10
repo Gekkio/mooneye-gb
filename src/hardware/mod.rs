@@ -167,11 +167,12 @@ impl Hardware {
   }
   fn write_internal(&mut self, addr: u16, value: u8) {
     match addr >> 8 {
+      0x00 if self.bootrom.is_active() => (),
       0x00 ... 0x7f => self.cartridge.write_control(addr, value),
       0x80 ... 0x97 => self.gpu.write_character_ram(addr - 0x8000, value),
       0x98 ... 0x9b => self.gpu.write_tile_map1(addr - 0x9800, value),
       0x9c ... 0x9f => self.gpu.write_tile_map2(addr - 0x9c00, value),
-      0xa0 ... 0xbf => self.cartridge.write_ram(addr - 0xa000, value),
+      0xa0 ... 0xbf => self.cartridge.write_ram(addr, value),
       0xc0 ... 0xcf => self.work_ram.write_lower(addr, value),
       0xd0 ... 0xdf => self.work_ram.write_upper(addr, value),
       // Echo RAM
@@ -211,7 +212,7 @@ impl Hardware {
           0x4a => self.gpu.set_window_y(value),
           0x4b => self.gpu.set_window_x(value),
           0x50 => self.bootrom.deactivate(),
-          0x80 ... 0xfe => self.hiram[(addr & 0x7f) as usize] = value,
+          0x80 ... 0xfe => self.hiram[(addr as usize) & 0x7f] = value,
           0xff => self.irq.set_interrupt_enable(value),
           _ => ()
         }
@@ -221,15 +222,13 @@ impl Hardware {
   }
   fn read_internal(&self, addr: u16) -> u8 {
     match addr >> 8 {
-      0x00 ... 0x3f => {
-        if addr < 0x100 && self.bootrom.is_active() { self.bootrom[addr] }
-        else { self.cartridge.read_rom_bank0(addr) }
-      },
-      0x40 ... 0x7f => self.cartridge.read_rom_bankx(addr - 0x4000),
+      0x00 if self.bootrom.is_active() => self.bootrom[addr],
+      0x00 ... 0x3f => self.cartridge.read_rom_bank0(addr),
+      0x40 ... 0x7f => self.cartridge.read_rom_bankx(addr),
       0x80 ... 0x97 => self.gpu.read_character_ram(addr - 0x8000),
       0x98 ... 0x9b => self.gpu.read_tile_map1(addr - 0x9800),
       0x9c ... 0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
-      0xa0 ... 0xbf => self.cartridge.read_ram(addr - 0xa000),
+      0xa0 ... 0xbf => self.cartridge.read_ram(addr),
       0xc0 ... 0xcf => self.work_ram.read_lower(addr),
       0xd0 ... 0xdf => self.work_ram.read_upper(addr),
       // Echo RAM
@@ -269,7 +268,7 @@ impl Hardware {
           0x49 => self.gpu.get_obj_palette1(),
           0x4a => self.gpu.get_window_y(),
           0x4b => self.gpu.get_window_x(),
-          0x80 ... 0xfe => self.hiram[(addr & 0x7f) as usize],
+          0x80 ... 0xfe => self.hiram[(addr as usize) & 0x7f],
           0xff => self.irq.get_interrupt_enable(),
           _ => 0xff
         }
@@ -280,11 +279,12 @@ impl Hardware {
   fn emulate_oam_dma(&mut self) {
     if let Some(addr) = self.oam_dma.emulate() {
       let value = match addr >> 8 {
-        0x00 ... 0x7f => self.cartridge.read_rom_bank0(addr),
+        0x00 ... 0x3f => self.cartridge.read_rom_bank0(addr),
+        0x40 ... 0x7f => self.cartridge.read_rom_bankx(addr),
         0x80 ... 0x97 => self.gpu.read_character_ram(addr - 0x8000),
         0x98 ... 0x9b => self.gpu.read_tile_map1(addr - 0x9800),
         0x9c ... 0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
-        0xa0 ... 0xbf => self.cartridge.read_ram(addr - 0xa000),
+        0xa0 ... 0xbf => self.cartridge.read_ram(addr),
         0xc0 ... 0xcf => self.work_ram.read_lower(addr),
         0xd0 ... 0xdf => self.work_ram.read_upper(addr),
         0xe0 ... 0xef => self.work_ram.read_lower(addr),

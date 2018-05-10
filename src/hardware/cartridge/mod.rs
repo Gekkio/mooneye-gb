@@ -116,13 +116,13 @@ impl Cartridge {
     }
   }
 
-  pub fn read_rom_bank0(&self, reladdr: u16) -> u8 {
+  pub fn read_rom_bank0(&self, addr: u16) -> u8 {
     let (rom_lower, _) = self.rom_offsets;
-    self.rom[(rom_lower | reladdr as usize) & (self.rom.len() - 1)]
+    self.rom[(rom_lower | (addr as usize & 0x3fff)) & (self.rom.len() - 1)]
   }
-  pub fn read_rom_bankx(&self, reladdr: u16) -> u8 {
+  pub fn read_rom_bankx(&self, addr: u16) -> u8 {
     let (_, rom_upper) = self.rom_offsets;
-    self.rom[(rom_upper | reladdr as usize) & (self.rom.len() - 1)]
+    self.rom[(rom_upper | (addr as usize & 0x3fff)) & (self.rom.len() - 1)]
   }
   pub fn write_control(&mut self, reladdr: u16, value: u8) {
     match self.mbc {
@@ -183,15 +183,15 @@ impl Cartridge {
       }
     }
   }
-  pub fn read_ram(&self, reladdr: u16) -> u8 {
+  pub fn read_ram(&self, addr: u16) -> u8 {
     if self.ram_accessible && !self.ram.is_empty() {
-      let addr = self.ram_addr(reladdr);
+      let addr = self.ram_addr(addr);
       self.ram[addr]
     } else { 0xff }
   }
-  pub fn write_ram(&mut self, reladdr: u16, value: u8) {
+  pub fn write_ram(&mut self, addr: u16, value: u8) {
     if self.ram_accessible && !self.ram.is_empty() {
-      let addr = self.ram_addr(reladdr);
+      let addr = self.ram_addr(addr);
       match self.mbc {
         Mbc::Mbc2 => {
           self.ram[addr] = value & 0x0f;
@@ -202,8 +202,8 @@ impl Cartridge {
       }
     }
   }
-  fn ram_addr(&self, reladdr: u16) -> usize {
-    (self.ram_offset | reladdr as usize) & (self.ram.len() - 1)
+  fn ram_addr(&self, addr: u16) -> usize {
+    (self.ram_offset | (addr as usize & 0x1fff)) & (self.ram.len() - 1)
   }
   fn update_rom_offsets(&mut self) {
     match self.mbc {

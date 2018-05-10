@@ -31,18 +31,9 @@ pub mod registers;
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-#[repr(u8)]
-pub enum Ime {
-  Disabled,
-  Enabling,
-  Enabled
-}
-
 pub struct Cpu {
   pub regs: Registers,
-  ime: Ime,
-  halt: bool,
+  ime: bool,
 }
 
 pub trait In8: disasm::ResolveOp8 {
@@ -82,13 +73,13 @@ pub enum Addr {
 impl In8 for Addr {
   fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8 {
     let addr = cpu.indirect_addr(bus, *self);
-    cpu.read_cycle(bus, addr)
+    bus.read_cycle(addr)
   }
 }
 impl Out8 for Addr {
   fn write<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H, value: u8) {
     let addr = cpu.indirect_addr(bus, *self);
-    cpu.write_cycle(bus, addr, value);
+    bus.write_cycle(addr, value)
   }
 }
 
@@ -116,6 +107,14 @@ impl Out8 for Reg8 {
   }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum Step {
+  Initial,
+  Opcode(u8),
+  Halt,
+  InterruptDispatch,
+}
+
 
 impl fmt::Display for Cpu {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -126,49 +125,23 @@ impl Cpu {
   pub fn new() -> Cpu {
     Cpu {
       regs: Registers::new(),
-      ime: Ime::Disabled,
-      halt: false,
+      ime: false,
     }
   }
 
-  fn fetch_cycle<H: Bus>(&mut self, bus: &mut H) {
+  fn prefetch_next<H: Bus>(&mut self, bus: &mut H) -> Step {
     let result = bus.fetch_cycle(self.regs.pc);
-    let interrupt = match self.ime {
-      Ime::Enabled => result.interrupt,
-      Ime::Enabling => {
-        self.ime = Ime::Enabled;
-        false
-      },
-      _ => false,
-    };
-    if interrupt {
-      self.dispatch_interrupt(bus)
+    if self.ime && result.interrupt {
+      Step::InterruptDispatch
     } else {
-      self.regs.pc = self.regs.pc.wrapping_add(1);
-      ops::decode((self, bus), result.opcode)
+      Step::Opcode(result.opcode)
     }
-  }
-  fn read_cycle<H: Bus>(&self, bus: &mut H, addr: u16) -> u8 {
-    bus.read_cycle(addr)
-  }
-  fn write_cycle<H: Bus>(&self, bus: &mut H, addr: u16, value: u8) {
-    bus.write_cycle(addr, value)
-  }
-  fn halt_cycle<H: Bus>(&mut self, bus: &mut H) {
-    if bus.has_interrupt() {
-      self.halt = false;
-    } else {
-      bus.emulate();
-    }
-  }
-  fn internal_cycle<H: Bus>(&self, bus: &mut H) {
-    bus.emulate();
   }
 
   fn next_u8<H: Bus>(&mut self, bus: &mut H) -> u8 {
     let addr = self.regs.pc;
     self.regs.pc = self.regs.pc.wrapping_add(1);
-    self.read_cycle(bus, addr)
+    bus.read_cycle(addr)
   }
   fn next_u16<H: Bus>(&mut self, bus: &mut H) -> u16 {
     let l = self.next_u8(bus);
@@ -178,14 +151,14 @@ impl Cpu {
 
   fn pop_u8<H: Bus>(&mut self, bus: &mut H) -> u8 {
     let sp = self.regs.sp;
-    let value = self.read_cycle(bus, sp);
+    let value = bus.read_cycle(sp);
     self.regs.sp = self.regs.sp.wrapping_add_one();
     value
   }
   fn push_u8<H: Bus>(&mut self, bus: &mut H, value: u8) {
     self.regs.sp = self.regs.sp.wrapping_sub_one();
     let sp = self.regs.sp;
-    self.write_cycle(bus, sp, value);
+    bus.write_cycle(sp, value);
   }
 
   fn pop_u16<H: Bus>(&mut self, bus: &mut H) -> u16 {
@@ -220,24 +193,34 @@ impl Cpu {
     }
   }
 
-  pub fn execute<H: Bus>(&mut self, bus: &mut H) {
-    if self.halt {
-      self.halt_cycle(bus);
-    } else {
-      self.fetch_cycle(bus);
+  pub fn execute_step<H: Bus>(&mut self, bus: &mut H, step: Step) -> Step {
+    match step {
+      Step::Initial => self.prefetch_next(bus),
+      Step::Opcode(opcode) => {
+        self.regs.pc = self.regs.pc.wrapping_add(1);
+        ops::decode((self, bus), opcode)
+      },
+      Step::InterruptDispatch => {
+        self.ime = false;
+        bus.emulate();
+        bus.emulate();
+        let pc = self.regs.pc;
+        self.push_u8(bus, (pc >> 8) as u8);
+        let interrupt = bus.ack_interrupt();
+        self.push_u8(bus, pc as u8);
+        self.regs.pc = interrupt.map(|i| i.get_addr()).unwrap_or(0x0000);
+        let result = bus.fetch_cycle(self.regs.pc);
+        Step::Opcode(result.opcode)
+      },
+      Step::Halt => {
+        if bus.has_interrupt() {
+          self.prefetch_next(bus)
+        } else {
+          bus.emulate();
+          Step::Halt
+        }
+      },
     }
-  }
-
-  fn dispatch_interrupt<H: Bus>(&mut self, bus: &mut H) {
-    self.halt = false;
-    self.ime = Ime::Disabled;
-    self.internal_cycle(bus);
-    self.internal_cycle(bus);
-    let pc = self.regs.pc;
-    self.push_u8(bus, (pc >> 8) as u8);
-    let interrupt = bus.ack_interrupt();
-    self.push_u8(bus, pc as u8);
-    self.regs.pc = interrupt.map(|i| i.get_addr()).unwrap_or(0x0000);
   }
 
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
@@ -281,49 +264,51 @@ impl Cpu {
   }
   fn ctrl_jp<H: Bus>(&mut self, bus: &mut H, addr: u16) {
     self.regs.pc = addr;
-    self.internal_cycle(bus);
+    bus.emulate();
   }
   fn ctrl_jr<H: Bus>(&mut self, bus: &mut H, offset: i8) {
     self.regs.pc = self.regs.pc.wrapping_add(offset as u16);
-    self.internal_cycle(bus);
+    bus.emulate();
   }
   fn ctrl_call<H: Bus>(&mut self, bus: &mut H, addr: u16) {
     let pc = self.regs.pc;
-    self.internal_cycle(bus);
+    bus.emulate();
     self.push_u16(bus, pc);
     self.regs.pc = addr;
   }
   fn ctrl_ret<H: Bus>(&mut self, bus: &mut H) {
     self.regs.pc = self.pop_u16(bus);
-    self.internal_cycle(bus);
+    bus.emulate();
   }
 }
 
 
 impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
-  type R = ();
+  type R = Step;
   // --- 8-bit operations
   // 8-bit loads
   /// LD d, s
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn load<O: Out8, I: In8>(self, out8: O, in8: I) {
+  fn load<O: Out8, I: In8>(self, out8: O, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     out8.write(cpu, bus, value);
+    cpu.prefetch_next(bus)
   }
   // Magic breakpoint
-  fn ld_b_b(self) {
-    let (_, bus) = self;
+  fn ld_b_b(self) -> Step {
+    let (cpu, bus) = self;
     bus.trigger_emu_events(EmuEvents::DEBUG_OP);
+    cpu.prefetch_next(bus)
   }
   // 8-bit arithmetic
   /// ADD s
   ///
   /// Flags: Z N H C
   ///        * 0 * *
-  fn add<I: In8>(self, in8: I) {
+  fn add<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     let (result, carry) = cpu.regs.a.overflowing_add(value);
@@ -332,12 +317,13 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
                   Flags::CARRY.test(carry) |
                   Flags::HALF_CARRY.test(half_carry);
     cpu.regs.a = result;
+    cpu.prefetch_next(bus)
   }
   /// ADC s
   ///
   /// Flags: Z N H C
   ///        * 0 * *
-  fn adc<I: In8>(self, in8: I) {
+  fn adc<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     let cy = if cpu.regs.f.contains(Flags::CARRY) { 1 } else { 0 };
@@ -346,70 +332,77 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
                   Flags::CARRY.test(cpu.regs.a as u16 + value as u16 + cy as u16 > 0xff) |
                   Flags::HALF_CARRY.test((cpu.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
     cpu.regs.a = result;
+    cpu.prefetch_next(bus)
   }
   /// SUB s
   ///
   /// Flags: Z N H C
   ///        * 1 * *
-  fn sub<I: In8>(self, in8: I) {
+  fn sub<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a = cpu.alu_sub(value, false);
+    cpu.prefetch_next(bus)
   }
   /// SBC s
   ///
   /// Flags: Z N H C
   ///        * 1 * *
-  fn sbc<I: In8>(self, in8: I) {
+  fn sbc<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a = cpu.alu_sub(value, true);
+    cpu.prefetch_next(bus)
   }
   /// CP s
   ///
   /// Flags: Z N H C
   ///        * 1 * *
-  fn cp<I: In8>(self, in8: I) {
+  fn cp<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.alu_sub(value, false);
+    cpu.prefetch_next(bus)
   }
   /// AND s
   ///
   /// Flags: Z N H C
   ///        * 0 1 0
-  fn and<I: In8>(self, in8: I) {
+  fn and<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a &= value;
     cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0) |
                   Flags::HALF_CARRY;
+    cpu.prefetch_next(bus)
   }
   /// OR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
-  fn or<I: In8>(self, in8: I) {
+  fn or<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a |= value;
     cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0);
+    cpu.prefetch_next(bus)
   }
   /// XOR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
-  fn xor<I: In8>(self, in8: I) {
+  fn xor<I: In8>(self, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a ^= value;
-    cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0)
+    cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0);
+    cpu.prefetch_next(bus)
   }
   /// INC s
   ///
   /// Flags: Z N H C
   ///        * 0 * -
-  fn inc<IO: In8+Out8>(self, io: IO) {
+  fn inc<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = value.wrapping_add_one();
@@ -417,12 +410,13 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
                   Flags::HALF_CARRY.test(value & 0xf == 0xf) |
                   (Flags::CARRY & cpu.regs.f);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// DEC s
   ///
   /// Flags: Z N H C
   ///        * 1 * -
-  fn dec<IO: In8+Out8>(self, io: IO) {
+  fn dec<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = value.wrapping_sub_one();
@@ -431,88 +425,97 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
                  Flags::HALF_CARRY.test(value & 0xf == 0) |
                  (Flags::CARRY & cpu.regs.f);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// RLCA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
-  fn rlca(self) {
-    let (cpu, _) = self;
+  fn rlca(self) -> Step {
+    let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rlc(value, false);
+    cpu.prefetch_next(bus)
   }
   /// RLA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
-  fn rla(self) {
-    let (cpu, _) = self;
+  fn rla(self) -> Step {
+    let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rl(value, false);
+    cpu.prefetch_next(bus)
   }
   /// RRCA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
-  fn rrca(self) {
-    let (cpu, _) = self;
+  fn rrca(self) -> Step {
+    let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rrc(value, false);
+    cpu.prefetch_next(bus)
   }
   /// RRA
   ///
   /// Flags: Z N H C
   ///        0 0 0 *
-  fn rra(self) {
-    let (cpu, _) = self;
+  fn rra(self) -> Step {
+    let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rr(value, false);
+    cpu.prefetch_next(bus)
   }
   /// RLC s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  fn rlc<IO: In8+Out8>(self, io: IO) {
+  fn rlc<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rlc(value, true);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// RL s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  fn rl<IO: In8+Out8>(self, io: IO) {
+  fn rl<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rl(value, true);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// RRC s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  fn rrc<IO: In8+Out8>(self, io: IO) {
+  fn rrc<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rrc(value, true);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// RR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  fn rr<IO: In8+Out8>(self, io: IO) {
+  fn rr<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rr(value, true);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// SLA s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  fn sla<IO: In8+Out8>(self, io: IO) {
+  fn sla<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let co = value & 0x80;
@@ -520,12 +523,13 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     cpu.regs.f = Flags::ZERO.test(new_value == 0) |
                   Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// SRA s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  fn sra<IO: In8+Out8>(self, io: IO) {
+  fn sra<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let co = value & 0x01;
@@ -534,12 +538,13 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     cpu.regs.f = Flags::ZERO.test(new_value == 0) |
                   Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// SRL s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  fn srl<IO: In8+Out8>(self, io: IO) {
+  fn srl<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let co = value & 0x01;
@@ -547,221 +552,256 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     cpu.regs.f = Flags::ZERO.test(new_value == 0) |
                   Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// SWAP s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
-  fn swap<IO: In8+Out8>(self, io: IO) {
+  fn swap<IO: In8+Out8>(self, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus);
     let new_value = (value >> 4) | (value << 4);
     cpu.regs.f = Flags::ZERO.test(value == 0);
     io.write(cpu, bus, new_value);
+    cpu.prefetch_next(bus)
   }
   /// BIT b, s
   ///
   /// Flags: Z N H C
   ///        * 0 1 -
-  fn bit<I: In8>(self, bit: usize, in8: I) {
+  fn bit<I: In8>(self, bit: usize, in8: I) -> Step {
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus) & (1 << bit);
     cpu.regs.f = Flags::ZERO.test(value == 0) |
                   Flags::HALF_CARRY |
                   (Flags::CARRY & cpu.regs.f);
+    cpu.prefetch_next(bus)
   }
   /// SET b, s
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn set<IO: In8+Out8>(self, bit: usize, io: IO) {
+  fn set<IO: In8+Out8>(self, bit: usize, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus) | (1 << bit);
     io.write(cpu, bus, value);
+    cpu.prefetch_next(bus)
   }
   /// RES b, s
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn res<IO: In8+Out8>(self, bit: usize, io: IO) {
+  fn res<IO: In8+Out8>(self, bit: usize, io: IO) -> Step {
     let (cpu, bus) = self;
     let value = io.read(cpu, bus) & !(1 << bit);
     io.write(cpu, bus, value);
+    cpu.prefetch_next(bus)
   }
   // --- Control
   /// JP nn
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn jp(self) {
+  fn jp(self) -> Step {
     let (cpu, bus) = self;
     let addr = cpu.next_u16(bus);
     cpu.ctrl_jp(bus, addr);
+    cpu.prefetch_next(bus)
   }
   /// JP HL
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn jp_hl(self) {
-    let (cpu, _) = self;
+  fn jp_hl(self) -> Step {
+    let (cpu, bus) = self;
     cpu.regs.pc = cpu.regs.read16(Reg16::HL);
+    cpu.prefetch_next(bus)
   }
   /// JR e
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn jr(self) {
+  fn jr(self) -> Step {
     let (cpu, bus) = self;
     let offset = cpu.next_u8(bus) as i8;
     cpu.ctrl_jr(bus, offset);
+    cpu.prefetch_next(bus)
   }
   /// CALL nn
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn call(self) {
+  fn call(self) -> Step {
     let (cpu, bus) = self;
     let addr = cpu.next_u16(bus);
     cpu.ctrl_call(bus, addr);
+    cpu.prefetch_next(bus)
   }
   /// RET
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn ret(self) {
+  fn ret(self) -> Step {
     let (cpu, bus) = self;
     cpu.ctrl_ret(bus);
+    cpu.prefetch_next(bus)
   }
   /// RETI
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn reti(self) {
+  fn reti(self) -> Step {
     let (cpu, bus) = self;
-    cpu.ime = Ime::Enabled;
+    cpu.ime = true;
     cpu.ctrl_ret(bus);
+    cpu.prefetch_next(bus)
   }
   /// JP cc, nn
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn jp_cc(self, cond: Cond) {
+  fn jp_cc(self, cond: Cond) -> Step {
     let (cpu, bus) = self;
     let addr = cpu.next_u16(bus);
     if cond.check(cpu.regs.f) {
       cpu.ctrl_jp(bus, addr);
     }
+    cpu.prefetch_next(bus)
   }
   /// JR cc, e
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn jr_cc(self, cond: Cond) {
+  fn jr_cc(self, cond: Cond) -> Step {
     let (cpu, bus) = self;
     let offset = cpu.next_u8(bus) as i8;
     if cond.check(cpu.regs.f) {
       cpu.ctrl_jr(bus, offset);
     }
+    cpu.prefetch_next(bus)
   }
   /// CALL cc, nn
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn call_cc(self, cond: Cond) {
+  fn call_cc(self, cond: Cond) -> Step {
     let (cpu, bus) = self;
     let addr = cpu.next_u16(bus);
     if cond.check(cpu.regs.f) {
       cpu.ctrl_call(bus, addr);
     }
+    cpu.prefetch_next(bus)
   }
   /// RET cc
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn ret_cc(self, cond: Cond) {
+  fn ret_cc(self, cond: Cond) -> Step {
     let (cpu, bus) = self;
-    cpu.internal_cycle(bus);
+    bus.emulate();
     if cond.check(cpu.regs.f) {
       cpu.ctrl_ret(bus);
     }
+    cpu.prefetch_next(bus)
   }
   /// RST n
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn rst(self, addr: u8) {
+  fn rst(self, addr: u8) -> Step {
     let (cpu, bus) = self;
     let pc = cpu.regs.pc;
-    cpu.internal_cycle(bus);
+    bus.emulate();
     cpu.push_u16(bus, pc);
     cpu.regs.pc = addr as u16;
+    cpu.prefetch_next(bus)
   }
   // --- Miscellaneous
   /// HALT
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn halt(self) {
-    let (cpu, _) = self;
-    // TODO: DMG BUG
-    cpu.halt = true;
+  fn halt(self) -> Step {
+    let (cpu, bus) = self;
+    let result = bus.fetch_cycle(cpu.regs.pc);
+    if result.interrupt {
+      if cpu.ime {
+        cpu.regs.pc = cpu.regs.pc.wrapping_sub(1);
+        Step::InterruptDispatch
+      } else {
+        ops::decode((cpu, bus), result.opcode)
+      }
+    } else {
+      bus.emulate();
+      Step::Halt
+    }
   }
   /// STOP
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn stop(self) {
+  fn stop(self) -> Step {
     panic!("STOP")
   }
   /// DI
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn di(self) {
-    let (cpu, _) = self;
-    cpu.ime = Ime::Disabled;
+  fn di(self) -> Step {
+    let (cpu, bus) = self;
+    cpu.ime = false;
+    let result = bus.fetch_cycle(cpu.regs.pc);
+    Step::Opcode(result.opcode)
   }
   /// EI
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn ei(self) {
-    let (cpu, _) = self;
-    cpu.ime = match cpu.ime {
-      Ime::Disabled => Ime::Enabling,
-      _ => cpu.ime,
+  fn ei(self) -> Step {
+    let (cpu, bus) = self;
+    let result = bus.fetch_cycle(cpu.regs.pc);
+    if cpu.ime && result.interrupt {
+      Step::InterruptDispatch
+    } else {
+      cpu.ime = true;
+      Step::Opcode(result.opcode)
     }
   }
   /// CCF
   ///
   /// Flags: Z N H C
   ///        - 0 0 *
-  fn ccf(self) {
-    let (cpu, _) = self;
+  fn ccf(self) -> Step {
+    let (cpu, bus) = self;
     cpu.regs.f = (Flags::ZERO & cpu.regs.f) |
-                  Flags::CARRY.test(!cpu.regs.f.contains(Flags::CARRY))
+                  Flags::CARRY.test(!cpu.regs.f.contains(Flags::CARRY));
+    cpu.prefetch_next(bus)
   }
   /// SCF
   ///
   /// Flags: Z N H C
   ///        - 0 0 1
-  fn scf(self) {
-    let (cpu, _) = self;
+  fn scf(self) -> Step {
+    let (cpu, bus) = self;
     cpu.regs.f = (Flags::ZERO & cpu.regs.f) |
-                  Flags::CARRY
+                  Flags::CARRY;
+    cpu.prefetch_next(bus)
   }
   /// NOP
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn nop(self) {
+  fn nop(self) -> Step {
+    let (cpu, bus) = self;
+    cpu.prefetch_next(bus)
   }
   /// DAA
   ///
   /// Flags: Z N H C
   ///        * - 0 *
-  fn daa(self) {
-    let (cpu, _) = self;
+  fn daa(self) -> Step {
+    let (cpu, bus) = self;
     // DAA table in page 110 of the official "Game Boy Programming Manual"
     let mut carry = false;
     if !cpu.regs.f.contains(Flags::ADD_SUBTRACT) {
@@ -785,18 +825,20 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0) |
                   (Flags::ADD_SUBTRACT & cpu.regs.f) |
                   Flags::CARRY.test(carry);
+    cpu.prefetch_next(bus)
   }
   /// CPL
   ///
   /// Flags: Z N H C
   ///        - 1 1 -
-  fn cpl(self) {
-    let (cpu, _) = self;
+  fn cpl(self) -> Step {
+    let (cpu, bus) = self;
     cpu.regs.a = !cpu.regs.a;
     cpu.regs.f = (Flags::ZERO & cpu.regs.f) |
                   Flags::ADD_SUBTRACT |
                   Flags::HALF_CARRY |
                   (Flags::CARRY & cpu.regs.f);
+    cpu.prefetch_next(bus)
   }
   // --- 16-bit operations
   // 16-bit loads
@@ -804,37 +846,40 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn load16_imm(self, reg: Reg16) {
+  fn load16_imm(self, reg: Reg16) -> Step {
     let (cpu, bus) = self;
     let value = cpu.next_u16(bus);
     cpu.regs.write16(reg, value);
+    cpu.prefetch_next(bus)
   }
   /// LD (nn), SP
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn load16_nn_sp(self) {
+  fn load16_nn_sp(self) -> Step {
     let (cpu, bus) = self;
     let value = cpu.regs.sp;
     let addr = cpu.next_u16(bus);
-    cpu.write_cycle(bus, addr, value as u8);
-    cpu.write_cycle(bus, (addr.wrapping_add_one()), (value >> 8) as u8);
+    bus.write_cycle(addr, value as u8);
+    bus.write_cycle((addr.wrapping_add_one()), (value >> 8) as u8);
+    cpu.prefetch_next(bus)
   }
   /// LD SP, HL
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn load16_sp_hl(self) {
+  fn load16_sp_hl(self) -> Step {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(Reg16::HL);
     cpu.regs.sp = value;
-    cpu.internal_cycle(bus);
+    bus.emulate();
+    cpu.prefetch_next(bus)
   }
   /// LD HL, SP+e
   ///
   /// Flags: Z N H C
   ///        0 0 * *
-  fn load16_hl_sp_e(self) {
+  fn load16_hl_sp_e(self) -> Step {
     let (cpu, bus) = self;
     let offset = cpu.next_u8(bus) as i8 as u16;
     let sp = cpu.regs.sp as u16;
@@ -842,34 +887,37 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     cpu.regs.write16(Reg16::HL, value);
     cpu.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
                   Flags::CARRY.test(u16::test_add_carry_bit(7, sp, offset));
-    cpu.internal_cycle(bus);
+    bus.emulate();
+    cpu.prefetch_next(bus)
   }
   /// PUSH rr
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn push16(self, reg: Reg16) {
+  fn push16(self, reg: Reg16) -> Step {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(reg);
-    cpu.internal_cycle(bus);
+    bus.emulate();
     cpu.push_u16(bus, value);
+    cpu.prefetch_next(bus)
   }
   /// POP rr
   ///
   /// Flags: Z N H C
   ///        - - - -
   /// Note! POP AF affects all flags
-  fn pop16(self, reg: Reg16) {
+  fn pop16(self, reg: Reg16) -> Step {
     let (cpu, bus) = self;
     let value = cpu.pop_u16(bus);
     cpu.regs.write16(reg, value);
+    cpu.prefetch_next(bus)
   }
   // 16-bit arithmetic
   /// ADD HL, ss
   ///
   /// Flags: Z N H C
   ///        - 0 * *
-  fn add16(self, reg: Reg16) {
+  fn add16(self, reg: Reg16) -> Step {
     let (cpu, bus) = self;
     let hl = cpu.regs.read16(Reg16::HL);
     let value = cpu.regs.read16(reg);
@@ -878,47 +926,51 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
                   Flags::HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
                   Flags::CARRY.test(hl > 0xffff - value);
     cpu.regs.write16(Reg16::HL, result);
-    cpu.internal_cycle(bus);
+    bus.emulate();
+    cpu.prefetch_next(bus)
   }
   /// ADD SP, e
   ///
   /// Flags: Z N H C
   ///        0 0 * *
-  fn add16_sp_e(self) {
+  fn add16_sp_e(self) -> Step {
     let (cpu, bus) = self;
     let val = cpu.next_u8(bus) as i8 as i16 as u16;
     let sp = cpu.regs.sp;
     cpu.regs.sp = sp.wrapping_add(val);
     cpu.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
       Flags::CARRY.test(u16::test_add_carry_bit(7, sp, val));
-    cpu.internal_cycle(bus);
-    cpu.internal_cycle(bus);
+    bus.emulate();
+    bus.emulate();
+    cpu.prefetch_next(bus)
   }
   /// INC rr
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn inc16(self, reg: Reg16) {
+  fn inc16(self, reg: Reg16) -> Step {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(reg).wrapping_add_one();
     cpu.regs.write16(reg, value);
-    cpu.internal_cycle(bus);
+    bus.emulate();
+    cpu.prefetch_next(bus)
   }
   /// DEC rr
   ///
   /// Flags: Z N H C
   ///        - - - -
-  fn dec16(self, reg: Reg16) {
+  fn dec16(self, reg: Reg16) -> Step {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(reg).wrapping_sub_one();
     cpu.regs.write16(reg, value);
-    cpu.internal_cycle(bus);
+    bus.emulate();
+    cpu.prefetch_next(bus)
   }
   // --- Undefined
-  fn undefined(self, op: u8) {
+  fn undefined(self, op: u8) -> Step {
     panic!("Undefined opcode {}", op)
   }
-  fn cb_prefix(self) {
+  fn cb_prefix(self) -> Step {
     let (cpu, bus) = self;
     let op = cpu.next_u8(bus);
     ops::decode_cb((cpu, bus), op)
