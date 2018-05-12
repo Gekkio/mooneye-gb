@@ -107,7 +107,7 @@ impl Out8 for Reg8 {
   }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Step {
   Initial,
   Opcode(u8),
@@ -202,8 +202,8 @@ impl Cpu {
       },
       Step::InterruptDispatch => {
         self.ime = false;
-        bus.emulate();
-        bus.emulate();
+        bus.tick_cycle();
+        bus.tick_cycle();
         let pc = self.regs.pc;
         self.push_u8(bus, (pc >> 8) as u8);
         let interrupt = bus.ack_interrupt();
@@ -216,7 +216,7 @@ impl Cpu {
         if bus.has_interrupt() {
           self.prefetch_next(bus)
         } else {
-          bus.emulate();
+          bus.tick_cycle();
           Step::Halt
         }
       },
@@ -264,21 +264,21 @@ impl Cpu {
   }
   fn ctrl_jp<H: Bus>(&mut self, bus: &mut H, addr: u16) {
     self.regs.pc = addr;
-    bus.emulate();
+    bus.tick_cycle();
   }
   fn ctrl_jr<H: Bus>(&mut self, bus: &mut H, offset: i8) {
     self.regs.pc = self.regs.pc.wrapping_add(offset as u16);
-    bus.emulate();
+    bus.tick_cycle();
   }
   fn ctrl_call<H: Bus>(&mut self, bus: &mut H, addr: u16) {
     let pc = self.regs.pc;
-    bus.emulate();
+    bus.tick_cycle();
     self.push_u16(bus, pc);
     self.regs.pc = addr;
   }
   fn ctrl_ret<H: Bus>(&mut self, bus: &mut H) {
     self.regs.pc = self.pop_u16(bus);
-    bus.emulate();
+    bus.tick_cycle();
   }
 }
 
@@ -699,7 +699,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   ///        - - - -
   fn ret_cc(self, cond: Cond) -> Step {
     let (cpu, bus) = self;
-    bus.emulate();
+    bus.tick_cycle();
     if cond.check(cpu.regs.f) {
       cpu.ctrl_ret(bus);
     }
@@ -712,7 +712,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   fn rst(self, addr: u8) -> Step {
     let (cpu, bus) = self;
     let pc = cpu.regs.pc;
-    bus.emulate();
+    bus.tick_cycle();
     cpu.push_u16(bus, pc);
     cpu.regs.pc = addr as u16;
     cpu.prefetch_next(bus)
@@ -733,7 +733,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
         ops::decode((cpu, bus), result.opcode)
       }
     } else {
-      bus.emulate();
+      bus.tick_cycle();
       Step::Halt
     }
   }
@@ -861,7 +861,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let value = cpu.regs.sp;
     let addr = cpu.next_u16(bus);
     bus.write_cycle(addr, value as u8);
-    bus.write_cycle((addr.wrapping_add_one()), (value >> 8) as u8);
+    bus.write_cycle(addr.wrapping_add_one(), (value >> 8) as u8);
     cpu.prefetch_next(bus)
   }
   /// LD SP, HL
@@ -872,7 +872,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(Reg16::HL);
     cpu.regs.sp = value;
-    bus.emulate();
+    bus.tick_cycle();
     cpu.prefetch_next(bus)
   }
   /// LD HL, SP+e
@@ -887,7 +887,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     cpu.regs.write16(Reg16::HL, value);
     cpu.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset)) |
                   Flags::CARRY.test(u16::test_add_carry_bit(7, sp, offset));
-    bus.emulate();
+    bus.tick_cycle();
     cpu.prefetch_next(bus)
   }
   /// PUSH rr
@@ -897,7 +897,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
   fn push16(self, reg: Reg16) -> Step {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(reg);
-    bus.emulate();
+    bus.tick_cycle();
     cpu.push_u16(bus, value);
     cpu.prefetch_next(bus)
   }
@@ -926,7 +926,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
                   Flags::HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value)) |
                   Flags::CARRY.test(hl > 0xffff - value);
     cpu.regs.write16(Reg16::HL, result);
-    bus.emulate();
+    bus.tick_cycle();
     cpu.prefetch_next(bus)
   }
   /// ADD SP, e
@@ -940,8 +940,8 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     cpu.regs.sp = sp.wrapping_add(val);
     cpu.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val)) |
       Flags::CARRY.test(u16::test_add_carry_bit(7, sp, val));
-    bus.emulate();
-    bus.emulate();
+    bus.tick_cycle();
+    bus.tick_cycle();
     cpu.prefetch_next(bus)
   }
   /// INC rr
@@ -952,7 +952,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(reg).wrapping_add_one();
     cpu.regs.write16(reg, value);
-    bus.emulate();
+    bus.tick_cycle();
     cpu.prefetch_next(bus)
   }
   /// DEC rr
@@ -963,7 +963,7 @@ impl<'a, H> CpuOps for (&'a mut Cpu, &'a mut H) where H: Bus {
     let (cpu, bus) = self;
     let value = cpu.regs.read16(reg).wrapping_sub_one();
     cpu.regs.write16(reg, value);
-    bus.emulate();
+    bus.tick_cycle();
     cpu.prefetch_next(bus)
   }
   // --- Undefined

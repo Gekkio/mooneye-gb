@@ -17,7 +17,7 @@ use std::fmt;
 use std::fmt::{Binary, Formatter, LowerHex, UpperHex};
 
 use frontend::GbKey;
-use hardware::irq::{Irq, Interrupt};
+use hardware::irq::{Irq, Interrupt, InterruptRequest};
 
 /// Gameboy joypad.
 ///
@@ -59,7 +59,7 @@ impl Joypad {
     self.pressed_directional.insert(P1::directional(&key));
     self.pressed_button.insert(P1::button(&key));
     self.update_register();
-    irq.request_interrupt(Interrupt::Joypad);
+    irq.request_t12_interrupt(Interrupt::Joypad);
   }
   pub fn key_up(&mut self, key: GbKey) {
     self.pressed_directional.remove(P1::directional(&key));

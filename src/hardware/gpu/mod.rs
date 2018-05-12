@@ -19,7 +19,7 @@ use std::cmp::Ordering;
 use emulation::EmuEvents;
 use gameboy;
 use gameboy::Color;
-use hardware::irq::{Irq, Interrupt};
+use hardware::irq::{Irq, Interrupt, InterruptRequest};
 use util::int::IntExt;
 
 const CHARACTER_RAM_TILES: usize = 384;
@@ -362,18 +362,18 @@ impl Gpu {
     match self.mode {
       Mode::AccessOam => {
         if self.stat.contains(Stat::ACCESS_OAM_INT) {
-          irq.request_interrupt(Interrupt::LcdStat);
+          irq.request_t34_interrupt(Interrupt::LcdStat);
         }
       },
       Mode::HBlank => {
       },
       Mode::VBlank => {
-        irq.request_interrupt(Interrupt::VBlank);
+        irq.request_t34_interrupt(Interrupt::VBlank);
         if self.stat.contains(Stat::VBLANK_INT) {
-          irq.request_interrupt(Interrupt::LcdStat);
+          irq.request_t34_interrupt(Interrupt::LcdStat);
         }
         if self.stat.contains(Stat::ACCESS_OAM_INT) {
-          irq.request_interrupt(Interrupt::LcdStat);
+          irq.request_t34_interrupt(Interrupt::LcdStat);
         }
       },
       _ => ()
@@ -388,7 +388,7 @@ impl Gpu {
     if self.cycles == 1 && self.mode == Mode::AccessVram {
       // STAT mode=0 interrupt happens one cycle before the actual mode switch!
       if self.stat.contains(Stat::HBLANK_INT) {
-        irq.request_interrupt(Interrupt::LcdStat);
+        irq.request_t34_interrupt(Interrupt::LcdStat);
       }
     }
     if self.cycles > 0 {
@@ -431,7 +431,7 @@ impl Gpu {
     } else {
       self.stat.insert(Stat::COMPARE);
       if self.stat.contains(Stat::COMPARE_INT) {
-        irq.request_interrupt(Interrupt::LcdStat);
+        irq.request_t34_interrupt(Interrupt::LcdStat);
       }
     }
   }

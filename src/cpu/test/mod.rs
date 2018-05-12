@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::Cpu;
+use cpu::{Cpu, Step};
 use cpu::disasm;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
 use emulation::EmuEvents;
@@ -47,6 +47,7 @@ mod test_dec16;
 pub struct TestMachine {
   cpu: Cpu,
   hardware: TestHardware,
+  step: Step,
 }
 
 pub struct TestHardware {
@@ -64,13 +65,16 @@ impl TestHardware {
     }
   }
   fn clock_cycles(&self) -> usize { self.t_cycles }
+  fn read(&self, addr: u16) -> u8 {
+    self.memory[addr as usize]
+  }
 }
 
 impl<'a> Bus for TestHardware {
   fn fetch_cycle(&mut self, addr: u16) -> FetchResult {
     self.t_cycles += 4;
     FetchResult {
-      opcode: self.memory[addr as usize],
+      opcode: self.read(addr),
       interrupt: false
     }
   }
@@ -82,10 +86,7 @@ impl<'a> Bus for TestHardware {
     self.t_cycles += 4;
     self.read(addr)
   }
-  fn read(&self, addr: u16) -> u8 {
-    self.memory[addr as usize]
-  }
-  fn emulate(&mut self) {
+  fn tick_cycle(&mut self) {
     self.t_cycles += 4;
   }
   fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
@@ -100,16 +101,20 @@ pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> 
   let mut machine = TestMachine {
     cpu: Cpu::new(),
     hardware: TestHardware::from_memory(&memory),
+    step: Step::Initial,
   };
   init(&mut machine);
 
+  machine.step = machine.cpu.execute_step(&mut machine.hardware, machine.step);
+  machine.hardware.t_cycles = 0;
+
   while machine.hardware.memory[machine.cpu.regs.pc as usize] != 0xed {
-    machine.cpu.execute(&mut machine.hardware);
+    machine.step = machine.cpu.execute_step(&mut machine.hardware, machine.step);
   }
   machine
 }
 
-fn disasm_op<H: Bus>(cpu: &Cpu, bus: &H) -> DisasmStr {
+fn disasm_op(cpu: &Cpu, bus: &TestHardware) -> DisasmStr {
   let pc = cpu.regs.pc;
 
   disasm::disasm(pc, &mut |addr| {

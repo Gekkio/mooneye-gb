@@ -198,55 +198,42 @@ fn ppu_vblank_stat_intr_gs() { run_test("acceptance/ppu/vblank_stat_intr-GS") }
 fn serial_boot_sclk_align_dmg_abc_mgb() { run_test("acceptance/serial/boot_sclk_align-dmgABCmgb") }
 
 #[test]
-#[ignore]
 fn timer_div_write() { run_test("acceptance/timer/div_write") }
 
 #[test]
-#[ignore]
 fn timer_rapid_toggle() { run_test("acceptance/timer/rapid_toggle") }
 
 #[test]
-#[ignore]
 fn timer_tim00() { run_test("acceptance/timer/tim00") }
 
 #[test]
-#[ignore]
 fn timer_tim00_div_trigger() { run_test("acceptance/timer/tim00_div_trigger") }
 
 #[test]
-#[ignore]
 fn timer_tim01() { run_test("acceptance/timer/tim01") }
 
 #[test]
-#[ignore]
 fn timer_tim01_div_trigger() { run_test("acceptance/timer/tim01_div_trigger") }
 
 #[test]
-#[ignore]
 fn timer_tim10() { run_test("acceptance/timer/tim10") }
 
 #[test]
-#[ignore]
 fn timer_tim10_div_trigger() { run_test("acceptance/timer/tim10_div_trigger") }
 
 #[test]
-#[ignore]
 fn timer_tim11() { run_test("acceptance/timer/tim11") }
 
 #[test]
-#[ignore]
 fn timer_tim11_div_trigger() { run_test("acceptance/timer/tim11_div_trigger") }
 
 #[test]
-#[ignore]
 fn timer_tima_reload() { run_test("acceptance/timer/tima_reload") }
 
 #[test]
-#[ignore]
 fn timer_tima_write_reloading() { run_test("acceptance/timer/tima_write_reloading") }
 
 #[test]
-#[ignore]
 fn timer_tma_write_reloading() { run_test("acceptance/timer/tma_write_reloading") }
 
 #[test]

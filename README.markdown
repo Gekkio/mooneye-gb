@@ -310,16 +310,16 @@ Notes:
 
 | Test                 | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
 | -------------------- | ---------- | ---- | -------- | ------ | ---- |
-| div write            | :x:        | :+1: | :x:      | :+1:   | :+1: |
-| rapid toggle         | :x:        | :x:  | :x:      | :x:    | :+1: |
+| div write            | :+1:       | :+1: | :x:      | :+1:   | :+1: |
+| rapid toggle         | :+1:       | :x:  | :x:      | :x:    | :+1: |
 | tim00 div trigger    | :+1:       | :x:  | :+1:     | :x:    | :+1: |
-| tim00                | :x:        | :+1: | :x:      | :+1:   | :+1: |
-| tim01 div trigger    | :x:        | :+1: | :x:      | :x:    | :+1: |
+| tim00                | :+1:       | :+1: | :x:      | :+1:   | :+1: |
+| tim01 div trigger    | :+1:       | :+1: | :x:      | :x:    | :+1: |
 | tim01                | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
-| tim10 div trigger    | :x:        | :+1: | :x:      | :x:    | :+1: |
-| tim10                | :x:        | :+1: | :x:      | :+1:   | :+1: |
+| tim10 div trigger    | :+1:       | :+1: | :x:      | :x:    | :+1: |
+| tim10                | :+1:       | :+1: | :x:      | :+1:   | :+1: |
 | tim11 div trigger    | :+1:       | :x:  | :x:      | :x:    | :+1: |
-| tim11                | :x:        | :+1: | :x:      | :+1:   | :+1: |
+| tim11                | :+1:       | :+1: | :x:      | :+1:   | :+1: |
 | tima reload          | :x:        | :x:  | :x:      | :x:    | :+1: |
 | tima write reloading | :x:        | :x:  | :x:      | :x:    | :+1: |
 | tma write reloading  | :x:        | :x:  | :x:      | :x:    | :+1: |

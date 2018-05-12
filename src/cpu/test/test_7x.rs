@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::Ime;
+use cpu::Step;
 use cpu::test::run_test;
 
 #[test]
@@ -103,11 +103,11 @@ fn test_76() {
   let machine = run_test(
     &[0x76], // HALT
     |machine| {
-      machine.cpu.ime = Ime::Enabled;
+      machine.cpu.ime = true;
     }
   );
-  assert_eq!(machine.hardware.clock_cycles(), 4);
-  assert!(machine.cpu.halt);
+  assert_eq!(machine.hardware.clock_cycles(), 8);
+  assert_eq!(machine.step, Step::Halt);
 }
 
 #[test]
