@@ -16,6 +16,7 @@
 use std::fmt;
 use std::cmp::Ordering;
 
+use arrayvec::ArrayVec;
 use emulation::EmuEvents;
 use gameboy;
 use gameboy::Color;
@@ -511,7 +512,7 @@ impl Gpu {
 
       let current_line = self.current_line;
 
-      let mut sprites_to_draw: Vec<(usize, &Sprite)> = self.oam.iter()
+      let mut sprites_to_draw: ArrayVec<[(usize, &Sprite); 10]> = self.oam.iter()
         .filter(|sprite| current_line.wrapping_sub(sprite.y) < size)
         .take(10)
         .enumerate()

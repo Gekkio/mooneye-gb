@@ -16,6 +16,7 @@
 #![windows_subsystem = "windows"]
 
 extern crate app_dirs;
+extern crate arrayvec;
 #[macro_use]
 extern crate bitflags;
 extern crate crc;
