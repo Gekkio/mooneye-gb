@@ -15,12 +15,15 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #version 110
 
-uniform sampler2D tex;
+uniform sampler2D tex_front;
+uniform sampler2D tex_back;
 uniform mat4 palette;
 
 varying vec2 v_tex_coords;
 
 void main() {
-  float color = texture2D(tex, v_tex_coords).x;
+  float color_front = texture2D(tex_front, v_tex_coords).x;
+  float color_back = texture2D(tex_back, v_tex_coords).x;
+  float color = mix(color_front, color_back, 0.5);
   gl_FragColor = palette[int(color * 255.0 + 0.5)];
 }

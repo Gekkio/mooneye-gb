@@ -78,10 +78,27 @@ pub struct Renderer {
   index_buffer: IndexBuffer<u16>,
   pixel_buffer: PixelBuffer<gameboy::Color>,
   program: Program,
-  texture: Texture,
+  texture_even: Texture,
+  texture_odd: Texture,
   matrix: Matrix4<f32>,
-  palette: Matrix4<f32>
+  palette: Matrix4<f32>,
+  frame_state: FrameState,
 }
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+enum FrameState {
+  Even, Odd
+}
+
+impl FrameState {
+  fn flip(&mut self) {
+    *self = match self {
+      FrameState::Even => FrameState::Odd,
+      FrameState::Odd => FrameState::Even,
+    }
+  }
+}
+
 
 const TEXTURE_WIDTH: u32 = 256;
 const TEXTURE_HEIGHT: u32 = 256;
@@ -133,11 +150,16 @@ impl Renderer {
     let pixel_buffer = PixelBuffer::new_empty(display, gameboy::SCREEN_WIDTH * gameboy::SCREEN_HEIGHT);
     pixel_buffer.write(&vec![gameboy::Color::Off; pixel_buffer.get_size()]);
 
-    let mut texture = try!(Texture::empty_with_format(display,
+    let mut texture_even = try!(Texture::empty_with_format(display,
                                                       UncompressedFloatFormat::U8,
                                                       MipmapsOption::NoMipmap,
                                                       TEXTURE_WIDTH, TEXTURE_HEIGHT));
-    upload_pixels(&mut texture, &pixel_buffer);
+    let mut texture_odd = try!(Texture::empty_with_format(display,
+                                                      UncompressedFloatFormat::U8,
+                                                      MipmapsOption::NoMipmap,
+                                                      TEXTURE_WIDTH, TEXTURE_HEIGHT));
+    upload_pixels(&mut texture_even, &pixel_buffer);
+    upload_pixels(&mut texture_odd, &pixel_buffer);
 
     let (width, height) = display.get_context().get_framebuffer_dimensions();
     let (x_scale, y_scale) = aspect_ratio_correction(width, height);
@@ -153,21 +175,32 @@ impl Renderer {
       index_buffer: index_buffer,
       pixel_buffer: pixel_buffer,
       program: program,
-      texture: texture,
+      texture_even,
+      texture_odd,
       matrix: matrix,
-      palette: palette
+      palette: palette,
+      frame_state: FrameState::Even,
     })
   }
 
   pub fn draw<S: Surface>(&self, frame: &mut S) -> FrontendResult<()> {
     let matrix: &[[f32; 4]; 4] = self.matrix.as_ref();
     let palette: &[[f32; 4]; 4] = self.palette.as_ref();
+
+    let (tex_front, tex_back) = match self.frame_state {
+      FrameState::Even => (&self.texture_even, &self.texture_odd),
+      FrameState::Odd => (&self.texture_odd, &self.texture_even),
+    };
+
     let uniforms = uniform! {
       matrix: matrix.clone(),
       palette: palette.clone(),
-      tex: self.texture.sampled()
+      tex_front: tex_front.sampled()
         .minify_filter(MinifySamplerFilter::Nearest)
-        .magnify_filter(MagnifySamplerFilter::Nearest)
+        .magnify_filter(MagnifySamplerFilter::Nearest),
+      tex_back: tex_back.sampled()
+        .minify_filter(MinifySamplerFilter::Nearest)
+        .magnify_filter(MagnifySamplerFilter::Nearest),
     };
 
     let params = DrawParameters {
@@ -184,6 +217,11 @@ impl Renderer {
   }
   pub fn update_pixels(&mut self, pixels: &gameboy::ScreenBuffer) {
     self.pixel_buffer.write(pixels);
-    upload_pixels(&mut self.texture, &self.pixel_buffer);
+    self.frame_state.flip();
+    let texture = match self.frame_state {
+      FrameState::Odd => &mut self.texture_odd,
+      FrameState::Even => &mut self.texture_even,
+    };
+    upload_pixels(texture, &self.pixel_buffer);
   }
 }
