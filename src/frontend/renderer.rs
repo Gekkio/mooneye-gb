@@ -13,21 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use glium;
-use glium::{DrawError, DrawParameters, IndexBuffer, Program, VertexBuffer, Surface};
+use failure::Error;
+use glium::{DrawParameters, IndexBuffer, Program, VertexBuffer, Surface};
 use glium::backend::Facade;
 use glium::index::PrimitiveType;
-use glium::program::ProgramChooserCreationError;
-use glium::texture::{
-  ClientFormat, MipmapsOption, PixelValue, TextureCreationError, UncompressedFloatFormat
-};
+use glium::texture::{MipmapsOption, UncompressedFloatFormat};
 use glium::texture::pixel_buffer::PixelBuffer;
 use glium::texture::texture2d::Texture2d;
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
+use mooneye_gb;
 use nalgebra::{Matrix4, Vector4};
-
-use gameboy;
-use super::{FrontendError, FrontendResult};
 
 type Texture = Texture2d;
 
@@ -39,44 +34,10 @@ pub struct Vertex {
 
 implement_vertex!(Vertex, position, tex_coords);
 
-unsafe impl PixelValue for gameboy::Color {
-  fn get_format() -> ClientFormat { ClientFormat::U8 }
-}
-
-impl From<DrawError> for FrontendError {
-  fn from(e: DrawError) -> FrontendError {
-    FrontendError::Renderer(format!("{:?}", e))
-  }
-}
-
-impl From<glium::vertex::BufferCreationError> for FrontendError {
-  fn from(e: glium::vertex::BufferCreationError) -> FrontendError {
-    FrontendError::Renderer(format!("{:?}", e))
-  }
-}
-
-impl From<glium::index::BufferCreationError> for FrontendError {
-  fn from(e: glium::index::BufferCreationError) -> FrontendError {
-    FrontendError::Renderer(format!("{:?}", e))
-  }
-}
-
-impl From<ProgramChooserCreationError> for FrontendError {
-  fn from(e: ProgramChooserCreationError) -> FrontendError {
-    FrontendError::Renderer(format!("{:?}", e))
-  }
-}
-
-impl From<TextureCreationError> for FrontendError {
-  fn from(e: TextureCreationError) -> FrontendError {
-    FrontendError::Renderer(format!("{:?}", e))
-  }
-}
-
 pub struct Renderer {
   vertex_buffer: VertexBuffer<Vertex>,
   index_buffer: IndexBuffer<u16>,
-  pixel_buffer: PixelBuffer<gameboy::Color>,
+  pixel_buffer: PixelBuffer<u8>,
   program: Program,
   texture_even: Texture,
   texture_odd: Texture,
@@ -102,15 +63,15 @@ impl FrameState {
 
 const TEXTURE_WIDTH: u32 = 256;
 const TEXTURE_HEIGHT: u32 = 256;
-const TEX_OFFSET_X: f32 = gameboy::SCREEN_WIDTH as f32 / TEXTURE_WIDTH as f32;
-const TEX_OFFSET_Y: f32 = gameboy::SCREEN_HEIGHT as f32 / TEXTURE_HEIGHT as f32;
+const TEX_OFFSET_X: f32 = mooneye_gb::SCREEN_WIDTH as f32 / TEXTURE_WIDTH as f32;
+const TEX_OFFSET_Y: f32 = mooneye_gb::SCREEN_HEIGHT as f32 / TEXTURE_HEIGHT as f32;
 
-fn upload_pixels(texture: &mut Texture, pixel_buffer: &PixelBuffer<gameboy::Color>) {
+fn upload_pixels(texture: &mut Texture, pixel_buffer: &PixelBuffer<u8>) {
   texture.main_level().raw_upload_from_pixel_buffer(
-    pixel_buffer.as_slice(), 0..gameboy::SCREEN_WIDTH as u32, 0..gameboy::SCREEN_HEIGHT as u32, 0 .. 1);
+    pixel_buffer.as_slice(), 0..mooneye_gb::SCREEN_WIDTH as u32, 0..mooneye_gb::SCREEN_HEIGHT as u32, 0 .. 1);
 }
 
-const ASPECT_RATIO: f32 = gameboy::SCREEN_WIDTH as f32 / gameboy::SCREEN_HEIGHT as f32;
+const ASPECT_RATIO: f32 = mooneye_gb::SCREEN_WIDTH as f32 / mooneye_gb::SCREEN_HEIGHT as f32;
 
 fn aspect_ratio_correction(width: u32, height: u32) -> (f32, f32) {
   let fb_aspect_ratio = width as f32 / height as f32;
@@ -120,7 +81,7 @@ fn aspect_ratio_correction(width: u32, height: u32) -> (f32, f32) {
 }
 
 impl Renderer {
-  pub fn new<F: Facade>(display: &F) -> FrontendResult<Renderer> {
+  pub fn new<F: Facade>(display: &F) -> Result<Renderer, Error> {
     let vertexes = [
       Vertex { position: [-1.0, -1.0], tex_coords: [0.0,          TEX_OFFSET_Y] },
       Vertex { position: [-1.0,  1.0], tex_coords: [0.0,          0.0] },
@@ -147,8 +108,8 @@ impl Renderer {
       }
     ));
 
-    let pixel_buffer = PixelBuffer::new_empty(display, gameboy::SCREEN_WIDTH * gameboy::SCREEN_HEIGHT);
-    pixel_buffer.write(&vec![gameboy::Color::Off; pixel_buffer.get_size()]);
+    let pixel_buffer = PixelBuffer::new_empty(display, mooneye_gb::SCREEN_WIDTH * mooneye_gb::SCREEN_HEIGHT);
+    pixel_buffer.write(&[0; mooneye_gb::SCREEN_PIXELS]);
 
     let mut texture_even = try!(Texture::empty_with_format(display,
                                                       UncompressedFloatFormat::U8,
@@ -183,7 +144,7 @@ impl Renderer {
     })
   }
 
-  pub fn draw<S: Surface>(&self, frame: &mut S) -> FrontendResult<()> {
+  pub fn draw<S: Surface>(&self, frame: &mut S) -> Result<(), Error> {
     let matrix: &[[f32; 4]; 4] = self.matrix.as_ref();
     let palette: &[[f32; 4]; 4] = self.palette.as_ref();
 
@@ -215,8 +176,12 @@ impl Renderer {
     self.matrix.m11 = x_scale;
     self.matrix.m22 = y_scale;
   }
-  pub fn update_pixels(&mut self, pixels: &gameboy::ScreenBuffer) {
-    self.pixel_buffer.write(pixels);
+  pub fn update_pixels(&mut self, pixels: &mooneye_gb::ScreenBuffer) {
+    let mut buffer = [0u8; mooneye_gb::SCREEN_PIXELS];
+    for idx in 0..mooneye_gb::SCREEN_PIXELS {
+      buffer[idx] = pixels[idx] as u8;
+    }
+    self.pixel_buffer.write(&buffer);
     self.frame_state.flip();
     let texture = match self.frame_state {
       FrameState::Odd => &mut self.texture_odd,

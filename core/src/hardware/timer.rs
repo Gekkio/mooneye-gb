@@ -108,10 +108,9 @@ impl Timer {
     (self.internal_counter & self.tac.counter_mask()) != 0
   }
   fn increment(&mut self) {
-    self.counter = self.counter.wrapping_add(1);
-    if self.counter == 0x00 {
-      self.overflow = true;
-    }
+    let (counter, overflow) = self.counter.overflowing_add(1);
+    self.counter = counter;
+    self.overflow = overflow;
   }
   pub fn tick_cycle<I: InterruptRequest>(&mut self, intr_req: &mut I) {
     if self.overflow {

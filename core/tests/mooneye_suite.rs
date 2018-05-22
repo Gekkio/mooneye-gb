@@ -13,10 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use self::fixture::{run_test, run_test_with_model, run_test_with_models};
-use config::Model::*;
+extern crate mooneye_gb;
 
-mod fixture;
+use std::path::PathBuf;
+use std::time::{Duration, Instant};
+
+use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig, Model};
+use mooneye_gb::config::Model::*;
+use mooneye_gb::config::DEFAULT_MODEL_PRIORITY;
+use mooneye_gb::emulation::{EmuTime, EmuEvents};
+use mooneye_gb::machine::Machine;
 
 #[test]
 fn add_sp_e_timing() { run_test("acceptance/add_sp_e_timing") }
@@ -265,3 +271,61 @@ fn mbc1_ram_25kb() { run_test("emulator-only/mbc1/ram_256Kb") }
 
 #[test]
 fn mbc1_multicart_rom_8mb() { run_test("emulator-only/mbc1/multicart_rom_8Mb") }
+
+fn run_test_with_model(name: &str, model: Model) {
+  let bootrom = Bootrom::lookup(&[model])
+    .unwrap_or_else(|| panic!("No boot ROM found ({:?})", model));
+
+  let test_name = format!("../tests/build/{}.gb", name);
+  let cartridge_path = PathBuf::from(&test_name);
+  let cartridge = Cartridge::from_path(&cartridge_path).unwrap();
+
+  let hardware_config = HardwareConfig {
+    model: model,
+    bootrom: Some(bootrom.data),
+    cartridge: cartridge
+  };
+
+  let max_duration = Duration::from_secs(120);
+  let start_time = Instant::now();
+  let pulse_duration = EmuTime::from_machine_cycles(1_000_000);
+
+  let mut machine = Machine::new(hardware_config);
+  let mut registers = None;
+  let mut emu_time = EmuTime::zero();
+  loop {
+    let time = Instant::now();
+    if time - start_time > max_duration {
+      break;
+    }
+    let (events, end_time) = machine.emulate(emu_time + pulse_duration);
+    emu_time = end_time;
+    if events.contains(EmuEvents::DEBUG_OP) {
+      registers = Some(machine.regs());
+      break;
+    }
+  }
+  match registers {
+    None => panic!("Test did not finish ({:?})", model),
+    Some(regs) => {
+      if regs.a != 0 {
+        panic!("{} assertion failures in hardware test ({:?})", regs.a, model);
+      }
+      if regs.b != 3  || regs.c != 5  ||
+         regs.d != 8  || regs.e != 13 ||
+         regs.h != 21 || regs.l != 34 {
+        panic!("Hardware test failed ({:?})", model);
+      }
+    }
+  }
+}
+
+fn run_test_with_models(name: &str, models: &[Model]) {
+  for &model in models {
+    run_test_with_model(name, model);
+  }
+}
+
+fn run_test(name: &str) {
+  run_test_with_models(name, &DEFAULT_MODEL_PRIORITY);
+}

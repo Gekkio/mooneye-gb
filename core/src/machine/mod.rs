@@ -17,7 +17,7 @@ use config::HardwareConfig;
 use cpu::{Cpu, Step};
 use cpu::registers::Registers;
 use emulation::{EmuTime, EmuEvents};
-use frontend::{GbKey};
+use ::GbKey;
 use gameboy;
 use hardware::Hardware;
 pub use self::perf_counter::PerfCounter;

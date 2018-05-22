@@ -17,7 +17,7 @@ use std::fmt;
 
 use config::HardwareConfig;
 use emulation::{EmuEvents, EmuTime};
-use frontend::{GbKey};
+use ::GbKey;
 use gameboy;
 use gameboy::{HiramData, HIRAM_EMPTY};
 use hardware::apu::Apu;

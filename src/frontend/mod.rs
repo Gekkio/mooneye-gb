@@ -13,8 +13,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use glium::{Api, Surface, SwapBuffersError, Version};
-use glium_sdl2::{Display, DisplayBuild, GliumSdl2Error};
+use failure::Error;
+use glium::{Api, Surface, Version};
+use glium_sdl2::{Display, DisplayBuild};
 use imgui::ImGui;
 use imgui_glium_renderer;
 use sdl2;
@@ -23,19 +24,15 @@ use sdl2::controller::{Axis, Button};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::video::gl_attr::GLAttr;
-use std::convert::From;
-use std::error::Error;
-use std::fmt;
 use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
 use url::Url;
 
-use errors::{MooneyeErrorKind, MooneyeResult};
-use config::{Bootrom, Cartridge, HardwareConfig};
-use emulation::{EmuTime, EmuEvents};
-use gameboy;
-use machine::{Machine, PerfCounter};
+use mooneye_gb::*;
+use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig};
+use mooneye_gb::emulation::{EmuTime, EmuEvents};
+use mooneye_gb::machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
 use self::gui::{Screen};
 use self::renderer::Renderer;
@@ -43,11 +40,6 @@ use self::renderer::Renderer;
 mod fps;
 mod gui;
 mod renderer;
-
-#[derive(Debug)]
-pub enum GbKey {
-  Right, Left, Up, Down, A, B, Select, Start
-}
 
 pub struct SdlFrontend {
   sdl: Sdl,
@@ -82,57 +74,6 @@ impl FrontendState {
         cartridge: Cartridge::no_cartridge(),
       }),
       _ => WaitBootrom(None)
-    }
-  }
-}
-
-#[derive(Clone, Debug)]
-pub enum FrontendError {
-  Sdl(String),
-  Renderer(String),
-  Other(String)
-}
-
-pub type FrontendResult<T> = Result<T, FrontendError>;
-
-impl From<sdl2::IntegerOrSdlError> for FrontendError {
-  fn from(e: sdl2::IntegerOrSdlError) -> FrontendError {
-    FrontendError::Sdl(format!("{:?}", e))
-  }
-}
-
-impl From<GliumSdl2Error> for FrontendError {
-  fn from(e: GliumSdl2Error) -> FrontendError {
-    FrontendError::Renderer(format!("{:?}", e))
-  }
-}
-
-impl From<SwapBuffersError> for FrontendError {
-  fn from(e: SwapBuffersError) -> FrontendError {
-    FrontendError::Renderer(format!("{:?}", e))
-  }
-}
-
-impl From<String> for FrontendError {
-  fn from(e: String) -> FrontendError {
-    FrontendError::Other(e)
-  }
-}
-
-impl Error for FrontendError {
-  fn description(&self) -> &str {
-    use self::FrontendError::*;
-    match *self {
-      Sdl(ref msg) | Renderer(ref msg) | Other(ref msg) => msg
-    }
-  }
-}
-
-impl fmt::Display for FrontendError {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    use self::FrontendError::*;
-    match *self {
-      Sdl(ref msg) | Renderer(ref msg) | Other(ref msg) => f.write_str(msg)
     }
   }
 }
@@ -173,12 +114,15 @@ impl FrameTimes {
 }
 
 impl SdlFrontend {
-  pub fn init() -> FrontendResult<SdlFrontend> {
-    let sdl = try!(sdl2::init());
-    let sdl_video = try!(sdl.video());
+  pub fn init() -> Result<SdlFrontend, Error> {
+    let sdl = sdl2::init()
+      .map_err(|msg| format_err!("SDL2 initialization failed: {}", msg))?;
+    let sdl_video = sdl.video()
+      .map_err(|msg| format_err!("SDL2 video initialization failed: {}", msg))?;
     configure_gl_attr(&mut sdl_video.gl_attr());
 
-    let event_pump = try!(sdl.event_pump());
+    let event_pump = sdl.event_pump()
+      .map_err(|msg| format_err!("SDL2 event pump failure: {}", msg))?;
 
     let display =
       try!(sdl_video.window("Mooneye GB", 640, 576).opengl().position_centered().build_glium());
@@ -193,7 +137,8 @@ impl SdlFrontend {
     let mut imgui = ImGui::init();
     imgui.set_ini_filename(None);
     imgui.set_log_filename(None);
-    let gui_renderer = try!(imgui_glium_renderer::Renderer::init(&mut imgui, &display));
+    let gui_renderer = imgui_glium_renderer::Renderer::init(&mut imgui, &display)
+      .map_err(|e| format_err!("Failed to initialize renderer: {}", e))?;
 
     Ok(SdlFrontend {
       sdl: sdl,
@@ -206,7 +151,7 @@ impl SdlFrontend {
       times: FrameTimes::new(Duration::from_secs(1) / 60)
     })
   }
-  pub fn main(mut self, bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> FrontendResult<()> {
+  pub fn main(mut self, bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> Result<(), Error> {
     let mut state = FrontendState::from_roms(bootrom, cartridge);
     loop {
       state =
@@ -218,7 +163,7 @@ impl SdlFrontend {
     }
     Ok(())
   }
-  fn main_wait_bootrom(&mut self, cartridge: Option<Cartridge>) -> FrontendResult<FrontendState> {
+  fn main_wait_bootrom(&mut self, cartridge: Option<Cartridge>) -> Result<FrontendState, Error> {
     self.sdl_video.gl_set_swap_interval(1);
 
     let mut screen = gui::WaitBootromScreen::default();
@@ -235,7 +180,7 @@ impl SdlFrontend {
           Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
           Event::DropFile{filename, ..} => {
             let result = resolve_sdl_filename(filename)
-              .and_then(|path| Bootrom::from_path(&path).map_err(|e| MooneyeErrorKind::Msg(format!("{}", e)).into()));
+              .and_then(|path| Ok(Bootrom::from_path(&path)?));
             match result {
               Ok(bootrom) => {
                 if let Err(error) = bootrom.save_to_data_dir() {
@@ -257,17 +202,19 @@ impl SdlFrontend {
 
       let ui = self.imgui.frame((width, height), (width, height), delta_s);
       screen.render(&ui);
-      try!(self.gui_renderer.render(&mut target, ui));
+      self.gui_renderer.render(&mut target, ui)
+        .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
       try!(target.finish());
 
       self.times.limit();
     }
     Ok(FrontendState::Exit)
   }
-  fn main_in_game(&mut self, config: HardwareConfig) -> FrontendResult<FrontendState> {
+  fn main_in_game(&mut self, config: HardwareConfig) -> Result<FrontendState, Error> {
     let mut screen = gui::InGameScreen::new(&config);
     let mut machine = Machine::new(config.clone());
-    let sdl_game_controller = try!(self.sdl.game_controller());
+    let sdl_game_controller = self.sdl.game_controller()
+      .map_err(|msg| format_err!("SDL2 game controller initialization failure: {}", msg))?;
 
     let mut fps_counter = FpsCounter::new();
     let mut perf_counter = PerfCounter::new();
@@ -284,7 +231,7 @@ impl SdlFrontend {
       fps_counter.update(self.times.last_time);
       screen.fps = fps_counter.get_fps();
       screen.perf =
-        100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / gameboy::CPU_SPEED_HZ as f64;
+        100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
 
       for event in self.event_pump.poll_iter() {
         match event {
@@ -328,7 +275,7 @@ impl SdlFrontend {
           },
           Event::DropFile{filename, ..} => {
             let result = resolve_sdl_filename(filename)
-              .and_then(|path| Cartridge::from_path(&path));
+              .and_then(|path| Ok(Cartridge::from_path(&path)?));
             match result {
               Ok(cartridge) => return Ok(FrontendState::InGame(HardwareConfig {
                 cartridge: cartridge,
@@ -349,9 +296,9 @@ impl SdlFrontend {
       let ui = self.imgui.frame((width, height), (width, height), delta_s);
       let machine_cycles = EmuTime::from_machine_cycles(
         if turbo {
-          gameboy::CPU_SPEED_HZ as u64 / 60
+          CPU_SPEED_HZ as u64 / 60
         } else {
-          ((delta * gameboy::CPU_SPEED_HZ as u32).as_secs() as u64)
+          ((delta * CPU_SPEED_HZ as u32).as_secs() as u64)
         } / 4);
 
       let target_time = emu_time + machine_cycles;
@@ -371,7 +318,8 @@ impl SdlFrontend {
       try!(self.renderer.draw(&mut target));
 
       screen.render(&ui);
-      try!(self.gui_renderer.render(&mut target, ui));
+      self.gui_renderer.render(&mut target, ui)
+        .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
       try!(target.finish());
 
       if !turbo {
@@ -430,11 +378,11 @@ fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
   }
 }
 
-fn resolve_sdl_filename(filename: String) -> MooneyeResult<PathBuf> {
+fn resolve_sdl_filename(filename: String) -> Result<PathBuf, Error> {
   let mut url_str = "file://".to_owned();
   url_str.push_str(&filename);
   let url = Url::parse(&url_str)?;
-  url.to_file_path().map_err(|_| MooneyeErrorKind::Msg("Failed to parse path".into()).into())
+  url.to_file_path().map_err(|_| format_err!("Failed to parse path"))
 }
 
 #[cfg(not(target_os = "macos"))]

@@ -1,15 +1,7 @@
 use imgui::{ImGuiCol, ImGuiCond, ImString, ImVec4, Ui};
-use imgui_glium_renderer::RendererError;
 use std::f32;
 
-use config::HardwareConfig;
-use super::FrontendError;
-
-impl From<RendererError> for FrontendError {
-  fn from(e: RendererError) -> FrontendError {
-    FrontendError::Renderer(format!("{}", e))
-  }
-}
+use mooneye_gb::config::HardwareConfig;
 
 pub trait Screen {
   fn render(&mut self, ui: &Ui);

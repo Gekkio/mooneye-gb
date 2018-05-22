@@ -3,8 +3,8 @@
 *.gb
 *.o
 *.link
+*.dll
 imgui.ini
+target/
+Cargo.lock
 /roms
-/target
-/Cargo.lock
-/*.dll

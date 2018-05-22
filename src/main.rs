@@ -15,14 +15,9 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #![windows_subsystem = "windows"]
 
-extern crate app_dirs;
-extern crate arrayvec;
-#[macro_use]
-extern crate bitflags;
-extern crate crc;
 extern crate docopt;
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 #[macro_use]
 extern crate glium;
 extern crate glium_sdl2;
@@ -31,6 +26,7 @@ extern crate imgui;
 extern crate imgui_glium_renderer;
 #[macro_use]
 extern crate log;
+extern crate mooneye_gb;
 extern crate nalgebra;
 extern crate num_traits;
 #[macro_use]
@@ -39,32 +35,16 @@ extern crate sdl2;
 extern crate simplelog;
 extern crate url;
 
-#[cfg(test)]
-extern crate quickcheck;
-
 use docopt::Docopt;
-use error_chain::ChainedError;
+use failure::Error;
+use mooneye_gb::config::{Bootrom, Cartridge, Model};
 use simplelog::{LevelFilter, TermLogger};
 use std::path::Path;
 use std::process;
 
-use config::{Bootrom, Cartridge, Model};
 use frontend::SdlFrontend;
 
-pub use errors::*;
-
-mod config;
-mod cpu;
-mod emulation;
-mod errors;
 mod frontend;
-mod gameboy;
-mod hardware;
-mod machine;
-mod util;
-
-#[cfg(feature = "acceptance_tests")]
-mod acceptance_tests;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -101,7 +81,7 @@ fn read_boot_rom(path: &str, expected_model: Option<Model>) -> Bootrom {
   bootrom
 }
 
-fn run() -> MooneyeResult<()> {
+fn run() -> Result<(), Error> {
   let args: Args =
     Docopt::new(USAGE)
     .and_then(|d| d.deserialize())
@@ -134,15 +114,13 @@ fn run() -> MooneyeResult<()> {
       })
     });
 
-  match SdlFrontend::init() {
-    Ok(frontend) => frontend.main(bootrom, cartridge).map_err(|err| format!("{}", err).into()),
-    Err(e) => bail!("{}", e)
-  }
+  let frontend = SdlFrontend::init()?;
+  frontend.main(bootrom, cartridge)
 }
 
 fn main() {
   if let Err(ref e) = run() {
-    error!("{}", e.display_chain());
+    error!("{:?}", e);
 
     process::exit(1);
   }

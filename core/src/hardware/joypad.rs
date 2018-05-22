@@ -16,7 +16,7 @@
 use std::fmt;
 use std::fmt::{Binary, Formatter, LowerHex, UpperHex};
 
-use frontend::GbKey;
+use ::GbKey;
 use hardware::irq::{Irq, Interrupt, InterruptRequest};
 
 /// Gameboy joypad.

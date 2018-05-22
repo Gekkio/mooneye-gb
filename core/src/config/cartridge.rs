@@ -15,11 +15,10 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 use std::fs::File;
-use std::io::Read;
+use std::io::{self, Read};
 use std::path::Path;
 use std::str;
 
-use errors::{MooneyeResult};
 use gameboy::ROM_BANK_SIZE;
 
 #[derive(Clone, Debug)]
@@ -29,6 +28,18 @@ pub struct Cartridge {
   pub cartridge_type: CartridgeType,
   pub rom_size: CartridgeRomSize,
   pub ram_size: CartridgeRamSize
+}
+
+#[derive(Fail, Debug)]
+pub enum CartridgeError {
+  #[fail(display = "IO error: {}", _0)]
+  Io(#[cause] io::Error),
+  #[fail(display = "Invalid cartridge: {}", _0)]
+  Validation(String)
+}
+
+impl From<io::Error> for CartridgeError {
+  fn from(e: io::Error) -> CartridgeError { CartridgeError::Io(e) }
 }
 
 impl Cartridge {
@@ -41,43 +52,43 @@ impl Cartridge {
       ram_size: CartridgeRamSize::NoRam,
     }
   }
-  pub fn from_path(path: &Path) -> MooneyeResult<Cartridge> {
+  pub fn from_path(path: &Path) -> Result<Cartridge, CartridgeError> {
     let mut file = File::open(path)?;
     let mut data = vec!();
     file.read_to_end(&mut data)?;
     Cartridge::from_data(data)
   }
-  pub fn from_data(data: Vec<u8>) -> MooneyeResult<Cartridge> {
+  pub fn from_data(data: Vec<u8>) -> Result<Cartridge, CartridgeError> {
     let new_cartridge = data[0x14b] == 0x33;
 
     let title = {
       let slice =
         if new_cartridge { &data[0x134 .. 0x13f] } else { &data[0x134 .. 0x143] };
       let utf8 = try!(str::from_utf8(slice).map_err(|_|{
-        "Invalid ROM title".to_string()
+        CartridgeError::Validation("Invalid ROM title".to_string())
       }));
 
       utf8.trim_right_matches('\0').to_string()
     };
 
     let cartridge_type = try!(CartridgeType::from_u8(data[0x147]).ok_or_else(||{
-      format!("Unsupported cartridge type {:02x}", data[0x147])
+      CartridgeError::Validation(format!("Unsupported cartridge type {:02x}", data[0x147]))
     }));
     let rom_size = try!(CartridgeRomSize::from_u8(data[0x148]).ok_or_else(||{
-      format!("Unsupported rom size {:02x}", data[0x148])
+      CartridgeError::Validation(format!("Unsupported rom size {:02x}", data[0x148]))
     }));
     let ram_size = try!(CartridgeRamSize::from_u8(data[0x149]).ok_or_else(||{
-      format!("Unsupported ram size {:02x}", data[0x149])
+      CartridgeError::Validation(format!("Unsupported ram size {:02x}", data[0x149]))
     }));
 
     if cartridge_type.should_have_ram() && ram_size == CartridgeRamSize::NoRam {
-      bail!("{:?} cartridge without ram", cartridge_type)
+      return Err(CartridgeError::Validation(format!("{:?} cartridge without ram", cartridge_type)))
     }
     if !cartridge_type.should_have_ram() && ram_size != CartridgeRamSize::NoRam {
-      bail!("{:?} cartridge with ram size {:02x}", cartridge_type, data[0x149])
+      return Err(CartridgeError::Validation(format!("{:?} cartridge with ram size {:02x}", cartridge_type, data[0x149])))
     }
     if data.len() != rom_size.as_usize() {
-      bail!("Expected {} bytes of cartridge ROM, got {:?}", rom_size.as_usize(), data.len());
+      return Err(CartridgeError::Validation(format!("Expected {} bytes of cartridge ROM, got {:?}", rom_size.as_usize(), data.len())));
     }
 
     Ok(Cartridge {

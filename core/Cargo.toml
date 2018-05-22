@@ -1,0 +1,25 @@
+[package]
+name = "mooneye-gb-core"
+version = "0.2.0-pre"
+authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
+license = "GPL-3.0+"
+
+[lib]
+name = "mooneye_gb"
+path = "src/lib.rs"
+
+[dependencies]
+app_dirs = "1.2"
+arrayvec = "0.4"
+bitflags = "1.0"
+crc = "1.3"
+failure = "0.1"
+failure_derive = "0.1"
+log = "0.4"
+num-traits = "0.2"
+serde = "1.0"
+serde_derive = "1.0"
+url = "1.7"
+
+[dev-dependencies]
+quickcheck = "0.6"

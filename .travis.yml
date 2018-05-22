@@ -37,7 +37,5 @@ before_install:
 
 script:
 - cargo build --verbose
-- cargo test --verbose
-- ./run_acceptance_tests.sh
-- cargo build --verbose
 - make -C tests clean all
+- cargo test --all --verbose
