@@ -8,14 +8,14 @@ authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 license = "GPL-3.0+"
 
 [dependencies]
-docopt = "0.8"
+docopt = "1.0"
 failure = "0.1"
 glium_sdl2 = { git = "https://github.com/Gekkio/glium-sdl2.git", branch = "glium0.19-sdl0.31" }
 imgui = "0.0.18"
 imgui-glium-renderer = "0.0.18"
 log = "0.4"
 mooneye-gb-core = { version = "0.2.0-pre", path = "core" }
-nalgebra = "0.14"
+nalgebra = "0.15"
 num-traits = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
