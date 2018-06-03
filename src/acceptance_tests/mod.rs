@@ -27,7 +27,7 @@ fn boot_hwio_dmg_0() { run_test_with_model("acceptance/boot_hwio-dmg0", Dmg0) }
 
 #[test]
 #[ignore]
-fn boot_hwio_dmg_abcx_mgb() { run_test_with_models("acceptance/boot_hwio-dmgABCXmgb", &[Dmg, Mgb]) }
+fn boot_hwio_dmg_abc_mgb() { run_test_with_models("acceptance/boot_hwio-dmgABCmgb", &[Dmg, Mgb]) }
 
 #[test]
 fn boot_hwio_s() { run_test_with_models("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
@@ -36,7 +36,7 @@ fn boot_hwio_s() { run_test_with_models("acceptance/boot_hwio-S", &[Sgb, Sgb2]) 
 fn boot_regs_dmg0() { run_test_with_model("acceptance/boot_regs-dmg0", Dmg0) }
 
 #[test]
-fn boot_regs_dmg_abcx() { run_test_with_model("acceptance/boot_regs-dmgABCX", Dmg) }
+fn boot_regs_dmg_abc() { run_test_with_model("acceptance/boot_regs-dmgABC", Dmg) }
 
 #[test]
 fn boot_regs_mgb() { run_test_with_model("acceptance/boot_regs-mgb", Mgb) }
@@ -150,7 +150,7 @@ fn oam_dma_basic() { run_test("acceptance/oam_dma/basic") }
 fn oam_dma_reg_read() { run_test("acceptance/oam_dma/reg_read") }
 
 #[test]
-fn oam_dma_sources_dmg_abcx_mgb_s() { run_test("acceptance/oam_dma/sources-dmgABCXmgbS") }
+fn oam_dma_sources_dmg_abc_mgb_s() { run_test("acceptance/oam_dma/sources-dmgABCmgbS") }
 
 #[test]
 fn ppu_hblank_ly_scx_timing_gs() { run_test("acceptance/ppu/hblank_ly_scx_timing-GS") }
@@ -180,7 +180,7 @@ fn ppu_intr_2_oam_ok_timing() { run_test("acceptance/ppu/intr_2_oam_ok_timing") 
 
 #[test]
 #[ignore]
-fn ppu_lcdon_timing_dmg_abcx_mgb_s() { run_test("acceptance/ppu/lcdon_timing-dmgABCXmgbS") }
+fn ppu_lcdon_timing_dmg_abc_mgb_s() { run_test("acceptance/ppu/lcdon_timing-dmgABCmgbS") }
 
 #[test]
 #[ignore]
@@ -195,7 +195,7 @@ fn ppu_vblank_stat_intr_gs() { run_test("acceptance/ppu/vblank_stat_intr-GS") }
 
 #[test]
 #[ignore]
-fn serial_boot_sclk_align_dmg_abcx_mgb() { run_test("acceptance/serial/boot_sclk_align-dmgABCXmgb") }
+fn serial_boot_sclk_align_dmg_abc_mgb() { run_test("acceptance/serial/boot_sclk_align-dmgABCmgb") }
 
 #[test]
 #[ignore]

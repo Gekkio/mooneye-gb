@@ -22,7 +22,7 @@
 ; subsequent STAT interrupts if the signal is never cleared
 
 ; Verified results:
-;   pass: DMG, MGB, CGB, AGB, AGS
+;   pass: DMG ABC, MGB, CGB, AGB, AGS
 ;   fail: DMG 0
 
 .incdir "../../common"

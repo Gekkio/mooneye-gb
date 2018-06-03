@@ -22,7 +22,7 @@
 ; including the area past $DFFF.
 
 ; Verified results:
-;   pass: DMG ABCX, MGB, SGB, SGB2
+;   pass: DMG ABC, MGB, SGB, SGB2
 ;   fail: DMG 0, CGB, AGB, AGS
 
 .define CART_TYPE 3 ; MBC1

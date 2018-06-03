@@ -23,7 +23,7 @@
 ; Therefore, we skip $FF30-$FF3F (wave ram)
 
 ; Verified results:
-;   pass: DMG, MGB
+;   pass: DMG ABC, MGB
 ;   fail: DMG 0, SGB, SGB2, CGB, AGB, AGS
 
 .incdir "../common"

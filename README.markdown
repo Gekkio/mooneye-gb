@@ -52,7 +52,6 @@ All test ROMs are manually run with these devices:
 | Game Boy            | DMG-01   | DMG-CPU-02   | DMG-CPU A        | [G02487032](https://gbhwdb.gekkio.fi/consoles/dmg/G02487032.html)               |
 | Game Boy            | DMG-01   | DMG-CPU-04   | DMG-CPU B        | [G10888299](https://gbhwdb.gekkio.fi/consoles/dmg/G10888299.html)               |
 | Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU C        | [GM6058180](https://gbhwdb.gekkio.fi/consoles/dmg/GM6058180.html)               |
-| Game Boy            | DMG-01   | DMG-CPU-07   | DMG-CPU X (blob) | [G38953646](https://gbhwdb.gekkio.fi/consoles/dmg/G38953646.html)               |
 | Super Game Boy      | SHVC-027 | SGB-R-10     | SGB-CPU-01       | [SGB Unit #2 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb/gekkio-2.html)   |
 | Game Boy Pocket     | MGB-001  | MGB-CPU-01   | CPU MGB          | [M10280516](https://gbhwdb.gekkio.fi/consoles/mgb/M10280516.html)               |
 | Super Game Boy 2    | SHVC-042 | SHVC-SGB2-01 | CPU SGB2         | [SGB2 Unit #1 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb2/gekkio-1.html) |
@@ -66,6 +65,13 @@ All test ROMs are manually run with these devices:
 | Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        | [AH12465671](https://gbhwdb.gekkio.fi/consoles/agb/AH12465671.html)             |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        | [XJH10027945](https://gbhwdb.gekkio.fi/consoles/ags/XJH10027945.html)           |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      | [XEH17807928](https://gbhwdb.gekkio.fi/consoles/ags/XEH17807928.html)           |
+
+These devices will also be used, but results for old tests have not yet been
+verified:
+
+| Device              | Model    | Mainboard    | CPU              | Detailed information                                                          |
+| ------------------- | -------- | ------------ | -----------      | ----                                                                          |
+| Game Boy Player     | DOL-017  | DOL-GBS-20   | CPU CGB A E      | [GBS Unit #3 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/gbs/gekkio-3.html) |
 
 ### Additional devices
 
@@ -82,11 +88,12 @@ units.
 
 | Device              | Model    | Mainboard    | CPU              | Detailed information                                                          |
 | ------------------- | -------- | ------------ | -----------      | ----                                                                          |
-| Game Boy            | DMG-01   | DMG-CPU-01   | DMG-CPU          | [G01036814](https://gbhwdb.gekkio.fi/consoles/dmg/G01036814.html)
+| Game Boy            | DMG-01   | DMG-CPU-01   | DMG-CPU          | [G01036814](https://gbhwdb.gekkio.fi/consoles/dmg/G01036814.html)             |
 | Game Boy            | DMG-01   | DMG-CPU-03   | DMG-CPU B        | [G06551776](https://gbhwdb.gekkio.fi/consoles/dmg/G06551776.html)             |
 | Game Boy            | DMG-01   | DMG-CPU-05   | DMG-CPU B        | [G13289095](https://gbhwdb.gekkio.fi/consoles/dmg/G13289095.html)             |
 | Game Boy            | DMG-01   | DMG-CPU-06   | DMG-CPU B        |                                                                               |
-| Game Boy            | DMG-01   | DMG-CPU-08   | DMG-CPU X (blob) |                                                                               |
+| Game Boy            | DMG-01   | DMG-CPU-07   | DMG-CPU B (blob) | [G38953646](https://gbhwdb.gekkio.fi/consoles/dmg/G38953646.html)             |
+| Game Boy            | DMG-01   | DMG-CPU-08   | DMG-CPU C (blob) |                                                                               |
 | Super Game Boy      | SNSP-027 | SGB-R-10     | SGB-CPU-01       | [SGB Unit #7 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/sgb/gekkio-7.html) |
 | Game Boy Pocket     | MGB-001  | MGB-ECPU-01  | CPU MGB          | [MH12573718](https://gbhwdb.gekkio.fi/consoles/mgb/MH12573718.html)           |
 | Game Boy Pocket     | MGB-001  | MGB-LCPU-01  | CPU MGB          | [M12827347](https://gbhwdb.gekkio.fi/consoles/mgb/M12827347.html)             |
@@ -101,13 +108,6 @@ units.
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-11 | CPU AGB B        | [XJF10485171](https://gbhwdb.gekkio.fi/consoles/ags/XJF10485171.html)         |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-30 | CPU AGB B E      | [XEH20137204](https://gbhwdb.gekkio.fi/consoles/ags/XEH20137204.html)         |
 | Game Boy Advance SP | AGS-101  | C/AGT-CPU-01 | CPU AGB B E      | [XU72764025-1](https://gbhwdb.gekkio.fi/consoles/ags/XU72764025-1.html)       |
-
-These devices will also be used, but results for old tests have not yet been
-verified:
-
-| Device              | Model    | Mainboard    | CPU              | Detailed information                                                          |
-| ------------------- | -------- | ------------ | -----------      | ----                                                                          |
-| Game Boy Player     | DOL-017  | DOL-GBS-20   | CPU CGB A E      | [GBS Unit #3 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/gbs/gekkio-3.html) |
 
 I'm still looking for the following mainboards, but these are probably not
 required for reverse engineering:
@@ -390,10 +390,11 @@ Revision 0 refers always to the initial version of a CPU (e.g. CPU CGB). AGB
 and AGS use the same CPU models.  The following CPU models have several
 revisions:
 
-* DMG: 0, A, B, C, X (blob)
+* DMG: 0, A, B, C
 * CGB: 0, A, B, C, D, E
-* AGB: 0, A, B, B E. Revision E also exists, but only in Game Boy Micro (OXY)
-  so it is out of this project's scope.
+* AGB: 0, A, A E, B, B E. Revision E also exists, but only in Game Boy Micro
+  (OXY) so it is out of this project's scope. However, A E and B E are most
+  likely actually just E revision in A or B-compatible package.
 
 In general, hardware can be divided to a couple of groups based on their
 behaviour. Some tests are expected to pass on a single or multiple groups:

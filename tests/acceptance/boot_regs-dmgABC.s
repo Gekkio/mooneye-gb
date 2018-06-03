@@ -18,62 +18,50 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-; Tests when a serial transfer completes if one is started after boot.
-; Expectations:
-;   - the transfer doesn't start immediately
-;   - serial clock is divided from the main clock with a big counter, so
-;     clock edges align based on the *reset time*, not the time when SC is
-;     written to
+; Tests initial register values
 
 ; Verified results:
-;   pass: DMG ABCX, MGB
-;   fail: DMG 0, SGB, SGB2, CGB, AGB, AGS
+;   pass: DMG ABC
+;   fail: DMG 0, MGB, SGB, SGB2, CGB, AGB, AGS
 
+.incdir "../common"
 .include "common.s"
 
-  ld a, INTR_SERIAL
-  ldh (<IE), a
+; First, let's check SP since it's not part of the normal save_results
+; mechanism
+.define EXPECTED_SP $FFFE
 
-  xor a
-  ldh (<IF), a
+  ld (sp_save), sp
+  ld sp, $FFFE
 
-  xor a
-  ld b, a
-  ld c, a
-  ld d, a
-  ld e, a
-  ld h, a
-  ld l, a
+  push af
 
-  ; We request a serial transfer here
-  ld a, $81
-  ldh (<SC), a
+  ld a, (sp_save)
+  cp <EXPECTED_SP
+  jr nz, invalid_sp
 
-  ei
+  ld a, (sp_save+1)
+  cp >EXPECTED_SP
+  jr nz, invalid_sp
 
-.repeat 2000
-  inc a
-  inc b
-  inc c
-  inc d
-  inc e
-  inc h
-  inc l
-.endr
+  pop af
 
-  di
-  test_failure_string "No serial intr"
+; Now, let's check all the other registers
 
-test_finish:
   save_results
-  assert_a $12
-  assert_b $91
-  assert_c $90
-  assert_d $90
-  assert_e $90
-  assert_h $90
-  assert_l $90
+  assert_a $01
+  assert_f $B0
+  assert_b $00
+  assert_c $13
+  assert_d $00
+  assert_e $D8
+  assert_h $01
+  assert_l $4D
   jp process_results
 
-.org INTR_VEC_SERIAL
-  jp test_finish
+invalid_sp:
+  test_failure_string "INVALID SP VALUE"
+
+.ramsection "Test-State" slot 2
+  sp_save dw
+.ends

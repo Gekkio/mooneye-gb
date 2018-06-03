@@ -26,7 +26,7 @@
 ;   - line 1 and line 2 have normal timings
 
 ; Verified results:
-;   pass: DMG ABCX, MGB, SGB, SGB2
+;   pass: DMG ABC, MGB, SGB, SGB2
 ;   fail: DMG 0, CGB, AGB, AGS
 
 ; On real hardware, failures can be grouped into three categories:
