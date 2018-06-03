@@ -29,3 +29,6 @@ default-features = false
 
 [profile.test]
 opt-level = 1
+
+[features]
+include-bootroms = ["mooneye-gb-core/include-bootroms"]

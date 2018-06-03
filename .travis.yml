@@ -29,13 +29,13 @@ cache:
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_f29b02af6b5b_key -iv $encrypted_f29b02af6b5b_iv -in .travis/boot_roms.tar.enc -out .travis/boot_roms.tar -d
-- tar xvf .travis/boot_roms.tar
+- tar -C core/bootroms xvf .travis/boot_roms.tar
 - .travis/install_wla-dx.sh
 - export PATH=$PATH:$HOME/bin
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install sdl2; fi
 
 script:
-- cargo build --verbose
+- cargo build --features include-bootroms --verbose
 - make -C tests clean all
-- cargo test --all --verbose
+- cargo test --features include-bootroms --all --verbose

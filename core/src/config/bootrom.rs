@@ -13,9 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use app_dirs::{AppDataType, AppInfo, app_dir, get_app_dir};
+use app_dirs::{AppDataType, AppInfo, app_dir};
 use crc::crc32;
-use std::env;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
@@ -64,7 +63,11 @@ impl Bootrom {
       None => Err(BootromError::Checksum { crc32: checksum }),
     }
   }
+  #[cfg(not(feature = "include-bootroms"))]
   pub fn lookup(models: &[Model]) -> Option<Bootrom> {
+    use app_dirs::get_app_dir;
+    use std::env;
+
     let mut candidates = vec![];
     let models = if models.is_empty() { &DEFAULT_MODEL_PRIORITY } else { models };
 
@@ -93,6 +96,23 @@ impl Bootrom {
       }
     }
     None
+  }
+  #[cfg(feature = "include-bootroms")]
+  pub fn lookup(models: &[Model]) -> Option<Bootrom> {
+    let models = if models.is_empty() { &DEFAULT_MODEL_PRIORITY } else { models };
+    models.first().map(|&model| {
+      info!("Using included {} boot ROM", model);
+      Bootrom {
+        model,
+        data: Box::new(BootromData(match model {
+          Model::Dmg0 => include_bytes!("../../bootroms/dmg0_boot.bin"),
+          Model::Dmg => include_bytes!("../../bootroms/dmg_boot.bin"),
+          Model::Mgb => include_bytes!("../../bootroms/mgb_boot.bin"),
+          Model::Sgb => include_bytes!("../../bootroms/sgb_boot.bin"),
+          Model::Sgb2 => include_bytes!("../../bootroms/sgb2_boot.bin"),
+        }.clone()))
+      }
+    })
   }
   pub fn save_to_data_dir(&self) -> io::Result<()> {
     if let Ok(dir) = app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
