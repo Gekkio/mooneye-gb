@@ -19,258 +19,146 @@ use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig, Model};
-use mooneye_gb::config::Model::*;
-use mooneye_gb::config::DEFAULT_MODEL_PRIORITY;
 use mooneye_gb::emulation::{EmuTime, EmuEvents};
 use mooneye_gb::machine::Machine;
 
-#[test]
-fn add_sp_e_timing() { run_test("acceptance/add_sp_e_timing") }
-
-#[test]
-#[ignore]
-fn boot_hwio_dmg_0() { run_test_with_model("acceptance/boot_hwio-dmg0", Dmg0) }
-
-#[test]
-#[ignore]
-fn boot_hwio_dmg_abc_mgb() { run_test_with_models("acceptance/boot_hwio-dmgABCmgb", &[Dmg, Mgb]) }
-
-#[test]
-fn boot_hwio_s() { run_test_with_models("acceptance/boot_hwio-S", &[Sgb, Sgb2]) }
-
-#[test]
-fn boot_regs_dmg0() { run_test_with_model("acceptance/boot_regs-dmg0", Dmg0) }
-
-#[test]
-fn boot_regs_dmg_abc() { run_test_with_model("acceptance/boot_regs-dmgABC", Dmg) }
-
-#[test]
-fn boot_regs_mgb() { run_test_with_model("acceptance/boot_regs-mgb", Mgb) }
-
-#[test]
-fn boot_regs_sgb() { run_test_with_model("acceptance/boot_regs-sgb", Sgb) }
-
-#[test]
-fn boot_regs_sgb2() { run_test_with_model("acceptance/boot_regs-sgb2", Sgb2) }
-
-#[test]
-fn call_cc_timing() { run_test("acceptance/call_cc_timing") }
-
-#[test]
-fn call_cc_timing2() { run_test("acceptance/call_cc_timing2") }
-
-#[test]
-fn call_timing() { run_test("acceptance/call_timing") }
-
-#[test]
-fn call_timing2() { run_test("acceptance/call_timing2") }
-
-#[test]
-fn di_timing_gs() { run_test("acceptance/di_timing-GS") }
-
-#[test]
-fn div_timing() { run_test("acceptance/div_timing") }
-
-#[test]
-fn ei_sequence() { run_test("acceptance/ei_sequence") }
-
-#[test]
-fn ei_timing() { run_test("acceptance/ei_timing") }
-
-#[test]
-fn halt_ime0_ei() { run_test("acceptance/halt_ime0_ei") }
-
-#[test]
-fn halt_ime0_nointr_timing() { run_test("acceptance/halt_ime0_nointr_timing") }
-
-#[test]
-fn halt_ime1_timing() { run_test("acceptance/halt_ime1_timing") }
-
-#[test]
-fn halt_ime1_timing2_gs() { run_test("acceptance/halt_ime1_timing2-GS") }
-
-#[test]
-fn if_ie_registers() { run_test("acceptance/if_ie_registers") }
-
-#[test]
-fn intr_timing() { run_test("acceptance/intr_timing") }
-
-#[test]
-fn jp_cc_timing() { run_test("acceptance/jp_cc_timing") }
-
-#[test]
-fn jp_timing() { run_test("acceptance/jp_timing") }
-
-#[test]
-fn ld_hl_sp_e_timing() { run_test("acceptance/ld_hl_sp_e_timing") }
-
-#[test]
-fn oam_dma_restart() { run_test("acceptance/oam_dma_restart") }
-
-#[test]
-fn oam_dma_start() { run_test("acceptance/oam_dma_start") }
-
-#[test]
-fn oam_dma_timing() { run_test("acceptance/oam_dma_timing") }
-
-#[test]
-fn pop_timing() { run_test("acceptance/pop_timing") }
-
-#[test]
-fn push_timing() { run_test("acceptance/push_timing") }
-
-#[test]
-fn rapid_di_ei() { run_test("acceptance/rapid_di_ei") }
-
-#[test]
-fn ret_timing() { run_test("acceptance/ret_timing") }
-
-#[test]
-fn reti_timing() { run_test("acceptance/reti_timing") }
-
-#[test]
-fn ret_cc_timing() { run_test("acceptance/ret_cc_timing") }
-
-#[test]
-fn reti_intr_timing() { run_test("acceptance/reti_intr_timing") }
-
-#[test]
-fn rst_timing() { run_test("acceptance/rst_timing") }
-
-#[test]
-fn bits_mem_oam() { run_test("acceptance/bits/mem_oam") }
-
-#[test]
-fn bits_reg_f() { run_test("acceptance/bits/reg_f") }
-
-#[test]
-fn bits_unused_hwio_gs() { run_test("acceptance/bits/unused_hwio-GS") }
-
-#[test]
-fn interrupts_ie_push() { run_test("acceptance/interrupts/ie_push") }
-
-#[test]
-fn oam_dma_basic() { run_test("acceptance/oam_dma/basic") }
-
-#[test]
-fn oam_dma_reg_read() { run_test("acceptance/oam_dma/reg_read") }
-
-#[test]
-fn oam_dma_sources_dmg_abc_mgb_s() { run_test("acceptance/oam_dma/sources-dmgABCmgbS") }
-
-#[test]
-fn ppu_hblank_ly_scx_timing_gs() { run_test("acceptance/ppu/hblank_ly_scx_timing-GS") }
-
-#[test]
-fn ppu_intr_1_2_timing_gs() { run_test("acceptance/ppu/intr_1_2_timing-GS") }
-
-#[test]
-fn ppu_intr_2_0_timing() { run_test("acceptance/ppu/intr_2_0_timing") }
-
-#[test]
-fn ppu_intr_2_mode0_timing() { run_test("acceptance/ppu/intr_2_mode0_timing") }
-
-#[test]
-#[ignore]
-fn ppu_stat_lyc_onoff() { run_test("acceptance/ppu/stat_lyc_onoff") }
-
-#[test]
-#[ignore]
-fn ppu_intr_2_mode0_timing_sprites() { run_test("acceptance/ppu/intr_2_mode0_timing_sprites") }
-
-#[test]
-fn ppu_intr_2_mode3_timing() { run_test("acceptance/ppu/intr_2_mode3_timing") }
-
-#[test]
-fn ppu_intr_2_oam_ok_timing() { run_test("acceptance/ppu/intr_2_oam_ok_timing") }
-
-#[test]
-#[ignore]
-fn ppu_lcdon_timing_dmg_abc_mgb_s() { run_test("acceptance/ppu/lcdon_timing-dmgABCmgbS") }
-
-#[test]
-#[ignore]
-fn ppu_lcdon_write_timing_gs() { run_test("acceptance/ppu/lcdon_write_timing-GS") }
-
-#[test]
-#[ignore]
-fn ppu_stat_irq_blocking() { run_test("acceptance/ppu/stat_irq_blocking") }
-
-#[test]
-fn ppu_vblank_stat_intr_gs() { run_test("acceptance/ppu/vblank_stat_intr-GS") }
-
-#[test]
-#[ignore]
-fn serial_boot_sclk_align_dmg_abc_mgb() { run_test("acceptance/serial/boot_sclk_align-dmgABCmgb") }
-
-#[test]
-fn timer_div_write() { run_test("acceptance/timer/div_write") }
-
-#[test]
-fn timer_rapid_toggle() { run_test("acceptance/timer/rapid_toggle") }
-
-#[test]
-fn timer_tim00() { run_test("acceptance/timer/tim00") }
-
-#[test]
-fn timer_tim00_div_trigger() { run_test("acceptance/timer/tim00_div_trigger") }
-
-#[test]
-fn timer_tim01() { run_test("acceptance/timer/tim01") }
-
-#[test]
-fn timer_tim01_div_trigger() { run_test("acceptance/timer/tim01_div_trigger") }
-
-#[test]
-fn timer_tim10() { run_test("acceptance/timer/tim10") }
-
-#[test]
-fn timer_tim10_div_trigger() { run_test("acceptance/timer/tim10_div_trigger") }
-
-#[test]
-fn timer_tim11() { run_test("acceptance/timer/tim11") }
-
-#[test]
-fn timer_tim11_div_trigger() { run_test("acceptance/timer/tim11_div_trigger") }
-
-#[test]
-fn timer_tima_reload() { run_test("acceptance/timer/tima_reload") }
-
-#[test]
-fn timer_tima_write_reloading() { run_test("acceptance/timer/tima_write_reloading") }
-
-#[test]
-fn timer_tma_write_reloading() { run_test("acceptance/timer/tma_write_reloading") }
-
-#[test]
-fn mbc1_bits_ram_en() { run_test("emulator-only/mbc1/bits_ram_en") }
-
-#[test]
-fn mbc1_rom_512kb() { run_test("emulator-only/mbc1/rom_512Kb") }
-
-#[test]
-fn mbc1_rom_1mb() { run_test("emulator-only/mbc1/rom_1Mb") }
-
-#[test]
-fn mbc1_rom_2mb() { run_test("emulator-only/mbc1/rom_2Mb") }
-
-#[test]
-fn mbc1_rom_4mb() { run_test("emulator-only/mbc1/rom_4Mb") }
-
-#[test]
-fn mbc1_rom_8mb() { run_test("emulator-only/mbc1/rom_8Mb") }
-
-#[test]
-fn mbc1_rom_16mb() { run_test("emulator-only/mbc1/rom_16Mb") }
-
-#[test]
-fn mbc1_ram_64kb() { run_test("emulator-only/mbc1/ram_64Kb") }
-
-#[test]
-fn mbc1_ram_25kb() { run_test("emulator-only/mbc1/ram_256Kb") }
-
-#[test]
-fn mbc1_multicart_rom_8mb() { run_test("emulator-only/mbc1/multicart_rom_8Mb") }
+macro_rules! resolve_model (
+  (dmg0) => (Model::Dmg0);
+  (dmg) => (Model::Dmg);
+  (sgb) => (Model::Sgb);
+  (mgb) => (Model::Mgb);
+  (sgb2) => (Model::Sgb2);
+);
+
+macro_rules! testcases {
+  (
+    $name:ident($path:expr, $(#[$attrs:meta])* all);
+    $(
+      $t_name:ident($t_path:expr, $($(#[$t_attrs:meta])* $t_model:ident),*);
+    )*
+  ) => {
+    testcases! {
+      $name(
+        $path,
+        $(#[$attrs])* dmg0,
+        $(#[$attrs])* dmg,
+        $(#[$attrs])* sgb,
+        $(#[$attrs])* mgb,
+        $(#[$attrs])* sgb2
+      );
+      $(
+        $t_name($t_path, $($(#[$t_attrs])* $t_model),*);
+      )*
+    }
+  };
+  (
+    $name:ident($path:expr, $($(#[$attrs:meta])* $model:ident),+);
+    $(
+      $t_name:ident($t_path:expr, $($(#[$t_attrs:meta])* $t_model:ident),*);
+    )*
+  ) => {
+    mod $name {
+      use mooneye_gb::config::Model;
+      use super::run_test_with_model;
+
+      $(
+        $(#[$attrs])*
+        #[test]
+        fn $model() {
+          run_test_with_model($path, resolve_model!($model));
+        }
+       )+
+    }
+    $(
+      testcases! {
+        $t_name($t_path, $($(#[$t_attrs])* $t_model),*);
+      }
+    )*
+  };
+}
+
+testcases! {
+  add_sp_e_timing("acceptance/add_sp_e_timing", all);
+  boot_hwio_dmg0("acceptance/boot_hwio-dmg0", #[ignore] dmg0);
+  boot_hwio_dmg_abc_mgb("acceptance/boot_hwio-dmgABCmgb", #[ignore] dmg, #[ignore] mgb);
+  boot_hwio_s("acceptance/boot_hwio-S", sgb, sgb2);
+  boot_regs_dmg0("acceptance/boot_regs-dmg0", dmg0);
+  boot_regs_dmg_abc("acceptance/boot_regs-dmgABC", dmg);
+  boot_regs_mgb("acceptance/boot_regs-mgb", mgb);
+  boot_regs_sgb("acceptance/boot_regs-sgb", sgb);
+  boot_regs_sgb2("acceptance/boot_regs-sgb2", sgb2);
+  call_cc_timing("acceptance/call_cc_timing", all);
+  call_cc_timing2("acceptance/call_cc_timing2", all);
+  call_timing("acceptance/call_timing", all);
+  call_timing2("acceptance/call_timing2", all);
+  di_timing_gs("acceptance/di_timing-GS", all);
+  div_timing("acceptance/div_timing", all);
+  ei_sequence("acceptance/ei_sequence", all);
+  ei_timing("acceptance/ei_timing", all);
+  halt_ime0_ei("acceptance/halt_ime0_ei", all);
+  halt_ime0_nointr_timing("acceptance/halt_ime0_nointr_timing", all);
+  halt_ime1_timing("acceptance/halt_ime1_timing", all);
+  halt_ime1_timing2_gs("acceptance/halt_ime1_timing2-GS", all);
+  if_ie_registers("acceptance/if_ie_registers", all);
+  intr_timing("acceptance/intr_timing", all);
+  jp_cc_timing("acceptance/jp_cc_timing", all);
+  jp_timing("acceptance/jp_timing", all);
+  ld_hl_sp_e_timing("acceptance/ld_hl_sp_e_timing", all);
+  oam_dma_restart("acceptance/oam_dma_restart", all);
+  oam_dma_start("acceptance/oam_dma_start", all);
+  oam_dma_timing("acceptance/oam_dma_timing", all);
+  pop_timing("acceptance/pop_timing", all);
+  push_timing("acceptance/push_timing", all);
+  rapid_di_ei("acceptance/rapid_di_ei", all);
+  ret_timing("acceptance/ret_timing", all);
+  reti_timing("acceptance/reti_timing", all);
+  ret_cc_timing("acceptance/ret_cc_timing", all);
+  reti_intr_timing("acceptance/reti_intr_timing", all);
+  rst_timing("acceptance/rst_timing", all);
+  bits_mem_oam("acceptance/bits/mem_oam", all);
+  bits_reg_f("acceptance/bits/reg_f", all);
+  bits_unused_hwio_gs("acceptance/bits/unused_hwio-GS", all);
+  interrupts_ie_push("acceptance/interrupts/ie_push", all);
+  oam_dma_basic("acceptance/oam_dma/basic", all);
+  oam_dma_reg_read("acceptance/oam_dma/reg_read", all);
+  oam_dma_sources_dmg_abc_mgb_s("acceptance/oam_dma/sources-dmgABCmgbS", dmg, mgb, sgb, sgb2);
+  ppu_hblank_ly_scx_timing_gs("acceptance/ppu/hblank_ly_scx_timing-GS", all);
+  ppu_intr_1_2_timing_gs("acceptance/ppu/intr_1_2_timing-GS", all);
+  ppu_intr_2_0_timing("acceptance/ppu/intr_2_0_timing", all);
+  ppu_intr_2_mode0_timing("acceptance/ppu/intr_2_mode0_timing", all);
+  ppu_stat_lyc_onoff("acceptance/ppu/stat_lyc_onoff", #[ignore] all);
+  ppu_intr_2_mode0_timing_sprites("acceptance/ppu/intr_2_mode0_timing_sprites", #[ignore] all);
+  ppu_intr_2_mode3_timing("acceptance/ppu/intr_2_mode3_timing", all);
+  ppu_intr_2_oam_ok_timing("acceptance/ppu/intr_2_oam_ok_timing", all);
+  ppu_lcdon_timing_dmg_abc_mgb_s("acceptance/ppu/lcdon_timing-dmgABCmgbS", #[ignore] dmg, #[ignore] mgb, #[ignore] sgb, #[ignore] sgb2);
+  ppu_lcdon_write_timing_gs("acceptance/ppu/lcdon_write_timing-GS", #[ignore] all);
+  ppu_stat_irq_blocking("acceptance/ppu/stat_irq_blocking", #[ignore] all);
+  ppu_vblank_stat_intr_gs("acceptance/ppu/vblank_stat_intr-GS", all);
+  serial_boot_sclk_align_dmg_abc_mgb("acceptance/serial/boot_sclk_align-dmgABCmgb", #[ignore] dmg, #[ignore] mgb, #[ignore] sgb, #[ignore] sgb2);
+  timer_div_write("acceptance/timer/div_write", all);
+  timer_rapid_toggle("acceptance/timer/rapid_toggle", all);
+  timer_tim00("acceptance/timer/tim00", all);
+  timer_tim00_div_trigger("acceptance/timer/tim00_div_trigger", all);
+  timer_tim01("acceptance/timer/tim01", all);
+  timer_tim01_div_trigger("acceptance/timer/tim01_div_trigger", all);
+  timer_tim10("acceptance/timer/tim10", all);
+  timer_tim10_div_trigger("acceptance/timer/tim10_div_trigger", all);
+  timer_tim11("acceptance/timer/tim11", all);
+  timer_tim11_div_trigger("acceptance/timer/tim11_div_trigger", all);
+  timer_tima_reload("acceptance/timer/tima_reload", all);
+  timer_tima_write_reloading("acceptance/timer/tima_write_reloading", all);
+  timer_tma_write_reloading("acceptance/timer/tma_write_reloading", all);
+  mbc1_bits_ram_en("emulator-only/mbc1/bits_ram_en", all);
+  mbc1_rom_512kb("emulator-only/mbc1/rom_512Kb", all);
+  mbc1_rom_1mb("emulator-only/mbc1/rom_1Mb", all);
+  mbc1_rom_2mb("emulator-only/mbc1/rom_2Mb", all);
+  mbc1_rom_4mb("emulator-only/mbc1/rom_4Mb", all);
+  mbc1_rom_8mb("emulator-only/mbc1/rom_8Mb", all);
+  mbc1_rom_16mb("emulator-only/mbc1/rom_16Mb", all);
+  mbc1_ram_64kb("emulator-only/mbc1/ram_64Kb", all);
+  mbc1_ram_25kb("emulator-only/mbc1/ram_256Kb", all);
+  mbc1_multicart_rom_8mb("emulator-only/mbc1/multicart_rom_8Mb", all);
+}
 
 fn run_test_with_model(name: &str, model: Model) {
   let bootrom = Bootrom::lookup(&[model])
@@ -318,14 +206,4 @@ fn run_test_with_model(name: &str, model: Model) {
       }
     }
   }
-}
-
-fn run_test_with_models(name: &str, models: &[Model]) {
-  for &model in models {
-    run_test_with_model(name, model);
-  }
-}
-
-fn run_test(name: &str) {
-  run_test_with_models(name, &DEFAULT_MODEL_PRIORITY);
 }
