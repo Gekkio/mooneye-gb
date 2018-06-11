@@ -18,8 +18,9 @@ use std::ops::{Add, AddAssign, Sub};
 
 bitflags!(
   pub struct EmuEvents: u8 {
-    const DEBUG_OP = 0b_0000_0001;
-    const VSYNC    = 0b_0000_0010;
+    const DEBUG_OP         = 0b_0000_0001;
+    const VSYNC            = 0b_0000_0010;
+    const BOOTROM_DISABLED = 0b_0000_0100;
   }
 );
 

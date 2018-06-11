@@ -217,7 +217,12 @@ impl Hardware {
           0x49 => self.write_cycle_generic(|hw| hw.gpu.set_obj_palette1(value)),
           0x4a => self.write_cycle_generic(|hw| hw.gpu.set_window_y(value)),
           0x4b => self.write_cycle_generic(|hw| hw.gpu.set_window_x(value)),
-          0x50 => self.write_cycle_generic(|hw| hw.bootrom.deactivate()),
+          0x50 => {
+            if self.bootrom.is_active() {
+              self.write_cycle_generic(|hw| hw.bootrom.deactivate());
+              self.emu_events.insert(EmuEvents::BOOTROM_DISABLED);
+            }
+          },
           0x80 ... 0xfe => self.write_cycle_generic(|hw| hw.hiram[(addr as usize) & 0x7f] = value),
           0xff => self.write_cycle_generic(|hw| hw.irq.set_interrupt_enable(value)),
           _ => ()
