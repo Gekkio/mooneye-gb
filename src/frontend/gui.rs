@@ -1,5 +1,4 @@
 use imgui::{ImGuiCol, ImGuiCond, ImString, ImVec4, Ui};
-use std::f32;
 
 use mooneye_gb::config::HardwareConfig;
 
@@ -25,7 +24,7 @@ impl Screen for WaitBootromScreen {
       .resizable(false)
       .movable(false)
       .always_auto_resize(true)
-      .position((f32::MIN, f32::MIN), ImGuiCond::Always)
+      .position((0.0, 0.0), ImGuiCond::Always)
       .build(|| {
         ui.text(im_str!("Mooneye GB requires a boot ROM to run"));
         ui.text(im_str!("Drag and drop here a boot rom of one of these types:"));
