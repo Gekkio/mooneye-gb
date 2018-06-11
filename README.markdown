@@ -138,6 +138,11 @@ supporting Android at the moment.
 
 ## Running the emulator
 
+Requirements:
+
+* Rust 1.26
+* SDL2 development libraries for your platform must be installed
+
 ### GUI
 
 1. `cargo run --release`
