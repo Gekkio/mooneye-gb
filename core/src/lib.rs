@@ -34,7 +34,7 @@ extern crate quickcheck;
 pub mod config;
 mod cpu;
 pub mod emulation;
-mod gameboy;
+pub mod gameboy;
 mod hardware;
 pub mod machine;
 mod util;

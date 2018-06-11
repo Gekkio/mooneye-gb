@@ -26,7 +26,7 @@ impl Clone for BootromData {
 pub type HiramData = [u8; HIRAM_SIZE];
 pub type ScreenBuffer = [Color; SCREEN_PIXELS];
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(u8)]
 pub enum Color {
   Off = 0,
@@ -44,6 +44,17 @@ impl Color {
       2 => Dark,
       3 => On,
       _ => Off
+    }
+  }
+}
+
+impl Into<u8> for Color {
+  fn into(self) -> u8 {
+    match self {
+      Color::Off => 0,
+      Color::Light => 1,
+      Color::Dark => 2,
+      Color::On => 3,
     }
   }
 }
