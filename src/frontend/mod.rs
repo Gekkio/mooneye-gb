@@ -281,7 +281,7 @@ impl SdlFrontend {
                 cartridge: cartridge,
                 ..config
               })),
-              Err(e) => println!("{}", e)
+              Err(e) => screen.set_error(format!("{}", e))
             };
           },
           _ => ()
