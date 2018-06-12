@@ -59,6 +59,9 @@ impl Cartridge {
     Cartridge::from_data(data)
   }
   pub fn from_data(data: Vec<u8>) -> Result<Cartridge, CartridgeError> {
+    if data.len() < 0x8000 || data.len() % 0x4000 != 0 {
+      return Err(CartridgeError::Validation(format!("Invalid length: {} bytes", data.len())));
+    }
     let new_cartridge = data[0x14b] == 0x33;
 
     let title = {
