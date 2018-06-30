@@ -325,9 +325,9 @@ Notes:
 | tim10                | :+1:       | :+1: | :x:      | :+1:   | :+1: |
 | tim11 div trigger    | :+1:       | :x:  | :x:      | :x:    | :+1: |
 | tim11                | :+1:       | :+1: | :x:      | :+1:   | :+1: |
-| tima reload          | :x:        | :x:  | :x:      | :x:    | :+1: |
-| tima write reloading | :x:        | :x:  | :x:      | :x:    | :+1: |
-| tma write reloading  | :x:        | :x:  | :x:      | :x:    | :+1: |
+| tima reload          | :+1:       | :x:  | :x:      | :x:    | :+1: |
+| tima write reloading | :+1:       | :x:  | :x:      | :x:    | :+1: |
+| tma write reloading  | :+1:       | :x:  | :x:      | :x:    | :+1: |
 
 ### Mooneye GB emulator-only tests
 
