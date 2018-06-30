@@ -224,10 +224,10 @@ Notes:
 | ----------------------- | ---------- | ---- | -------- | ------ | ---- |
 | add sp e timing         | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
 | boot hwio dmg0          | :x:        | :o:  |          |        | :+1: |
-| boot hwio dmgABCXmgb    | :x:        | :+1: | :+1:     | :x:    | :+1: |
+| boot hwio dmgABCmgb     | :x:        | :+1: | :+1:     | :x:    | :+1: |
 | boot hwio S             | :+1:       | :o:  |          | :+1:   | :x:  |
 | boot regs dmg0          | :+1:       | :o:  |          |        | :+1: |
-| boot regs dmgABCX       | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+| boot regs dmgABC        | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
 | boot regs mgb           | :+1:       | :o:  |          |        | :+1: |
 | boot regs sgb           | :+1:       | :o:  |          | :+1:   | :+1: |
 | boot regs sgb2          | :+1:       | :o:  |          | :x:    | :+1: |
@@ -286,7 +286,7 @@ Notes:
 | --------------------------- | ---------- | ---- | -------- | ------ | ---- |
 | basic                       | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
 | reg_read                    | :+1:       | :+1: | :+1:     | :x:    | :x:  |
-| sources dmgABCXmgbS         | :+1:       | :+1: | :x:      | :x:    | :x:  |
+| sources dmgABCmgbS          | :+1:       | :+1: | :x:      | :x:    | :x:  |
 
 #### PPU
 
@@ -299,7 +299,7 @@ Notes:
 | intr 2 mode3 timing         | :+1:       | :+1: | :x:      | :x:   | :+1: |
 | intr 2 oam ok timing        | :+1:       | :+1: | :x:      | :x:   | :+1: |
 | intr 2 mode0 timing sprites | :x:        | :x:  | :x:      | :x:   | :+1: |
-| lcdon timing dmgABCXmgbS    | :x:        | :+1: | :x:      | :x:   | :x:  |
+| lcdon timing dmgABCmgbS     | :x:        | :+1: | :x:      | :x:   | :x:  |
 | lcdon write timing GS       | :x:        | :x:  | :x:      | :x:   | :x:  |
 | stat irq blocking           | :x:        | :x:  | :+1:     | :x:   | :+1: |
 | stat lyc onoff              | :x:        | :x:  | :x:      | :x:   | :x:  |
@@ -309,7 +309,7 @@ Notes:
 
 | Test                        | mooneye-gb | BGB  | Gambatte | Higan | MESS |
 | --------------------------- | ---------- | ---- | -------- | ------| ---- |
-| boot sclk align dmgABCXmgb  | :x:        | :x:  | :+1:     | :x:   | :x:  |
+| boot sclk align dmgABCmgb   | :x:        | :x:  | :+1:     | :x:   | :x:  |
 
 #### Timer
 
