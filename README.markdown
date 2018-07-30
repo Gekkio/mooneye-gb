@@ -63,15 +63,9 @@ All test ROMs are manually run with these devices:
 | Game Boy Color      | CGB-001  | CGB-CPU-06   | CPU CGB E        | [CH24224683](https://gbhwdb.gekkio.fi/consoles/cgb/CH24224683.html)             |
 | Game Boy Advance    | AGB-001  | AGB-CPU-01   | CPU AGB          | [AH10045235](https://gbhwdb.gekkio.fi/consoles/agb/AH10045235.html)             |
 | Game Boy Advance    | AGB-001  | AGB-CPU-10   | CPU AGB A        | [AH12465671](https://gbhwdb.gekkio.fi/consoles/agb/AH12465671.html)             |
+| Game Boy Player     | DOL-017  | DOL-GBS-20   | CPU AGB A E      | [GBS Unit #3 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/gbs/gekkio-3.html) |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-01 | CPU AGB B        | [XJH10027945](https://gbhwdb.gekkio.fi/consoles/ags/XJH10027945.html)           |
 | Game Boy Advance SP | AGS-001  | C/AGS-CPU-21 | CPU AGB B E      | [XEH17807928](https://gbhwdb.gekkio.fi/consoles/ags/XEH17807928.html)           |
-
-These devices will also be used, but results for old tests have not yet been
-verified:
-
-| Device              | Model    | Mainboard    | CPU              | Detailed information                                                          |
-| ------------------- | -------- | ------------ | -----------      | ----                                                                          |
-| Game Boy Player     | DOL-017  | DOL-GBS-20   | CPU CGB A E      | [GBS Unit #3 \[gekkio\]](https://gbhwdb.gekkio.fi/consoles/gbs/gekkio-3.html) |
 
 ### Additional devices
 
