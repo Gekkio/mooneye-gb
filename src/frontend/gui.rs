@@ -1,4 +1,4 @@
-use imgui::{ImGuiCol, ImGuiCond, ImString, ImVec4, Ui};
+use imgui::{ImGuiCol, ImGuiCond, ImString, ImVec4, StyleVar, Ui};
 use std::time::Instant;
 
 use mooneye_gb::config::HardwareConfig;
@@ -55,16 +55,17 @@ impl ErrorOverlay {
   fn render(&self, ui: &Ui) -> bool {
     let elapsed = self.appear_timestamp.elapsed();
     ui.with_color_var(ImGuiCol::WindowBg, (1.0, 1.0, 1.0, 0.4), || {
-      ui.window(im_str!("Error overlay"))
-        .title_bar(false)
-        .resizable(false)
-        .movable(false)
-        .always_auto_resize(true)
-        .position((0.0, 0.0), ImGuiCond::Always)
-        .show_borders(true)
-        .build(|| {
-          ui.text_colored((1.0, 0.0, 0.0, 1.0), &self.error);
-        });
+      ui.with_style_var(StyleVar::WindowBorderSize(1.0), || {
+        ui.window(im_str!("Error overlay"))
+          .title_bar(false)
+          .resizable(false)
+          .movable(false)
+          .always_auto_resize(true)
+          .position((0.0, 0.0), ImGuiCond::Always)
+          .build(|| {
+            ui.text_colored((1.0, 0.0, 0.0, 1.0), &self.error);
+          });
+      });
     });
     elapsed.as_secs() < 5
   }

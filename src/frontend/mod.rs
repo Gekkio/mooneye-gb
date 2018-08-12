@@ -16,7 +16,7 @@
 use failure::Error;
 use glium::{Api, Surface, Version};
 use glium_sdl2::{Display, DisplayBuild};
-use imgui::ImGui;
+use imgui::{ImGui, FrameSize};
 use imgui_glium_renderer;
 use sdl2;
 use sdl2::{Sdl, EventPump, VideoSubsystem};
@@ -199,8 +199,12 @@ impl SdlFrontend {
 
       let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
+      let frame_size = FrameSize {
+        logical_size: (width.into(), height.into()),
+        hidpi_factor: 1.0
+      };
 
-      let ui = self.imgui.frame((width, height), (width, height), delta_s);
+      let ui = self.imgui.frame(frame_size, delta_s);
       screen.render(&ui);
       self.gui_renderer.render(&mut target, ui)
         .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
@@ -293,7 +297,11 @@ impl SdlFrontend {
 
       let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
-      let ui = self.imgui.frame((width, height), (width, height), delta_s);
+      let frame_size = FrameSize {
+        logical_size: (width.into(), height.into()),
+        hidpi_factor: 1.0
+      };
+      let ui = self.imgui.frame(frame_size, delta_s);
       let machine_cycles = EmuTime::from_machine_cycles(
         if turbo {
           CPU_SPEED_HZ as u64 / 60
