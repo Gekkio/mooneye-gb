@@ -9,7 +9,7 @@ pub trait Screen {
 
 #[derive(Default)]
 pub struct WaitBootromScreen {
-  error: Option<ImString>
+  error: Option<ImString>,
 }
 
 impl WaitBootromScreen {
@@ -28,7 +28,9 @@ impl Screen for WaitBootromScreen {
       .position((0.0, 0.0), ImGuiCond::Always)
       .build(|| {
         ui.text(im_str!("Mooneye GB requires a boot ROM to run"));
-        ui.text(im_str!("Drag and drop here a boot rom of one of these types:"));
+        ui.text(im_str!(
+          "Drag and drop here a boot rom of one of these types:"
+        ));
         ui.bullet_text(im_str!("Game Boy (usually called dmg_boot.bin)"));
         ui.bullet_text(im_str!("Game Boy Pocket (usually called mgb_boot.bin)"));
 

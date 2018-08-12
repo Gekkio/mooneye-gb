@@ -16,26 +16,26 @@
 use failure::Error;
 use glium::{Api, Surface, Version};
 use glium_sdl2::{Display, DisplayBuild};
-use imgui::{ImGui, FrameSize};
+use imgui::{FrameSize, ImGui};
 use imgui_glium_renderer;
 use sdl2;
-use sdl2::{Sdl, EventPump, VideoSubsystem};
 use sdl2::controller::{Axis, Button};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::video::gl_attr::GLAttr;
+use sdl2::{EventPump, Sdl, VideoSubsystem};
 use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
 use url::Url;
 
-use mooneye_gb::*;
-use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig};
-use mooneye_gb::emulation::{EmuTime, EmuEvents};
-use mooneye_gb::machine::{Machine, PerfCounter};
 use self::fps::FpsCounter;
-use self::gui::{Screen};
+use self::gui::Screen;
 use self::renderer::Renderer;
+use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig};
+use mooneye_gb::emulation::{EmuEvents, EmuTime};
+use mooneye_gb::machine::{Machine, PerfCounter};
+use mooneye_gb::*;
 
 mod fps;
 mod gui;
@@ -49,13 +49,13 @@ pub struct SdlFrontend {
   imgui: ImGui,
   gui_renderer: imgui_glium_renderer::Renderer,
   renderer: Renderer,
-  times: FrameTimes
+  times: FrameTimes,
 }
 
 enum FrontendState {
   WaitBootrom(Option<Cartridge>),
   InGame(HardwareConfig),
-  Exit
+  Exit,
 }
 
 impl FrontendState {
@@ -65,7 +65,7 @@ impl FrontendState {
       (Some(bootrom), Some(cartridge)) => InGame(HardwareConfig {
         model: bootrom.model,
         bootrom: Some(bootrom.data),
-        cartridge: cartridge
+        cartridge,
       }),
       (None, Some(cartridge)) => WaitBootrom(Some(cartridge)),
       (Some(bootrom), None) => InGame(HardwareConfig {
@@ -73,7 +73,7 @@ impl FrontendState {
         bootrom: Some(bootrom.data),
         cartridge: Cartridge::no_cartridge(),
       }),
-      _ => WaitBootrom(None)
+      _ => WaitBootrom(None),
     }
   }
 }
@@ -81,16 +81,16 @@ impl FrontendState {
 struct FrameTimes {
   frame_duration: Duration,
   last_time: Instant,
-  target_time: Instant
+  target_time: Instant,
 }
 
 impl FrameTimes {
   pub fn new(frame_duration: Duration) -> FrameTimes {
     let now = Instant::now();
     FrameTimes {
-      frame_duration: frame_duration,
+      frame_duration,
       last_time: now,
-      target_time: now + frame_duration
+      target_time: now + frame_duration,
     }
   }
   pub fn reset(&mut self) {
@@ -115,24 +115,31 @@ impl FrameTimes {
 
 impl SdlFrontend {
   pub fn init() -> Result<SdlFrontend, Error> {
-    let sdl = sdl2::init()
-      .map_err(|msg| format_err!("SDL2 initialization failed: {}", msg))?;
-    let sdl_video = sdl.video()
+    let sdl = sdl2::init().map_err(|msg| format_err!("SDL2 initialization failed: {}", msg))?;
+    let sdl_video = sdl
+      .video()
       .map_err(|msg| format_err!("SDL2 video initialization failed: {}", msg))?;
     configure_gl_attr(&mut sdl_video.gl_attr());
 
-    let event_pump = sdl.event_pump()
+    let event_pump = sdl
+      .event_pump()
       .map_err(|msg| format_err!("SDL2 event pump failure: {}", msg))?;
 
-    let display =
-      try!(sdl_video.window("Mooneye GB", 640, 576).opengl().position_centered().build_glium());
+    let display = sdl_video
+      .window("Mooneye GB", 640, 576)
+      .opengl()
+      .position_centered()
+      .build_glium()?;
 
-    info!("Initialized renderer with {}", match *display.get_opengl_version() {
-      Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
-      Version(Api::GlEs, major, minor) => format!("OpenGL ES {}.{}", major, minor)
-    });
+    info!(
+      "Initialized renderer with {}",
+      match *display.get_opengl_version() {
+        Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
+        Version(Api::GlEs, major, minor) => format!("OpenGL ES {}.{}", major, minor),
+      }
+    );
 
-    let renderer = try!(Renderer::new(&display));
+    let renderer = Renderer::new(&display)?;
 
     let mut imgui = ImGui::init();
     imgui.set_ini_filename(None);
@@ -141,25 +148,28 @@ impl SdlFrontend {
       .map_err(|e| format_err!("Failed to initialize renderer: {}", e))?;
 
     Ok(SdlFrontend {
-      sdl: sdl,
-      sdl_video: sdl_video,
-      event_pump: event_pump,
-      display: display,
-      imgui: imgui,
-      gui_renderer: gui_renderer,
-      renderer: renderer,
-      times: FrameTimes::new(Duration::from_secs(1) / 60)
+      sdl,
+      sdl_video,
+      event_pump,
+      display,
+      imgui,
+      gui_renderer,
+      renderer,
+      times: FrameTimes::new(Duration::from_secs(1) / 60),
     })
   }
-  pub fn main(mut self, bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> Result<(), Error> {
+  pub fn main(
+    mut self,
+    bootrom: Option<Bootrom>,
+    cartridge: Option<Cartridge>,
+  ) -> Result<(), Error> {
     let mut state = FrontendState::from_roms(bootrom, cartridge);
     loop {
-      state =
-        match state {
-          FrontendState::WaitBootrom(cartridge) => try!(self.main_wait_bootrom(cartridge)),
-          FrontendState::InGame(config) => try!(self.main_in_game(config)),
-          FrontendState::Exit => break
-        }
+      state = match state {
+        FrontendState::WaitBootrom(cartridge) => self.main_wait_bootrom(cartridge)?,
+        FrontendState::InGame(config) => self.main_in_game(config)?,
+        FrontendState::Exit => break,
+      }
     }
     Ok(())
   }
@@ -175,23 +185,29 @@ impl SdlFrontend {
 
       for event in self.event_pump.poll_iter() {
         match event {
-          Event::Quit{..} => break 'main,
-          Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
-          Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
-          Event::DropFile{filename, ..} => {
-            let result = resolve_sdl_filename(filename)
-              .and_then(|path| Ok(Bootrom::from_path(&path)?));
+          Event::Quit { .. } => break 'main,
+          Event::KeyDown {
+            keycode: Some(keycode),
+            ..
+          } if keycode == Keycode::Escape =>
+          {
+            break 'main
+          }
+          Event::MouseMotion { x, y, .. } => self.imgui.set_mouse_pos(x as f32, y as f32),
+          Event::DropFile { filename, .. } => {
+            let result =
+              resolve_sdl_filename(filename).and_then(|path| Ok(Bootrom::from_path(&path)?));
             match result {
               Ok(bootrom) => {
                 if let Err(error) = bootrom.save_to_data_dir() {
                   println!("Failed to save boot rom: {}", error);
                 }
-                return Ok(FrontendState::from_roms(Some(bootrom), cartridge))
-              },
-              Err(e) => screen.set_error(format!("{}", e))
+                return Ok(FrontendState::from_roms(Some(bootrom), cartridge));
+              }
+              Err(e) => screen.set_error(format!("{}", e)),
             };
-          },
-          _ => ()
+          }
+          _ => (),
         }
       }
       let mut target = self.display.draw();
@@ -201,14 +217,16 @@ impl SdlFrontend {
       let (width, height) = target.get_dimensions();
       let frame_size = FrameSize {
         logical_size: (width.into(), height.into()),
-        hidpi_factor: 1.0
+        hidpi_factor: 1.0,
       };
 
       let ui = self.imgui.frame(frame_size, delta_s);
       screen.render(&ui);
-      self.gui_renderer.render(&mut target, ui)
+      self
+        .gui_renderer
+        .render(&mut target, ui)
         .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
-      try!(target.finish());
+      target.finish()?;
 
       self.times.limit();
     }
@@ -217,7 +235,9 @@ impl SdlFrontend {
   fn main_in_game(&mut self, config: HardwareConfig) -> Result<FrontendState, Error> {
     let mut screen = gui::InGameScreen::new(&config);
     let mut machine = Machine::new(config.clone());
-    let sdl_game_controller = self.sdl.game_controller()
+    let sdl_game_controller = self
+      .sdl
+      .game_controller()
       .map_err(|msg| format_err!("SDL2 game controller initialization failure: {}", msg))?;
 
     let mut fps_counter = FpsCounter::new();
@@ -234,18 +254,31 @@ impl SdlFrontend {
 
       fps_counter.update(self.times.last_time);
       screen.fps = fps_counter.get_fps();
-      screen.perf =
-        100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
+      screen.perf = 100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
 
       for event in self.event_pump.poll_iter() {
         match event {
-          Event::Quit{..} => break 'main,
-          Event::Window { win_event: WindowEvent::SizeChanged(..), ..} => {
+          Event::Quit { .. } => break 'main,
+          Event::Window {
+            win_event: WindowEvent::SizeChanged(..),
+            ..
+          } => {
             self.renderer.update_dimensions(&self.display);
-          },
-          Event::KeyDown{keycode: Some(keycode), ..} if keycode == Keycode::Escape => break 'main,
-          Event::KeyDown{keycode: Some(keycode), ..} => {
-            if let Some(key) = map_keycode(keycode) { machine.key_down(key) }
+          }
+          Event::KeyDown {
+            keycode: Some(keycode),
+            ..
+          } if keycode == Keycode::Escape =>
+          {
+            break 'main
+          }
+          Event::KeyDown {
+            keycode: Some(keycode),
+            ..
+          } => {
+            if let Some(key) = map_keycode(keycode) {
+              machine.key_down(key)
+            }
             if keycode == Keycode::LShift && !turbo {
               turbo = true;
               self.sdl_video.gl_set_swap_interval(0);
@@ -253,42 +286,57 @@ impl SdlFrontend {
             if keycode == Keycode::F2 {
               screen.toggle_info_overlay();
             }
-          },
-          Event::MouseMotion{x, y, ..} => { self.imgui.set_mouse_pos(x as f32, y as f32) },
-          Event::KeyUp{keycode: Some(keycode), ..} => {
-            if let Some(key) = map_keycode(keycode) { machine.key_up(key) }
+          }
+          Event::MouseMotion { x, y, .. } => self.imgui.set_mouse_pos(x as f32, y as f32),
+          Event::KeyUp {
+            keycode: Some(keycode),
+            ..
+          } => {
+            if let Some(key) = map_keycode(keycode) {
+              machine.key_up(key)
+            }
             if keycode == Keycode::LShift && turbo {
               turbo = false;
               self.times.reset();
               self.sdl_video.gl_set_swap_interval(1);
             }
-          },
-          Event::ControllerDeviceAdded{which: id, ..} => {
-            controllers.push(try!(sdl_game_controller.open(id as u32)))
-          },
-          Event::ControllerButtonDown{button, ..} => {
-            if let Some(key) = map_button(button) { machine.key_down(key) }
-          },
-          Event::ControllerButtonUp{button, ..} => {
-            if let Some(key) = map_button(button) { machine.key_up(key) }
-          },
-          Event::ControllerAxisMotion{axis, value, ..} => {
-            if let Some((key, state)) = map_axis(axis, value) {
-              if state { machine.key_down(key) } else { machine.key_up(key) }
+          }
+          Event::ControllerDeviceAdded { which: id, .. } => {
+            controllers.push(sdl_game_controller.open(id as u32)?)
+          }
+          Event::ControllerButtonDown { button, .. } => {
+            if let Some(key) = map_button(button) {
+              machine.key_down(key)
             }
-          },
-          Event::DropFile{filename, ..} => {
-            let result = resolve_sdl_filename(filename)
-              .and_then(|path| Ok(Cartridge::from_path(&path)?));
+          }
+          Event::ControllerButtonUp { button, .. } => {
+            if let Some(key) = map_button(button) {
+              machine.key_up(key)
+            }
+          }
+          Event::ControllerAxisMotion { axis, value, .. } => {
+            if let Some((key, state)) = map_axis(axis, value) {
+              if state {
+                machine.key_down(key)
+              } else {
+                machine.key_up(key)
+              }
+            }
+          }
+          Event::DropFile { filename, .. } => {
+            let result =
+              resolve_sdl_filename(filename).and_then(|path| Ok(Cartridge::from_path(&path)?));
             match result {
-              Ok(cartridge) => return Ok(FrontendState::InGame(HardwareConfig {
-                cartridge: cartridge,
-                ..config
-              })),
-              Err(e) => screen.set_error(format!("{}", e))
+              Ok(cartridge) => {
+                return Ok(FrontendState::InGame(HardwareConfig {
+                  cartridge,
+                  ..config
+                }))
+              }
+              Err(e) => screen.set_error(format!("{}", e)),
             };
-          },
-          _ => ()
+          }
+          _ => (),
         }
       }
 
@@ -299,7 +347,7 @@ impl SdlFrontend {
       let (width, height) = target.get_dimensions();
       let frame_size = FrameSize {
         logical_size: (width.into(), height.into()),
-        hidpi_factor: 1.0
+        hidpi_factor: 1.0,
       };
       let ui = self.imgui.frame(frame_size, delta_s);
       let machine_cycles = EmuTime::from_machine_cycles(
@@ -307,7 +355,8 @@ impl SdlFrontend {
           CPU_SPEED_HZ as u64 / 60
         } else {
           ((delta * CPU_SPEED_HZ as u32).as_secs() as u64)
-        } / 4);
+        } / 4,
+      );
 
       let target_time = emu_time + machine_cycles;
       loop {
@@ -323,12 +372,14 @@ impl SdlFrontend {
           break;
         }
       }
-      try!(self.renderer.draw(&mut target));
+      self.renderer.draw(&mut target)?;
 
       screen.render(&ui);
-      self.gui_renderer.render(&mut target, ui)
+      self
+        .gui_renderer
+        .render(&mut target, ui)
         .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
-      try!(target.finish());
+      target.finish()?;
 
       if !turbo {
         self.times.limit();
@@ -348,7 +399,7 @@ fn map_keycode(key: Keycode) -> Option<GbKey> {
     Keycode::X => Some(GbKey::B),
     Keycode::Return => Some(GbKey::Start),
     Keycode::Backspace => Some(GbKey::Select),
-    _ => None
+    _ => None,
   }
 }
 
@@ -362,7 +413,7 @@ fn map_button(button: Button) -> Option<GbKey> {
     Button::B => Some(GbKey::A),
     Button::Start => Some(GbKey::Start),
     Button::Back => Some(GbKey::Select),
-    _ => None
+    _ => None,
   }
 }
 
@@ -373,16 +424,16 @@ fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
       -16383...-1 => Some((GbKey::Left, false)),
       0...16383 => Some((GbKey::Right, false)),
       16384...32767 => Some((GbKey::Right, true)),
-      _ => None
+      _ => None,
     },
     Axis::LeftY => match value {
       -32768...-16384 => Some((GbKey::Up, true)),
       -16383...-1 => Some((GbKey::Up, false)),
       0...16383 => Some((GbKey::Down, false)),
       16384...32767 => Some((GbKey::Down, true)),
-      _ => None
+      _ => None,
     },
-    _ => None
+    _ => None,
   }
 }
 
@@ -390,11 +441,13 @@ fn resolve_sdl_filename(filename: String) -> Result<PathBuf, Error> {
   let mut url_str = "file://".to_owned();
   url_str.push_str(&filename);
   let url = Url::parse(&url_str)?;
-  url.to_file_path().map_err(|_| format_err!("Failed to parse path"))
+  url
+    .to_file_path()
+    .map_err(|_| format_err!("Failed to parse path"))
 }
 
 #[cfg(not(target_os = "macos"))]
-fn configure_gl_attr(_: &mut GLAttr) { }
+fn configure_gl_attr(_: &mut GLAttr) {}
 
 #[cfg(target_os = "macos")]
 fn configure_gl_attr(gl_attr: &mut GLAttr) {

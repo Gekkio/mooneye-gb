@@ -20,7 +20,7 @@ use cpu::test::run_test;
 fn test_30() {
   let machine = run_test(
     &[0x30, 0x01, 0xed, 0xed], // JR NC, e
-    |_| {}
+    |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.cpu.regs.pc, 0x03);
@@ -32,7 +32,7 @@ fn test_30_negative() {
     &[0x00, 0xed, 0x30, -3i8 as u8], // JR NC, e
     |machine| {
       machine.cpu.regs.pc = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.cpu.regs.pc, 0x01);
@@ -44,7 +44,7 @@ fn test_30_nojump() {
     &[0x30, 0x01, 0xed, 0x00], // JR NC, e
     |machine| {
       machine.cpu.regs.f = Flags::CARRY;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.pc, 0x02);
@@ -58,7 +58,7 @@ fn test_32() {
       machine.cpu.regs.a = 0x42;
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.h, 0x00);
@@ -73,7 +73,7 @@ fn test_34() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0x02], 0x43);
@@ -87,7 +87,7 @@ fn test_34_zero() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0x02], 0x00);
@@ -101,7 +101,7 @@ fn test_34_half_carry() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0x02], 0x10);
@@ -115,7 +115,7 @@ fn test_35() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0x02], 0x41);
@@ -129,7 +129,7 @@ fn test_35_zero() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0x02], 0x00);
@@ -143,7 +143,7 @@ fn test_35_half_carry() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0x02], 0xff);
@@ -157,7 +157,7 @@ fn test_36() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x03;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0x03], 0x42);
@@ -169,7 +169,7 @@ fn test_37() {
     &[0x37], // SCF
     |machine| {
       machine.cpu.regs.f = Flags::ADD_SUBTRACT | Flags::HALF_CARRY;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.f, Flags::CARRY);
@@ -181,7 +181,7 @@ fn test_38() {
     &[0x38, 0x01, 0xed, 0xed], // JR C, e
     |machine| {
       machine.cpu.regs.f = Flags::CARRY;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.cpu.regs.pc, 0x03);
@@ -194,7 +194,7 @@ fn test_38_negative() {
     |machine| {
       machine.cpu.regs.f = Flags::CARRY;
       machine.cpu.regs.pc = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.cpu.regs.pc, 0x01);
@@ -204,7 +204,7 @@ fn test_38_negative() {
 fn test_38_nojump() {
   let machine = run_test(
     &[0x38, 0x01, 0xed, 0x00], // JR C, e
-    |_| {}
+    |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.pc, 0x02);
@@ -217,7 +217,7 @@ fn test_3a() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -231,7 +231,7 @@ fn test_3c() {
     &[0x3c], // INC A
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x43);
@@ -244,7 +244,7 @@ fn test_3c_zero() {
     &[0x3c], // INC A
     |machine| {
       machine.cpu.regs.a = 0xff;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x00);
@@ -257,7 +257,7 @@ fn test_3c_half_carry() {
     &[0x3c], // INC A
     |machine| {
       machine.cpu.regs.a = 0x0f;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x10);
@@ -270,7 +270,7 @@ fn test_3d() {
     &[0x3d], // DEC A
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x41);
@@ -283,7 +283,7 @@ fn test_3d_zero() {
     &[0x3d], // DEC A
     |machine| {
       machine.cpu.regs.a = 0x01;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x00);
@@ -296,7 +296,7 @@ fn test_3d_half_carry() {
     &[0x3d], // DEC A
     |machine| {
       machine.cpu.regs.a = 0x00;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0xff);
@@ -307,7 +307,7 @@ fn test_3d_half_carry() {
 fn test_3e() {
   let machine = run_test(
     &[0x3e, 0x42], // LD A, n
-    |_| {}
+    |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -319,7 +319,7 @@ fn test_3f() {
     &[0x3f], // CCF
     |machine| {
       machine.cpu.regs.f = Flags::ADD_SUBTRACT | Flags::HALF_CARRY;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.f, Flags::CARRY);
@@ -331,7 +331,7 @@ fn test_3f_carry() {
     &[0x3f], // CCF
     |machine| {
       machine.cpu.regs.f = Flags::ADD_SUBTRACT | Flags::HALF_CARRY | Flags::CARRY;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.f, Flags::empty());

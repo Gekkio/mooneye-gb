@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::Step;
 use cpu::test::run_test;
+use cpu::Step;
 
 #[test]
 fn test_70() {
@@ -24,7 +24,7 @@ fn test_70() {
       machine.cpu.regs.b = 0x42;
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x42);
@@ -38,7 +38,7 @@ fn test_71() {
       machine.cpu.regs.c = 0x42;
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x42);
@@ -52,7 +52,7 @@ fn test_72() {
       machine.cpu.regs.d = 0x42;
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x42);
@@ -66,7 +66,7 @@ fn test_73() {
       machine.cpu.regs.e = 0x42;
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x42);
@@ -79,7 +79,7 @@ fn test_74() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x00);
@@ -92,7 +92,7 @@ fn test_75() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x02);
@@ -104,7 +104,7 @@ fn test_76() {
     &[0x76], // HALT
     |machine| {
       machine.cpu.ime = true;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.step, Step::Halt);
@@ -118,7 +118,7 @@ fn test_77() {
       machine.cpu.regs.a = 0x42;
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x42);
@@ -130,7 +130,7 @@ fn test_78() {
     &[0x78], // LD A, B
     |machine| {
       machine.cpu.regs.b = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -142,7 +142,7 @@ fn test_79() {
     &[0x79], // LD A, C
     |machine| {
       machine.cpu.regs.c = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -154,7 +154,7 @@ fn test_7a() {
     &[0x7a], // LD A, D
     |machine| {
       machine.cpu.regs.d = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -166,7 +166,7 @@ fn test_7b() {
     &[0x7b], // LD A, E
     |machine| {
       machine.cpu.regs.e = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -178,7 +178,7 @@ fn test_7c() {
     &[0x7c], // LD A, H
     |machine| {
       machine.cpu.regs.h = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -190,7 +190,7 @@ fn test_7d() {
     &[0x7d], // LD A, L
     |machine| {
       machine.cpu.regs.l = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -203,7 +203,7 @@ fn test_7e() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -215,7 +215,7 @@ fn test_7f() {
     &[0x7f], // LD A, A
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x42);

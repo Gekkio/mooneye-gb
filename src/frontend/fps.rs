@@ -20,14 +20,14 @@ const HISTORY_SIZE: usize = 128;
 
 pub struct FpsCounter {
   history: VecDeque<f64>,
-  last_time: Instant
+  last_time: Instant,
 }
 
 impl FpsCounter {
   pub fn new() -> FpsCounter {
     FpsCounter {
       history: VecDeque::with_capacity(HISTORY_SIZE),
-      last_time: Instant::now()
+      last_time: Instant::now(),
     }
   }
   pub fn update(&mut self, current_time: Instant) {

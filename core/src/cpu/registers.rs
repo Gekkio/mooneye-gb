@@ -26,17 +26,33 @@ bitflags!(
 
 impl Flags {
   #[inline]
-  pub fn test(&self, test: bool) -> Flags { if test { *self } else { Flags::empty() } }
+  pub fn test(&self, test: bool) -> Flags {
+    if test {
+      *self
+    } else {
+      Flags::empty()
+    }
+  }
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum Reg8 {
-  A, B, C, D, E, H, L
+  A,
+  B,
+  C,
+  D,
+  E,
+  H,
+  L,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum Reg16 {
-  AF, BC, DE, HL, SP
+  AF,
+  BC,
+  DE,
+  HL,
+  SP,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -50,7 +66,7 @@ pub struct Registers {
   pub d: u8,
   pub e: u8,
   pub h: u8,
-  pub l: u8
+  pub l: u8,
 }
 
 impl Registers {
@@ -65,7 +81,7 @@ impl Registers {
       d: 0,
       e: 0,
       h: 0,
-      l: 0
+      l: 0,
     }
   }
 
@@ -83,22 +99,35 @@ impl Registers {
   pub fn write16(&mut self, reg: Reg16, value: u16) {
     use self::Reg16::*;
     match reg {
-      AF => { self.a = (value >> 8) as u8; self.f = Flags::from_bits_truncate(value as u8) },
-      BC => { self.b = (value >> 8) as u8; self.c = value as u8 },
-      DE => { self.d = (value >> 8) as u8; self.e = value as u8 },
-      HL => { self.h = (value >> 8) as u8; self.l = value as u8 },
-      SP => self.sp = value
+      AF => {
+        self.a = (value >> 8) as u8;
+        self.f = Flags::from_bits_truncate(value as u8)
+      }
+      BC => {
+        self.b = (value >> 8) as u8;
+        self.c = value as u8
+      }
+      DE => {
+        self.d = (value >> 8) as u8;
+        self.e = value as u8
+      }
+      HL => {
+        self.h = (value >> 8) as u8;
+        self.l = value as u8
+      }
+      SP => self.sp = value,
     }
   }
 }
 
 impl fmt::Display for Registers {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "PC:{:04x} SP:{:04x} \
-               A:{:02x} F:{:04b} B:{:02x} C:{:02x} \
-               D:{:02x} E:{:02x} H:{:02x} L:{:02x}",
-               self.pc, self.sp,
-               self.a, self.f, self.b, self.c,
-               self.d, self.e, self.h, self.l)
+    write!(
+      f,
+      "PC:{:04x} SP:{:04x} \
+       A:{:02x} F:{:04b} B:{:02x} C:{:02x} \
+       D:{:02x} E:{:02x} H:{:02x} L:{:02x}",
+      self.pc, self.sp, self.a, self.f, self.b, self.c, self.d, self.e, self.h, self.l
+    )
   }
 }

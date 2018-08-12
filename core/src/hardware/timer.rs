@@ -38,13 +38,16 @@ impl TacReg {
       0b11 => (1 << 5),
       0b10 => (1 << 3),
       0b01 => (1 << 1),
-      _    => (1 << 7),
+      _ => (1 << 7),
     }
   }
 }
 
 pub enum TimerReg {
-  Div, Tima, Tma, Tac,
+  Div,
+  Tima,
+  Tma,
+  Tac,
 }
 
 impl MappedHardware<TimerReg> for Timer {
@@ -57,7 +60,7 @@ impl MappedHardware<TimerReg> for Timer {
       TimerReg::Tac => {
         const TAC_UNUSED: u8 = 0b11111_000;
         TAC_UNUSED | self.tac.bits()
-      },
+      }
     }
   }
   fn write_cycle<I: InterruptRequest>(&mut self, addr: TimerReg, value: u8, intr_req: &mut I) {
@@ -69,19 +72,19 @@ impl MappedHardware<TimerReg> for Timer {
           self.increment();
         }
         self.internal_counter = 0;
-      },
+      }
       TimerReg::Tima => {
         if !overflow {
           self.overflow = false;
           self.counter = value
         }
-      },
+      }
       TimerReg::Tma => {
         self.modulo = value;
         if overflow {
           self.counter = value;
         }
-      },
+      }
       TimerReg::Tac => {
         let old_bit = self.tac.contains(TacReg::ENABLE) && self.counter_bit();
         self.tac = TacReg::from_bits_truncate(value);
@@ -89,7 +92,7 @@ impl MappedHardware<TimerReg> for Timer {
         if old_bit && !new_bit {
           self.increment();
         }
-      },
+      }
     }
   }
 }

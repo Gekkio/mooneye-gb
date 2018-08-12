@@ -16,20 +16,21 @@
 use cpu::registers::{Flags, Reg16};
 use cpu::test::run_test;
 
-fn test_add16<F: Fn(Flags) -> bool>(opcode: u8,
-                                    hl: u16, reg: Reg16,
-                                    x: u16, check_flags: F) -> bool {
-  let machine = run_test(
-    &[opcode],
-    |machine| {
-      machine.cpu.regs.write16(Reg16::HL, hl);
-      machine.cpu.regs.write16(reg, x);
-    }
-  );
+fn test_add16<F: Fn(Flags) -> bool>(
+  opcode: u8,
+  hl: u16,
+  reg: Reg16,
+  x: u16,
+  check_flags: F,
+) -> bool {
+  let machine = run_test(&[opcode], |machine| {
+    machine.cpu.regs.write16(Reg16::HL, hl);
+    machine.cpu.regs.write16(reg, x);
+  });
   let expected = hl.wrapping_add(x);
-  machine.hardware.clock_cycles() == 8 &&
-    machine.cpu.regs.read16(Reg16::HL) == expected &&    
-    check_flags(machine.cpu.regs.f)
+  machine.hardware.clock_cycles() == 8
+    && machine.cpu.regs.read16(Reg16::HL) == expected
+    && check_flags(machine.cpu.regs.f)
 }
 
 #[test]
@@ -79,7 +80,8 @@ fn test_29_carry() {
 
 #[test]
 fn test_29_gb_manual() {
-  assert!(test_add16(0x29, 0x8a23, Reg16::HL, 0x8a23, |f| f == Flags::HALF_CARRY | Flags::CARRY));
+  assert!(test_add16(0x29, 0x8a23, Reg16::HL, 0x8a23, |f| f
+    == Flags::HALF_CARRY | Flags::CARRY));
 }
 
 #[test]

@@ -16,8 +16,8 @@
 use std::fmt;
 use std::fmt::{Binary, Formatter, LowerHex, UpperHex};
 
-use ::GbKey;
-use hardware::irq::{Irq, Interrupt, InterruptRequest};
+use hardware::irq::{Interrupt, InterruptRequest, Irq};
+use GbKey;
 
 /// Gameboy joypad.
 ///
@@ -32,7 +32,7 @@ use hardware::irq::{Irq, Interrupt, InterruptRequest};
 pub struct Joypad {
   pressed_directional: P1,
   pressed_button: P1,
-  register: P1
+  register: P1,
 }
 
 impl Joypad {
@@ -40,7 +40,7 @@ impl Joypad {
     Joypad {
       pressed_directional: P1::empty(),
       pressed_button: P1::empty(),
-      register: P1::INITIAL_STATE
+      register: P1::INITIAL_STATE,
     }
   }
 
@@ -126,7 +126,7 @@ impl P1 {
       GbKey::Left => P1::P11,
       GbKey::Up => P1::P12,
       GbKey::Down => P1::P13,
-      _ => P1::empty()
+      _ => P1::empty(),
     }
   }
   fn button(key: &GbKey) -> P1 {
@@ -135,7 +135,7 @@ impl P1 {
       GbKey::B => P1::P11,
       GbKey::Select => P1::P12,
       GbKey::Start => P1::P13,
-      _ => P1::empty()
+      _ => P1::empty(),
     }
   }
 }

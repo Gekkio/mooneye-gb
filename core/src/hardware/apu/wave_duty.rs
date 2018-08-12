@@ -29,7 +29,7 @@ impl WaveDuty {
       1 => Some(Quarter),
       2 => Some(Half),
       3 => Some(ThreeQuarters),
-      _ => None
+      _ => None,
     }
   }
 }

@@ -19,21 +19,20 @@ use cpu::registers::{Flags, Reg16};
 use cpu::test::run_test;
 
 fn test_load16_hl_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool {
-  let machine = run_test(
-    &[0xf8, e as u8],
-    |machine| {
-      machine.cpu.regs.write16(Reg16::SP, sp);
-    }
-  );
+  let machine = run_test(&[0xf8, e as u8], |machine| {
+    machine.cpu.regs.write16(Reg16::SP, sp);
+  });
   let expected = sp.wrapping_add(e as i16 as u16);
-  machine.hardware.clock_cycles() == 12 &&
-    machine.cpu.regs.read16(Reg16::HL) == expected &&
-    check_flags(machine.cpu.regs.f)
+  machine.hardware.clock_cycles() == 12
+    && machine.cpu.regs.read16(Reg16::HL) == expected
+    && check_flags(machine.cpu.regs.f)
 }
 
 #[test]
 fn test_f8() {
-  fn prop(sp: u16, e: i8) -> bool { test_load16_hl_sp_e(sp, e, |_| true) }
+  fn prop(sp: u16, e: i8) -> bool {
+    test_load16_hl_sp_e(sp, e, |_| true)
+  }
   quickcheck(prop as fn(u16, i8) -> bool);
 }
 

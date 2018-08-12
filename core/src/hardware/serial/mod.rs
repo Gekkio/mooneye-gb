@@ -15,14 +15,14 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 pub struct Serial {
   data: u8,
-  control: Control
+  control: Control,
 }
 
 impl Serial {
   pub fn new() -> Serial {
     Serial {
       data: 0x00,
-      control: Control::empty()
+      control: Control::empty(),
     }
   }
   pub fn get_data(&self) -> u8 {
@@ -42,8 +42,7 @@ impl Serial {
   }
 }
 
-const CTRL_UNUSED_MASK: u8 = (1 << 1) | (1 << 2) | (1 << 3) |
-                             (1 << 4) | (1 << 5) | (1 << 6);
+const CTRL_UNUSED_MASK: u8 = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6);
 
 bitflags!(
   struct Control: u8 {

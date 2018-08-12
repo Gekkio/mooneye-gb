@@ -51,7 +51,8 @@ impl Irq {
     self.int_enable = value;
   }
   pub fn ack_interrupt(&mut self) -> Option<Interrupt> {
-    let highest_priority = (InterruptType::from_bits_truncate(self.int_enable) & self.mid_intr).isolate_highest_priority();
+    let highest_priority = (InterruptType::from_bits_truncate(self.int_enable) & self.mid_intr)
+      .isolate_highest_priority();
     self.mid_intr -= highest_priority;
     self.end_intr -= highest_priority;
     Interrupt::from_u8(highest_priority.bits)
@@ -85,7 +86,7 @@ pub enum Interrupt {
   LcdStat = 1 << 1,
   TimerOverflow = 1 << 2,
   SerialIoDone = 1 << 3,
-  Joypad = 1 << 4
+  Joypad = 1 << 4,
 }
 
 impl Interrupt {
@@ -97,7 +98,7 @@ impl Interrupt {
       4 => Some(TimerOverflow),
       8 => Some(SerialIoDone),
       16 => Some(Joypad),
-      _ => None
+      _ => None,
     }
   }
   pub fn get_addr(&self) -> u16 {
@@ -106,7 +107,7 @@ impl Interrupt {
       Interrupt::LcdStat => 0x48,
       Interrupt::TimerOverflow => 0x50,
       Interrupt::SerialIoDone => 0x58,
-      Interrupt::Joypad => 0x60
+      Interrupt::Joypad => 0x60,
     }
   }
 }
@@ -124,6 +125,8 @@ bitflags!(
 impl InterruptType {
   #[inline(always)]
   fn isolate_highest_priority(&self) -> InterruptType {
-    InterruptType { bits: self.bits.isolate_rightmost_one() }
+    InterruptType {
+      bits: self.bits.isolate_rightmost_one(),
+    }
   }
 }

@@ -18,7 +18,10 @@ use num_traits::PrimInt;
 #[cfg(test)]
 use quickcheck::quickcheck;
 
-pub trait IntExt where Self: PrimInt {
+pub trait IntExt
+where
+  Self: PrimInt,
+{
   /// Isolates the rightmost 1-bit leaving all other bits as 0
   /// e.g. 1010 1000 -> 0000 1000
   ///
@@ -74,23 +77,32 @@ pub trait IntExt where Self: PrimInt {
 
 impl IntExt for u8 {
   #[inline(always)]
-  fn wrapping_add_one(self) -> u8 { self.wrapping_add(1) }
+  fn wrapping_add_one(self) -> u8 {
+    self.wrapping_add(1)
+  }
   #[inline(always)]
-  fn wrapping_sub_one(self) -> u8 { self.wrapping_sub(1) }
+  fn wrapping_sub_one(self) -> u8 {
+    self.wrapping_sub(1)
+  }
 }
 
 impl IntExt for u16 {
   #[inline(always)]
-  fn wrapping_add_one(self) -> u16 { self.wrapping_add(1) }
+  fn wrapping_add_one(self) -> u16 {
+    self.wrapping_add(1)
+  }
   #[inline(always)]
-  fn wrapping_sub_one(self) -> u16 { self.wrapping_sub(1) }
+  fn wrapping_sub_one(self) -> u16 {
+    self.wrapping_sub(1)
+  }
 }
 
 #[cfg(test)]
 fn test_isolate_rightmost_one<T: IntExt>(x: T) -> bool {
   let y = x.isolate_rightmost_one();
-  if x.is_zero() { y.is_zero() }
-  else {
+  if x.is_zero() {
+    y.is_zero()
+  } else {
     let mut value = x;
     let mut expected = T::one();
     while !value.bit_bool(0) {
@@ -104,13 +116,17 @@ fn test_isolate_rightmost_one<T: IntExt>(x: T) -> bool {
 #[cfg(test)]
 #[test]
 fn test_u8_isolate_rightmost_one() {
-  fn prop(x: u8) -> bool { test_isolate_rightmost_one(x) }
+  fn prop(x: u8) -> bool {
+    test_isolate_rightmost_one(x)
+  }
   quickcheck(prop as fn(u8) -> bool);
 }
 
 #[cfg(test)]
 #[test]
 fn test_u16_isolate_rightmost_one() {
-  fn prop(x: u16) -> bool { test_isolate_rightmost_one(x) }
+  fn prop(x: u16) -> bool {
+    test_isolate_rightmost_one(x)
+  }
   quickcheck(prop as fn(u16) -> bool);
 }

@@ -21,7 +21,7 @@ fn test_f0() {
     &[0xf0, 0x80], // LDH A, (n)
     |machine| {
       machine.hardware.memory[0xff80] = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -34,7 +34,7 @@ fn test_f2() {
     |machine| {
       machine.hardware.memory[0xff80] = 0x42;
       machine.cpu.regs.c = 0x80;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -46,7 +46,7 @@ fn test_f3() {
     &[0xf3], // DI
     |machine| {
       machine.cpu.ime = true;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.ime, false);
@@ -58,7 +58,7 @@ fn test_fb() {
     &[0xfb], // EI
     |machine| {
       machine.cpu.ime = false;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.ime, true);

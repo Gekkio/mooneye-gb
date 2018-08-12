@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig, Model};
-use mooneye_gb::emulation::{EmuTime, EmuEvents};
+use mooneye_gb::emulation::{EmuEvents, EmuTime};
 use mooneye_gb::machine::Machine;
 
 macro_rules! resolve_model (
@@ -161,17 +161,17 @@ testcases! {
 }
 
 fn run_test_with_model(name: &str, model: Model) {
-  let bootrom = Bootrom::lookup(&[model])
-    .unwrap_or_else(|| panic!("No boot ROM found ({:?})", model));
+  let bootrom =
+    Bootrom::lookup(&[model]).unwrap_or_else(|| panic!("No boot ROM found ({:?})", model));
 
   let test_name = format!("../tests/build/{}.gb", name);
   let cartridge_path = PathBuf::from(&test_name);
   let cartridge = Cartridge::from_path(&cartridge_path).unwrap();
 
   let hardware_config = HardwareConfig {
-    model: model,
+    model,
     bootrom: Some(bootrom.data),
-    cartridge: cartridge
+    cartridge,
   };
 
   let max_duration = Duration::from_secs(120);
@@ -197,11 +197,12 @@ fn run_test_with_model(name: &str, model: Model) {
     None => panic!("Test did not finish ({:?})", model),
     Some(regs) => {
       if regs.a != 0 {
-        panic!("{} assertion failures in hardware test ({:?})", regs.a, model);
+        panic!(
+          "{} assertion failures in hardware test ({:?})",
+          regs.a, model
+        );
       }
-      if regs.b != 3  || regs.c != 5  ||
-         regs.d != 8  || regs.e != 13 ||
-         regs.h != 21 || regs.l != 34 {
+      if regs.b != 3 || regs.c != 5 || regs.d != 8 || regs.e != 13 || regs.h != 21 || regs.l != 34 {
         panic!("Hardware test failed ({:?})", model);
       }
     }

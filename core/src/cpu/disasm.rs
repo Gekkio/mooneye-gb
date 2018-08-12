@@ -17,12 +17,9 @@ use std::borrow::Cow;
 use std::fmt;
 
 use cpu;
-use cpu::{
-  CpuOps, Cond,
-  In8, Out8
-};
 use cpu::ops;
-use cpu::registers::{Reg8, Reg16};
+use cpu::registers::{Reg16, Reg8};
+use cpu::{Cond, CpuOps, In8, Out8};
 
 pub type DisasmStr = Cow<'static, str>;
 
@@ -30,14 +27,19 @@ pub type DisasmStr = Cow<'static, str>;
 pub enum Operand8 {
   Register(Reg8),
   Immediate(u8),
-  Memory(Addr)
+  Memory(Addr),
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum Addr {
-  BC, DE, HL, HLD, HLI,
-  ZeroPageC, Direct(u16),
-  ZeroPage(u8)
+  BC,
+  DE,
+  HL,
+  HLD,
+  HLI,
+  ZeroPageC,
+  Direct(u16),
+  ZeroPage(u8),
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -118,7 +120,9 @@ impl ToDisasmStr for u16 {
 }
 
 impl ToDisasmStr for &'static str {
-  fn to_disasm_str(&self) -> DisasmStr { (*self).into() }
+  fn to_disasm_str(&self) -> DisasmStr {
+    (*self).into()
+  }
 }
 
 impl ToDisasmStr for usize {
@@ -150,7 +154,7 @@ impl ToDisasmStr for Operand8 {
     match *self {
       Operand8::Register(reg) => reg.to_disasm_str(),
       Operand8::Immediate(val) => (format!("${:02x}", val)).into(),
-      Operand8::Memory(addr) => addr.to_disasm_str()
+      Operand8::Memory(addr) => addr.to_disasm_str(),
     }
   }
 }
@@ -159,12 +163,14 @@ impl ToDisasmStr for Addr {
   fn to_disasm_str(&self) -> DisasmStr {
     use self::Addr::*;
     match *self {
-      BC => "(BC)".into(), DE => "(DE)".into(),
+      BC => "(BC)".into(),
+      DE => "(DE)".into(),
       HL => "(HL)".into(),
-      HLD => "(HL-)".into(), HLI => "(HL+)".into(),
+      HLD => "(HL-)".into(),
+      HLI => "(HL+)".into(),
       ZeroPageC => "($ff00+C)".into(),
       Direct(addr) => (format!("(${:04x})", addr)).into(),
-      ZeroPage(addr) => (format!("($ff00+${:02x})", addr)).into()
+      ZeroPage(addr) => (format!("($ff00+${:02x})", addr)).into(),
     }
   }
 }
@@ -175,7 +181,9 @@ impl fmt::Display for Instr {
   }
 }
 
-fn null_op(op: &'static str) -> DisasmStr { op.into() }
+fn null_op(op: &'static str) -> DisasmStr {
+  op.into()
+}
 fn unary_op<A: ToDisasmStr>(op: &'static str, arg: A) -> DisasmStr {
   (format!("{} {}", op, arg.to_disasm_str())).into()
 }
@@ -192,9 +200,9 @@ impl ToDisasmStr for Instr {
       Adc(io) => unary_op("ADC", io),
       Sub(io) => unary_op("SUB", io),
       Sbc(io) => unary_op("SBC", io),
-      Cp(io) => unary_op( "CP", io),
+      Cp(io) => unary_op("CP", io),
       And(io) => unary_op("AND", io),
-      Or(io) => unary_op( "OR", io),
+      Or(io) => unary_op("OR", io),
       Xor(io) => unary_op("XOR", io),
       Inc(io) => unary_op("INC", io),
       Dec(io) => unary_op("DEC", io),
@@ -250,7 +258,7 @@ impl ToDisasmStr for Instr {
 
 pub struct Disasm<'a> {
   pc: u16,
-  reader: &'a mut FnMut(u16) -> u8
+  reader: &'a mut FnMut(u16) -> u8,
 }
 
 impl<'a> Disasm<'a> {
@@ -271,11 +279,15 @@ pub trait ResolveOp8 {
 }
 
 impl ResolveOp8 for Reg8 {
-  fn resolve<'a>(&self, _: &mut Disasm<'a>) -> Operand8 { Operand8::Register(*self) }
+  fn resolve<'a>(&self, _: &mut Disasm<'a>) -> Operand8 {
+    Operand8::Register(*self)
+  }
 }
 
 impl ResolveOp8 for cpu::Immediate8 {
-  fn resolve<'a>(&self, disasm: &mut Disasm<'a>) -> Operand8 { Operand8::Immediate(disasm.next_u8()) }
+  fn resolve<'a>(&self, disasm: &mut Disasm<'a>) -> Operand8 {
+    Operand8::Immediate(disasm.next_u8())
+  }
 }
 
 impl ResolveOp8 for cpu::Addr {
@@ -288,7 +300,7 @@ impl ResolveOp8 for cpu::Addr {
       cpu::Addr::HLI => Addr::HLI,
       cpu::Addr::ZeroPageC => Addr::ZeroPageC,
       cpu::Addr::Direct => Addr::Direct(disasm.next_u16()),
-      cpu::Addr::ZeroPage => Addr::ZeroPage(disasm.next_u8())
+      cpu::Addr::ZeroPage => Addr::ZeroPage(disasm.next_u8()),
     })
   }
 }
@@ -305,86 +317,194 @@ impl<'a, 'b> CpuOps for &'a mut Disasm<'b> {
     Instr::Load(Operand8::Register(Reg8::B), Operand8::Register(Reg8::B))
   }
   // 8-bit arithmetic
-  fn add<I: In8>(self, in8: I) -> Instr { Instr::Add(in8.resolve(self)) }
-  fn adc<I: In8>(self, in8: I) -> Instr { Instr::Adc(in8.resolve(self)) }
-  fn sub<I: In8>(self, in8: I) -> Instr { Instr::Sub(in8.resolve(self)) }
-  fn sbc<I: In8>(self, in8: I) -> Instr { Instr::Sbc(in8.resolve(self)) }
-  fn  cp<I: In8>(self, in8: I) -> Instr {  Instr::Cp(in8.resolve(self)) }
-  fn and<I: In8>(self, in8: I) -> Instr { Instr::And(in8.resolve(self)) }
-  fn  or<I: In8>(self, in8: I) -> Instr {  Instr::Or(in8.resolve(self)) }
-  fn xor<I: In8>(self, in8: I) -> Instr { Instr::Xor(in8.resolve(self)) }
-  fn inc<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Inc(io.resolve(self)) }
-  fn dec<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Dec(io.resolve(self)) }
-  fn rlca(self) -> Instr { Instr::Rlca }
-  fn  rla(self) -> Instr { Instr::Rla }
-  fn rrca(self) -> Instr { Instr::Rrca }
-  fn  rra(self) -> Instr { Instr::Rra }
-  fn  rlc<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Rlc(io.resolve(self)) }
-  fn   rl<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Rl(io.resolve(self)) }
-  fn  rrc<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Rrc(io.resolve(self)) }
-  fn   rr<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Rr(io.resolve(self)) }
-  fn  sla<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Sla(io.resolve(self)) }
-  fn  sra<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Sra(io.resolve(self)) }
-  fn  srl<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Srl(io.resolve(self)) }
-  fn swap<IO: In8+Out8>(self, io: IO) -> Instr { Instr::Swap(io.resolve(self)) }
-  fn  bit<I:  In8>     (self, bit: usize, in8: I) -> Instr { Instr::Bit(bit, in8.resolve(self)) }
-  fn  set<IO: In8+Out8>(self, bit: usize, io: IO) -> Instr { Instr::Set(bit, io.resolve(self)) }
-  fn  res<IO: In8+Out8>(self, bit: usize, io: IO) -> Instr { Instr::Res(bit, io.resolve(self)) }
+  fn add<I: In8>(self, in8: I) -> Instr {
+    Instr::Add(in8.resolve(self))
+  }
+  fn adc<I: In8>(self, in8: I) -> Instr {
+    Instr::Adc(in8.resolve(self))
+  }
+  fn sub<I: In8>(self, in8: I) -> Instr {
+    Instr::Sub(in8.resolve(self))
+  }
+  fn sbc<I: In8>(self, in8: I) -> Instr {
+    Instr::Sbc(in8.resolve(self))
+  }
+  fn cp<I: In8>(self, in8: I) -> Instr {
+    Instr::Cp(in8.resolve(self))
+  }
+  fn and<I: In8>(self, in8: I) -> Instr {
+    Instr::And(in8.resolve(self))
+  }
+  fn or<I: In8>(self, in8: I) -> Instr {
+    Instr::Or(in8.resolve(self))
+  }
+  fn xor<I: In8>(self, in8: I) -> Instr {
+    Instr::Xor(in8.resolve(self))
+  }
+  fn inc<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Inc(io.resolve(self))
+  }
+  fn dec<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Dec(io.resolve(self))
+  }
+  fn rlca(self) -> Instr {
+    Instr::Rlca
+  }
+  fn rla(self) -> Instr {
+    Instr::Rla
+  }
+  fn rrca(self) -> Instr {
+    Instr::Rrca
+  }
+  fn rra(self) -> Instr {
+    Instr::Rra
+  }
+  fn rlc<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Rlc(io.resolve(self))
+  }
+  fn rl<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Rl(io.resolve(self))
+  }
+  fn rrc<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Rrc(io.resolve(self))
+  }
+  fn rr<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Rr(io.resolve(self))
+  }
+  fn sla<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Sla(io.resolve(self))
+  }
+  fn sra<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Sra(io.resolve(self))
+  }
+  fn srl<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Srl(io.resolve(self))
+  }
+  fn swap<IO: In8 + Out8>(self, io: IO) -> Instr {
+    Instr::Swap(io.resolve(self))
+  }
+  fn bit<I: In8>(self, bit: usize, in8: I) -> Instr {
+    Instr::Bit(bit, in8.resolve(self))
+  }
+  fn set<IO: In8 + Out8>(self, bit: usize, io: IO) -> Instr {
+    Instr::Set(bit, io.resolve(self))
+  }
+  fn res<IO: In8 + Out8>(self, bit: usize, io: IO) -> Instr {
+    Instr::Res(bit, io.resolve(self))
+  }
   // --- Control
-  fn      jp(self) -> Instr { Instr::Jp(self.next_u16()) }
-  fn   jp_hl(self) -> Instr { Instr::JpHl }
-  fn      jr(self) -> Instr {
+  fn jp(self) -> Instr {
+    Instr::Jp(self.next_u16())
+  }
+  fn jp_hl(self) -> Instr {
+    Instr::JpHl
+  }
+  fn jr(self) -> Instr {
     let offset = self.next_u8() as i8;
     let addr = (self.pc as i16 + offset as i16) as u16;
     Instr::Jr(offset, addr)
   }
-  fn    call(self) -> Instr { Instr::Call(self.next_u16()) }
-  fn     ret(self) -> Instr { Instr::Ret }
-  fn    reti(self) -> Instr { Instr::Reti }
-  fn   jp_cc(self, cond: Cond) -> Instr { Instr::JpCc(cond, self.next_u16()) }
-  fn   jr_cc(self, cond: Cond) -> Instr {
+  fn call(self) -> Instr {
+    Instr::Call(self.next_u16())
+  }
+  fn ret(self) -> Instr {
+    Instr::Ret
+  }
+  fn reti(self) -> Instr {
+    Instr::Reti
+  }
+  fn jp_cc(self, cond: Cond) -> Instr {
+    Instr::JpCc(cond, self.next_u16())
+  }
+  fn jr_cc(self, cond: Cond) -> Instr {
     let offset = self.next_u8() as i8;
     let addr = (self.pc as i16 + offset as i16) as u16;
     Instr::JrCc(cond, offset, addr)
   }
-  fn call_cc(self, cond: Cond) -> Instr { Instr::CallCc(cond, self.next_u16()) }
-  fn  ret_cc(self, cond: Cond) -> Instr { Instr::RetCc(cond) }
-  fn     rst(self, addr: u8) -> Instr { Instr::Rst(addr) }
+  fn call_cc(self, cond: Cond) -> Instr {
+    Instr::CallCc(cond, self.next_u16())
+  }
+  fn ret_cc(self, cond: Cond) -> Instr {
+    Instr::RetCc(cond)
+  }
+  fn rst(self, addr: u8) -> Instr {
+    Instr::Rst(addr)
+  }
   // --- Miscellaneous
-  fn halt(self) -> Instr { Instr::Halt }
-  fn stop(self) -> Instr { Instr::Stop }
-  fn   di(self) -> Instr { Instr::Di }
-  fn   ei(self) -> Instr { Instr::Ei }
-  fn  ccf(self) -> Instr { Instr::Ccf }
-  fn  scf(self) -> Instr { Instr::Scf }
-  fn  nop(self) -> Instr { Instr::Nop }
-  fn  daa(self) -> Instr { Instr::Daa }
-  fn  cpl(self) -> Instr { Instr::Cpl }
+  fn halt(self) -> Instr {
+    Instr::Halt
+  }
+  fn stop(self) -> Instr {
+    Instr::Stop
+  }
+  fn di(self) -> Instr {
+    Instr::Di
+  }
+  fn ei(self) -> Instr {
+    Instr::Ei
+  }
+  fn ccf(self) -> Instr {
+    Instr::Ccf
+  }
+  fn scf(self) -> Instr {
+    Instr::Scf
+  }
+  fn nop(self) -> Instr {
+    Instr::Nop
+  }
+  fn daa(self) -> Instr {
+    Instr::Daa
+  }
+  fn cpl(self) -> Instr {
+    Instr::Cpl
+  }
   // --- 16-bit operations
   // 16-bit loads
-  fn load16_imm(self, reg: Reg16) -> Instr { Instr::Load16(reg, self.next_u16()) }
-  fn load16_nn_sp(self) -> Instr { Instr::Load16NnSp(self.next_u16()) }
-  fn load16_sp_hl(self) -> Instr { Instr::Load16SpHl }
-  fn load16_hl_sp_e(self) -> Instr { Instr::Load16HlSpE(self.next_u8() as i8) }
+  fn load16_imm(self, reg: Reg16) -> Instr {
+    Instr::Load16(reg, self.next_u16())
+  }
+  fn load16_nn_sp(self) -> Instr {
+    Instr::Load16NnSp(self.next_u16())
+  }
+  fn load16_sp_hl(self) -> Instr {
+    Instr::Load16SpHl
+  }
+  fn load16_hl_sp_e(self) -> Instr {
+    Instr::Load16HlSpE(self.next_u8() as i8)
+  }
   // 16-bit arithmetic
-  fn push16(self, reg: Reg16) -> Instr { Instr::Push16(reg) }
-  fn  pop16(self, reg: Reg16) -> Instr { Instr::Pop16(reg) }
-  fn  add16(self, reg: Reg16) -> Instr { Instr::Add16(reg) }
-  fn add16_sp_e(self) -> Instr { Instr::Add16SpE(self.next_u8() as i8) }
-  fn inc16(self, reg: Reg16) -> Instr { Instr::Inc16(reg) }
-  fn dec16(self, reg: Reg16) -> Instr { Instr::Dec16(reg) }
+  fn push16(self, reg: Reg16) -> Instr {
+    Instr::Push16(reg)
+  }
+  fn pop16(self, reg: Reg16) -> Instr {
+    Instr::Pop16(reg)
+  }
+  fn add16(self, reg: Reg16) -> Instr {
+    Instr::Add16(reg)
+  }
+  fn add16_sp_e(self) -> Instr {
+    Instr::Add16SpE(self.next_u8() as i8)
+  }
+  fn inc16(self, reg: Reg16) -> Instr {
+    Instr::Inc16(reg)
+  }
+  fn dec16(self, reg: Reg16) -> Instr {
+    Instr::Dec16(reg)
+  }
   // --- Undefined
-  fn undefined(self, op: u8) -> Instr { Instr::Undefined(op) }
+  fn undefined(self, op: u8) -> Instr {
+    Instr::Undefined(op)
+  }
   fn cb_prefix(self) -> Instr {
     let op = self.next_u8();
     ops::decode_cb(self, op)
   }
 }
 
-pub fn disasm<'a, F: 'a+FnMut(u16) -> u8>(pc_start: u16, reader: &'a mut F) -> Instr {
+pub fn disasm<'a, F: 'a + FnMut(u16) -> u8>(pc_start: u16, reader: &'a mut F) -> Instr {
   let mut disasm = Disasm {
     pc: pc_start,
-    reader: reader
+    reader,
   };
   let op = disasm.next_u8();
   ops::decode(&mut disasm, op)

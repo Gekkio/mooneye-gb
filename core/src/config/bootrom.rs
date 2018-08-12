@@ -13,27 +13,32 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use app_dirs::{AppDataType, AppInfo, app_dir};
+use app_dirs::{app_dir, AppDataType, AppInfo};
 use crc::crc32;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
 
-use gameboy::BootromData;
 use config::{Model, DEFAULT_MODEL_PRIORITY};
+use gameboy::BootromData;
 
-const APP_INFO: AppInfo = AppInfo{name: "mooneye-gb", author: "Gekkio"};
+const APP_INFO: AppInfo = AppInfo {
+  name: "mooneye-gb",
+  author: "Gekkio",
+};
 
 #[derive(Fail, Debug)]
 pub enum BootromError {
   #[fail(display = "IO error: {}", _0)]
   Io(#[cause] io::Error),
   #[fail(display = "Unrecognized boot ROM checksum: 0x{:08x}", crc32)]
-  Checksum { crc32: u32 }
+  Checksum { crc32: u32 },
 }
 
 impl From<io::Error> for BootromError {
-  fn from(e: io::Error) -> BootromError { BootromError::Io(e) }
+  fn from(e: io::Error) -> BootromError {
+    BootromError::Io(e)
+  }
 }
 
 pub struct Bootrom {
@@ -69,7 +74,11 @@ impl Bootrom {
     use std::env;
 
     let mut candidates = vec![];
-    let models = if models.is_empty() { &DEFAULT_MODEL_PRIORITY } else { models };
+    let models = if models.is_empty() {
+      &DEFAULT_MODEL_PRIORITY
+    } else {
+      models
+    };
 
     if let Ok(dir) = get_app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
       for model in models {
@@ -87,11 +96,11 @@ impl Bootrom {
       let path_str = path.to_string_lossy();
       debug!("Scanning {} for a boot ROM", path_str);
       match Bootrom::from_path(&path) {
-        Err(BootromError::Io(ref e),) if e.kind() == io::ErrorKind::NotFound => (),
+        Err(BootromError::Io(ref e)) if e.kind() == io::ErrorKind::NotFound => (),
         Err(ref e) => warn!("Warning: Boot rom \"{}\" ({})", path_str, e),
         Ok(bootrom) => {
           info!("Using {} boot ROM from {}", bootrom.model, path_str);
-          return Some(bootrom)
+          return Some(bootrom);
         }
       }
     }
@@ -99,18 +108,24 @@ impl Bootrom {
   }
   #[cfg(feature = "include-bootroms")]
   pub fn lookup(models: &[Model]) -> Option<Bootrom> {
-    let models = if models.is_empty() { &DEFAULT_MODEL_PRIORITY } else { models };
+    let models = if models.is_empty() {
+      &DEFAULT_MODEL_PRIORITY
+    } else {
+      models
+    };
     models.first().map(|&model| {
       info!("Using included {} boot ROM", model);
       Bootrom {
         model,
-        data: Box::new(BootromData(match model {
-          Model::Dmg0 => include_bytes!("../../bootroms/dmg0_boot.bin"),
-          Model::Dmg => include_bytes!("../../bootroms/dmg_boot.bin"),
-          Model::Mgb => include_bytes!("../../bootroms/mgb_boot.bin"),
-          Model::Sgb => include_bytes!("../../bootroms/sgb_boot.bin"),
-          Model::Sgb2 => include_bytes!("../../bootroms/sgb2_boot.bin"),
-        }.clone()))
+        data: Box::new(BootromData(
+          match model {
+            Model::Dmg0 => include_bytes!("../../bootroms/dmg0_boot.bin"),
+            Model::Dmg => include_bytes!("../../bootroms/dmg_boot.bin"),
+            Model::Mgb => include_bytes!("../../bootroms/mgb_boot.bin"),
+            Model::Sgb => include_bytes!("../../bootroms/sgb_boot.bin"),
+            Model::Sgb2 => include_bytes!("../../bootroms/sgb2_boot.bin"),
+          }.clone(),
+        )),
       }
     })
   }
@@ -118,8 +133,12 @@ impl Bootrom {
     if let Ok(dir) = app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
       let path = dir.join(self.model.bootrom_file_name());
       let mut file = File::create(&path)?;
-      try!(file.write_all(&self.data.0));
-      info!("Saved {} boot ROM to {}", self.model, path.to_string_lossy());
+      file.write_all(&self.data.0)?;
+      info!(
+        "Saved {} boot ROM to {}",
+        self.model,
+        path.to_string_lossy()
+      );
     }
     Ok(())
   }

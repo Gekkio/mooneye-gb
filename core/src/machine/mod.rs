@@ -13,14 +13,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+pub use self::perf_counter::PerfCounter;
 use config::HardwareConfig;
-use cpu::{Cpu, Step};
 use cpu::registers::Registers;
-use emulation::{EmuTime, EmuEvents};
-use ::GbKey;
+use cpu::{Cpu, Step};
+use emulation::{EmuEvents, EmuTime};
 use gameboy;
 use hardware::Hardware;
-pub use self::perf_counter::PerfCounter;
+use GbKey;
 
 mod perf_counter;
 
@@ -55,6 +55,10 @@ impl Machine {
   pub fn key_up(&mut self, key: GbKey) {
     self.hardware.key_up(key);
   }
-  pub fn regs(&self) -> Registers { self.cpu.regs }
-  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { self.hardware.screen_buffer() }
+  pub fn regs(&self) -> Registers {
+    self.cpu.regs
+  }
+  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer {
+    self.hardware.screen_buffer()
+  }
 }

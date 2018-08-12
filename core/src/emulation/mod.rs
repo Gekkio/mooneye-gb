@@ -30,7 +30,9 @@ pub struct EmuTime {
 }
 
 impl EmuTime {
-  pub fn zero() -> EmuTime { EmuTime { machine_cycles: 0 } }
+  pub fn zero() -> EmuTime {
+    EmuTime { machine_cycles: 0 }
+  }
   pub fn from_machine_cycles(machine_cycles: u64) -> EmuTime {
     EmuTime { machine_cycles }
   }

@@ -20,7 +20,7 @@ pub struct Ch4 {
   noise_opt: u8,
   use_counter: bool,
   counter: usize,
-  pub status: bool
+  pub status: bool,
 }
 
 impl Ch4 {
@@ -30,7 +30,7 @@ impl Ch4 {
       noise_opt: 0,
       use_counter: false,
       counter: 0,
-      status: false
+      status: false,
     }
   }
   pub fn reset(&mut self) {
@@ -39,13 +39,16 @@ impl Ch4 {
   pub fn write_reg1(&mut self, value: u8) {
     self.counter = 64 - (value & 0x3f) as usize;
   }
-  pub fn read_reg3(&self) -> u8 { self.noise_opt }
-  pub fn write_reg3(&mut self, value: u8) { self.noise_opt = value }
+  pub fn read_reg3(&self) -> u8 {
+    self.noise_opt
+  }
+  pub fn write_reg3(&mut self, value: u8) {
+    self.noise_opt = value
+  }
   pub fn read_reg4(&self) -> u8 {
     const REG4_MASK: u8 = 0xbf;
 
-    REG4_MASK |
-    if self.use_counter { 1 << 6 } else { 0 }
+    REG4_MASK | if self.use_counter { 1 << 6 } else { 0 }
   }
   pub fn write_reg4(&mut self, value: u8) {
     self.status = value & (1 << 7) != 0;

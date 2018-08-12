@@ -19,20 +19,18 @@ use cpu::registers::Reg16;
 use cpu::test::run_test;
 
 fn test_dec16(opcode: u8, x: u16, reg: Reg16) -> bool {
-  let machine = run_test(
-    &[opcode],
-    |machine| {
-      machine.cpu.regs.write16(reg, x);
-    }
-  );
+  let machine = run_test(&[opcode], |machine| {
+    machine.cpu.regs.write16(reg, x);
+  });
   let expected = x.wrapping_sub(1);
-  machine.hardware.clock_cycles() == 8 &&
-    machine.cpu.regs.read16(reg) == expected
+  machine.hardware.clock_cycles() == 8 && machine.cpu.regs.read16(reg) == expected
 }
 
 #[test]
 fn test_0b() {
-  fn prop(x: u16) -> bool { test_dec16(0x0b, x, Reg16::BC) }
+  fn prop(x: u16) -> bool {
+    test_dec16(0x0b, x, Reg16::BC)
+  }
   quickcheck(prop as fn(u16) -> bool);
 }
 
@@ -43,7 +41,9 @@ fn test_0b_overflow() {
 
 #[test]
 fn test_1b() {
-  fn prop(x: u16) -> bool { test_dec16(0x1b, x, Reg16::DE) }
+  fn prop(x: u16) -> bool {
+    test_dec16(0x1b, x, Reg16::DE)
+  }
   quickcheck(prop as fn(u16) -> bool);
 }
 
@@ -54,7 +54,9 @@ fn test_1b_overflow() {
 
 #[test]
 fn test_2b() {
-  fn prop(x: u16) -> bool { test_dec16(0x2b, x, Reg16::HL) }
+  fn prop(x: u16) -> bool {
+    test_dec16(0x2b, x, Reg16::HL)
+  }
   quickcheck(prop as fn(u16) -> bool);
 }
 
@@ -65,7 +67,9 @@ fn test_2b_overflow() {
 
 #[test]
 fn test_3b() {
-  fn prop(x: u16) -> bool { test_dec16(0x3b, x, Reg16::SP) }
+  fn prop(x: u16) -> bool {
+    test_dec16(0x3b, x, Reg16::SP)
+  }
   quickcheck(prop as fn(u16) -> bool);
 }
 
@@ -73,4 +77,3 @@ fn test_3b() {
 fn test_3b_overflow() {
   assert!(test_dec16(0x3b, 0x0000, Reg16::SP))
 }
-

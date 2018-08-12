@@ -18,7 +18,7 @@ mod cartridge;
 mod model;
 
 pub use self::bootrom::Bootrom;
-pub use self::cartridge::{Cartridge, CartridgeType, CartridgeRamSize, CartridgeRomSize};
+pub use self::cartridge::{Cartridge, CartridgeRamSize, CartridgeRomSize, CartridgeType};
 pub use self::model::{Model, DEFAULT_MODEL_PRIORITY};
 use gameboy::BootromData;
 

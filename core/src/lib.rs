@@ -39,12 +39,16 @@ mod hardware;
 pub mod machine;
 mod util;
 
-#[cfg(feature = "acceptance_tests")]
-mod acceptance_tests;
-
 #[derive(Debug)]
 pub enum GbKey {
-  Right, Left, Up, Down, A, B, Select, Start
+  Right,
+  Left,
+  Up,
+  Down,
+  A,
+  B,
+  Select,
+  Start,
 }
 
 pub use gameboy::*;

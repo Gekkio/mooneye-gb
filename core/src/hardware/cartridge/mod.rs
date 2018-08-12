@@ -16,22 +16,28 @@
 use config;
 use config::CartridgeType;
 use crc::crc32;
-use gameboy::{
-  RAM_BANK_SIZE, ROM_BANK_SIZE
-};
+use gameboy::{RAM_BANK_SIZE, ROM_BANK_SIZE};
 use util::int::IntExt;
 
 #[derive(Debug, Clone)]
 struct Mbc1State {
   bank1: u8,
   bank2: u8,
-  mode: bool
+  mode: bool,
 }
 
 impl Mbc1State {
   fn rom_offsets(&self, multicart: bool) -> (usize, usize) {
-    let upper_bits = if multicart { self.bank2 << 4 } else { self.bank2 << 5 };
-    let lower_bits = if multicart { self.bank1 & 0b1111 } else { self.bank1 };
+    let upper_bits = if multicart {
+      self.bank2 << 4
+    } else {
+      self.bank2 << 5
+    };
+    let lower_bits = if multicart {
+      self.bank1 & 0b1111
+    } else {
+      self.bank1
+    };
 
     let lower_bank = if self.mode { upper_bits as usize } else { 0b00 };
     let upper_bank = (upper_bits | lower_bits) as usize;
@@ -55,7 +61,7 @@ fn is_mbc1_multicart(rom: &[u8]) -> bool {
       let start = page * 0x40000 + 0x0104;
       let end = start + 0x30;
 
-      crc32::checksum_ieee(&rom[start .. end])
+      crc32::checksum_ieee(&rom[start..end])
     })
     .filter(|&checksum| checksum == 0x46195417)
     .count();
@@ -68,20 +74,25 @@ fn is_mbc1_multicart(rom: &[u8]) -> bool {
 enum Mbc {
   None,
   Mbc1 { multicart: bool, state: Mbc1State },
-  Mbc2, Mbc3
+  Mbc2,
+  Mbc3,
 }
 
 impl Mbc {
   fn from_cartridge_type(t: CartridgeType, rom: &[u8]) -> Mbc {
     use config::CartridgeType::*;
     match t {
-       Rom |  RomRam |  RomRamBattery => Mbc::None,
+      Rom | RomRam | RomRamBattery => Mbc::None,
       Mbc1 | Mbc1Ram | Mbc1RamBattery => Mbc::Mbc1 {
         multicart: is_mbc1_multicart(rom),
-        state: Mbc1State { bank1: 0b00001, bank2: 0b00, mode: false },
+        state: Mbc1State {
+          bank1: 0b00001,
+          bank2: 0b00,
+          mode: false,
+        },
       },
-      Mbc2           | Mbc2RamBattery => Mbc::Mbc2,
-      Mbc3 | Mbc3Ram | Mbc3RamBattery => Mbc::Mbc3
+      Mbc2 | Mbc2RamBattery => Mbc::Mbc2,
+      Mbc3 | Mbc3Ram | Mbc3RamBattery => Mbc::Mbc3,
     }
   }
 }
@@ -102,10 +113,10 @@ impl Cartridge {
     let mbc = Mbc::from_cartridge_type(config.cartridge_type, &config.data);
     let ram_size = match mbc {
       Mbc::Mbc2 => 512,
-      _ => config.ram_size.as_usize()
+      _ => config.ram_size.as_usize(),
     };
     Cartridge {
-      mbc: mbc,
+      mbc,
       rom: config.data.into_boxed_slice(),
       rom_bank: 0,
       rom_offsets: (0x0000, 0x4000),
@@ -127,67 +138,70 @@ impl Cartridge {
   pub fn write_control(&mut self, reladdr: u16, value: u8) {
     match self.mbc {
       Mbc::None => (),
-      Mbc::Mbc1 { multicart, ref mut state } => {
-        match reladdr >> 8 {
-          0x00 ... 0x1f => {
-            self.ram_accessible = (value & 0b1111) == 0b1010;
-          },
-          0x20 ... 0x3f => {
-            state.bank1 = if value & 0b11111 == 0b00000 { 0b00001 } else { value & 0b11111 };
-            self.rom_offsets = state.rom_offsets(multicart);
-          },
-          0x40 ... 0x5f => {
-            state.bank2 = value & 0b11;
-            self.rom_offsets = state.rom_offsets(multicart);
-            self.ram_offset = state.ram_offset();
-          },
-          0x60 ... 0x7f => {
-            state.mode = (value & 0b1) == 0b1;
-            self.rom_offsets = state.rom_offsets(multicart);
-            self.ram_offset = state.ram_offset();
-          },
-          _ => ()
+      Mbc::Mbc1 {
+        multicart,
+        ref mut state,
+      } => match reladdr >> 8 {
+        0x00...0x1f => {
+          self.ram_accessible = (value & 0b1111) == 0b1010;
         }
-      },
-      Mbc::Mbc2 => {
-        match reladdr >> 8 {
-          0x00 ... 0x1f => {
-            if !reladdr.bit_bool(8) {
-              self.ram_accessible = (value & 0x0f) == 0x0a;
-            }
-          },
-          0x20 ... 0x3f => {
-            if reladdr.bit_bool(8) {
-              self.rom_bank = value & 0x0f;
-              self.update_rom_offsets();
-            }
-          },
-          _ => ()
+        0x20...0x3f => {
+          state.bank1 = if value & 0b11111 == 0b00000 {
+            0b00001
+          } else {
+            value & 0b11111
+          };
+          self.rom_offsets = state.rom_offsets(multicart);
         }
+        0x40...0x5f => {
+          state.bank2 = value & 0b11;
+          self.rom_offsets = state.rom_offsets(multicart);
+          self.ram_offset = state.ram_offset();
+        }
+        0x60...0x7f => {
+          state.mode = (value & 0b1) == 0b1;
+          self.rom_offsets = state.rom_offsets(multicart);
+          self.ram_offset = state.ram_offset();
+        }
+        _ => (),
       },
-      Mbc::Mbc3 => {
-        match reladdr >> 8 {
-          0x00 ... 0x1f => {
+      Mbc::Mbc2 => match reladdr >> 8 {
+        0x00...0x1f => {
+          if !reladdr.bit_bool(8) {
             self.ram_accessible = (value & 0x0f) == 0x0a;
-          },
-          0x20 ... 0x3f => {
-            self.rom_bank = value & 0x7f;
-            self.update_rom_offsets();
-          },
-          0x40 ... 0x5f => {
-            self.ram_bank = value & 0x07;
-            self.update_ram_offset();
-          },
-          _ => ()
+          }
         }
-      }
+        0x20...0x3f => {
+          if reladdr.bit_bool(8) {
+            self.rom_bank = value & 0x0f;
+            self.update_rom_offsets();
+          }
+        }
+        _ => (),
+      },
+      Mbc::Mbc3 => match reladdr >> 8 {
+        0x00...0x1f => {
+          self.ram_accessible = (value & 0x0f) == 0x0a;
+        }
+        0x20...0x3f => {
+          self.rom_bank = value & 0x7f;
+          self.update_rom_offsets();
+        }
+        0x40...0x5f => {
+          self.ram_bank = value & 0x07;
+          self.update_ram_offset();
+        }
+        _ => (),
+      },
     }
   }
   pub fn read_ram(&self, addr: u16) -> u8 {
     if self.ram_accessible && !self.ram.is_empty() {
       let addr = self.ram_addr(addr);
       self.ram[addr]
-    } else { 0xff }
+    } else {
+      0xff
+    }
   }
   pub fn write_ram(&mut self, addr: u16, value: u8) {
     if self.ram_accessible && !self.ram.is_empty() {
@@ -195,7 +209,7 @@ impl Cartridge {
       match self.mbc {
         Mbc::Mbc2 => {
           self.ram[addr] = value & 0x0f;
-        },
+        }
         _ => {
           self.ram[addr] = value;
         }
@@ -209,16 +223,16 @@ impl Cartridge {
     match self.mbc {
       Mbc::Mbc2 | Mbc::Mbc3 => {
         self.rom_offsets = (0x0000, ROM_BANK_SIZE * self.rom_bank as usize);
-      },
-      _ => ()
+      }
+      _ => (),
     }
   }
   fn update_ram_offset(&mut self) {
     match self.mbc {
       Mbc::Mbc3 => {
         self.ram_offset = RAM_BANK_SIZE * self.ram_bank as usize;
-      },
-      _ => ()
+      }
+      _ => (),
     }
   }
 }

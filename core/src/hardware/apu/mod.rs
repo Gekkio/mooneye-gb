@@ -38,7 +38,7 @@ pub struct Apu {
   ch2: Ch2,
   ch3: Ch3,
   ch4: Ch4,
-  cycles: usize
+  cycles: usize,
 }
 
 #[derive(Clone, Copy)]
@@ -50,7 +50,7 @@ enum Volume {
   Vol4 = 0x04,
   Vol5 = 0x05,
   Vol6 = 0x06,
-  Vol7 = 0x07
+  Vol7 = 0x07,
 }
 
 impl Volume {
@@ -65,7 +65,7 @@ impl Volume {
       0x05 => Some(Vol5),
       0x06 => Some(Vol6),
       0x07 => Some(Vol7),
-      _ => None
+      _ => None,
     }
   }
 }
@@ -84,7 +84,7 @@ impl Apu {
       ch2: Ch2::new(),
       ch3: Ch3::new(),
       ch4: Ch4::new(),
-      cycles: 4096
+      cycles: 4096,
     }
   }
   pub fn read(&self, addr: u16) -> u8 {
@@ -105,18 +105,18 @@ impl Apu {
       0x24 => self.get_ctrl_volume(),
       0x25 => self.get_terminal_channels(),
       0x26 => self.get_ctrl_master(),
-      0x30 ... 0x3f => self.ch3.read_wave_ram(addr - 0xff30),
-      _ => 0xff
+      0x30...0x3f => self.ch3.read_wave_ram(addr - 0xff30),
+      _ => 0xff,
     }
   }
   pub fn write(&mut self, addr: u16, value: u8) {
     if !self.enabled {
       match addr & 0xff {
         0x26 => self.set_ctrl_master(value),
-        0x30 ... 0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
-        _ => ()
+        0x30...0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
+        _ => (),
       }
-      return
+      return;
     }
     match addr & 0xff {
       0x10 => self.ch1.sweep.write_reg(value),
@@ -140,8 +140,8 @@ impl Apu {
       0x24 => self.set_ctrl_volume(value),
       0x25 => self.set_terminal_channels(value),
       0x26 => self.set_ctrl_master(value),
-      0x30 ... 0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
-      _ => ()
+      0x30...0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
+      _ => (),
     }
   }
   pub fn get_terminal_channels(&self) -> u8 {
@@ -154,12 +154,12 @@ impl Apu {
   pub fn get_ctrl_master(&self) -> u8 {
     const CTRL_MASTER_MASK: u8 = 0x70;
 
-    CTRL_MASTER_MASK |
-    if self.enabled { 1 << 7 } else { 0 } |
-    if self.ch4.status { 1 << 3 } else { 0 } |
-    if self.ch3.status { 1 << 2 } else { 0 } |
-    if self.ch2.status { 1 << 1 } else { 0 } |
-    if self.ch1.status { 1 << 0 } else { 0 }
+    CTRL_MASTER_MASK
+      | if self.enabled { 1 << 7 } else { 0 }
+      | if self.ch4.status { 1 << 3 } else { 0 }
+      | if self.ch3.status { 1 << 2 } else { 0 }
+      | if self.ch2.status { 1 << 1 } else { 0 }
+      | if self.ch1.status { 1 << 0 } else { 0 }
   }
   pub fn set_ctrl_master(&mut self, value: u8) {
     self.enabled = value & (1 << 7) != 0;
@@ -177,10 +177,10 @@ impl Apu {
     }
   }
   pub fn get_ctrl_volume(&self) -> u8 {
-    (self.term1_volume as u8) |
-    if self.term1_vin { 1 << 3 } else { 0 } |
-    (self.term2_volume as u8) << 4 |
-    if self.term2_vin { 1 << 7 } else { 0 }
+    (self.term1_volume as u8)
+      | if self.term1_vin { 1 << 3 } else { 0 }
+      | (self.term2_volume as u8) << 4
+      | if self.term2_vin { 1 << 7 } else { 0 }
   }
   pub fn set_ctrl_volume(&mut self, value: u8) {
     self.term1_volume = Volume::from_u8(value & 0x07).unwrap();

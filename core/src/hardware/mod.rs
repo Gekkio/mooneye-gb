@@ -17,32 +17,30 @@ use std::fmt;
 
 use config::HardwareConfig;
 use emulation::{EmuEvents, EmuTime};
-use ::GbKey;
 use gameboy;
 use gameboy::{HiramData, HIRAM_EMPTY};
 use hardware::apu::Apu;
 use hardware::bootrom::Bootrom;
 use hardware::cartridge::Cartridge;
 use hardware::gpu::Gpu;
-use hardware::work_ram::WorkRam;
-use hardware::irq::{
-  Irq, Interrupt, InterruptRequest,
-};
+use hardware::irq::{Interrupt, InterruptRequest, Irq};
 use hardware::joypad::Joypad;
 use hardware::serial::Serial;
 use hardware::timer::{Timer, TimerReg};
+use hardware::work_ram::WorkRam;
+use GbKey;
 
 mod apu;
 mod bootrom;
 mod cartridge;
 mod gpu;
-mod work_ram;
 pub mod irq;
 mod joypad;
 mod serial;
 mod timer;
+mod work_ram;
 
-pub trait MappedHardware<A, D: From<u8>+Into<u8> = u8> {
+pub trait MappedHardware<A, D: From<u8> + Into<u8> = u8> {
   fn read_cycle<I: InterruptRequest>(&mut self, addr: A, intr_req: &mut I) -> D;
   fn write_cycle<I: InterruptRequest>(&mut self, addr: A, data: D, intr_req: &mut I);
 }
@@ -120,18 +118,21 @@ impl OamDma {
       None
     }
   }
-  fn is_active(&self) -> bool { self.bus.is_some() }
+  fn is_active(&self) -> bool {
+    self.bus.is_some()
+  }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum ExternalBus {
-  Video, Main,
+  Video,
+  Main,
 }
 
 impl ExternalBus {
   fn from_oam_dma_source(source: u8) -> ExternalBus {
     match source {
-      0x80 ... 0x9f => ExternalBus::Video,
+      0x80...0x9f => ExternalBus::Video,
       _ => ExternalBus::Main,
     }
   }
@@ -160,9 +161,15 @@ impl Hardware {
     self.emu_events = EmuEvents::empty();
     events
   }
-  pub fn emu_events(&self) -> EmuEvents { self.emu_events }
-  pub fn emu_time(&self) -> EmuTime { self.emu_time }
-  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer { &self.gpu.back_buffer }
+  pub fn emu_events(&self) -> EmuEvents {
+    self.emu_events
+  }
+  pub fn emu_time(&self) -> EmuTime {
+    self.emu_time
+  }
+  pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer {
+    &self.gpu.back_buffer
+  }
   pub fn key_down(&mut self, key: GbKey) {
     self.joypad.key_down(key, &mut self.irq);
   }
@@ -172,133 +179,134 @@ impl Hardware {
   fn write_internal(&mut self, addr: u16, value: u8) {
     match addr >> 8 {
       0x00 if self.bootrom.is_active() => self.write_cycle_generic(|_| ()),
-      0x00 ... 0x7f => self.write_cycle_generic(|hw| hw.cartridge.write_control(addr, value)),
-      0x80 ... 0x97 => self.write_cycle_generic(|hw| hw.gpu.write_character_ram(addr - 0x8000, value)),
-      0x98 ... 0x9b => self.write_cycle_generic(|hw| hw.gpu.write_tile_map1(addr - 0x9800, value)),
-      0x9c ... 0x9f => self.write_cycle_generic(|hw| hw.gpu.write_tile_map2(addr - 0x9c00, value)),
-      0xa0 ... 0xbf => self.write_cycle_generic(|hw| hw.cartridge.write_ram(addr, value)),
-      0xc0 ... 0xcf => self.write_cycle_generic(|hw| hw.work_ram.write_lower(addr, value)),
-      0xd0 ... 0xdf => self.write_cycle_generic(|hw| hw.work_ram.write_upper(addr, value)),
+      0x00...0x7f => self.write_cycle_generic(|hw| hw.cartridge.write_control(addr, value)),
+      0x80...0x97 => {
+        self.write_cycle_generic(|hw| hw.gpu.write_character_ram(addr - 0x8000, value))
+      }
+      0x98...0x9b => self.write_cycle_generic(|hw| hw.gpu.write_tile_map1(addr - 0x9800, value)),
+      0x9c...0x9f => self.write_cycle_generic(|hw| hw.gpu.write_tile_map2(addr - 0x9c00, value)),
+      0xa0...0xbf => self.write_cycle_generic(|hw| hw.cartridge.write_ram(addr, value)),
+      0xc0...0xcf => self.write_cycle_generic(|hw| hw.work_ram.write_lower(addr, value)),
+      0xd0...0xdf => self.write_cycle_generic(|hw| hw.work_ram.write_upper(addr, value)),
       // Echo RAM
-      0xe0 ... 0xef => self.write_cycle_generic(|hw| hw.work_ram.write_lower(addr, value)),
-      0xf0 ... 0xfd => self.write_cycle_generic(|hw| hw.work_ram.write_upper(addr, value)),
+      0xe0...0xef => self.write_cycle_generic(|hw| hw.work_ram.write_lower(addr, value)),
+      0xf0...0xfd => self.write_cycle_generic(|hw| hw.work_ram.write_upper(addr, value)),
       0xfe => {
         match addr & 0xff {
-          0x00 ... 0x9f =>
-            self.write_cycle_generic(|hw| {
-              if !hw.oam_dma.is_active() {
-                hw.gpu.write_oam(addr as u8, value)
-              }
-            }),
-          _ => ()
-          // _ => panic!("Unsupported write at ${:04x} = {:02x}", addr, value)
-        }
-      },
-      0xff => {
-        match addr & 0xff {
-          0x00 => self.write_cycle_generic(|hw| hw.joypad.set_register(value)),
-          0x01 => self.write_cycle_generic(|hw| hw.serial.set_data(value)),
-          0x02 => self.write_cycle_generic(|hw| hw.serial.set_control(value)),
-          0x04 => self.write_cycle_timer(TimerReg::Div, value),
-          0x05 => self.write_cycle_timer(TimerReg::Tima, value),
-          0x06 => self.write_cycle_timer(TimerReg::Tma, value),
-          0x07 => self.write_cycle_timer(TimerReg::Tac, value),
-          0x0f => self.write_cycle_generic(|hw| hw.irq.set_interrupt_flag(value)),
-          0x10 ... 0x3f => self.write_cycle_generic(|hw| hw.apu.write(addr, value)),
-          0x40 => self.write_cycle_generic(|hw| hw.gpu.set_control(value)),
-          0x41 => self.write_cycle_generic(|hw| hw.gpu.set_stat(value)),
-          0x42 => self.write_cycle_generic(|hw| hw.gpu.set_scroll_y(value)),
-          0x43 => self.write_cycle_generic(|hw| hw.gpu.set_scroll_x(value)),
-          0x44 => self.write_cycle_generic(|hw| hw.gpu.reset_current_line()),
-          0x45 => self.write_cycle_generic(|hw| hw.gpu.set_compare_line(value)),
-          0x46 => self.write_cycle_generic(|hw| hw.oam_dma.request(value)),
-          0x47 => self.write_cycle_generic(|hw| hw.gpu.set_bg_palette(value)),
-          0x48 => self.write_cycle_generic(|hw| hw.gpu.set_obj_palette0(value)),
-          0x49 => self.write_cycle_generic(|hw| hw.gpu.set_obj_palette1(value)),
-          0x4a => self.write_cycle_generic(|hw| hw.gpu.set_window_y(value)),
-          0x4b => self.write_cycle_generic(|hw| hw.gpu.set_window_x(value)),
-          0x50 => {
-            if self.bootrom.is_active() {
-              self.write_cycle_generic(|hw| hw.bootrom.deactivate());
-              self.emu_events.insert(EmuEvents::BOOTROM_DISABLED);
+          0x00...0x9f => self.write_cycle_generic(|hw| {
+            if !hw.oam_dma.is_active() {
+              hw.gpu.write_oam(addr as u8, value)
             }
-          },
-          0x80 ... 0xfe => self.write_cycle_generic(|hw| hw.hiram[(addr as usize) & 0x7f] = value),
-          0xff => self.write_cycle_generic(|hw| hw.irq.set_interrupt_enable(value)),
-          _ => ()
+          }),
+          _ => (), // _ => panic!("Unsupported write at ${:04x} = {:02x}", addr, value)
         }
+      }
+      0xff => match addr & 0xff {
+        0x00 => self.write_cycle_generic(|hw| hw.joypad.set_register(value)),
+        0x01 => self.write_cycle_generic(|hw| hw.serial.set_data(value)),
+        0x02 => self.write_cycle_generic(|hw| hw.serial.set_control(value)),
+        0x04 => self.write_cycle_timer(TimerReg::Div, value),
+        0x05 => self.write_cycle_timer(TimerReg::Tima, value),
+        0x06 => self.write_cycle_timer(TimerReg::Tma, value),
+        0x07 => self.write_cycle_timer(TimerReg::Tac, value),
+        0x0f => self.write_cycle_generic(|hw| hw.irq.set_interrupt_flag(value)),
+        0x10...0x3f => self.write_cycle_generic(|hw| hw.apu.write(addr, value)),
+        0x40 => self.write_cycle_generic(|hw| hw.gpu.set_control(value)),
+        0x41 => self.write_cycle_generic(|hw| hw.gpu.set_stat(value)),
+        0x42 => self.write_cycle_generic(|hw| hw.gpu.set_scroll_y(value)),
+        0x43 => self.write_cycle_generic(|hw| hw.gpu.set_scroll_x(value)),
+        0x44 => self.write_cycle_generic(|hw| hw.gpu.reset_current_line()),
+        0x45 => self.write_cycle_generic(|hw| hw.gpu.set_compare_line(value)),
+        0x46 => self.write_cycle_generic(|hw| hw.oam_dma.request(value)),
+        0x47 => self.write_cycle_generic(|hw| hw.gpu.set_bg_palette(value)),
+        0x48 => self.write_cycle_generic(|hw| hw.gpu.set_obj_palette0(value)),
+        0x49 => self.write_cycle_generic(|hw| hw.gpu.set_obj_palette1(value)),
+        0x4a => self.write_cycle_generic(|hw| hw.gpu.set_window_y(value)),
+        0x4b => self.write_cycle_generic(|hw| hw.gpu.set_window_x(value)),
+        0x50 => {
+          if self.bootrom.is_active() {
+            self.write_cycle_generic(|hw| hw.bootrom.deactivate());
+            self.emu_events.insert(EmuEvents::BOOTROM_DISABLED);
+          }
+        }
+        0x80...0xfe => self.write_cycle_generic(|hw| hw.hiram[(addr as usize) & 0x7f] = value),
+        0xff => self.write_cycle_generic(|hw| hw.irq.set_interrupt_enable(value)),
+        _ => (),
       },
-      _ => panic!("Unsupported write at ${:04x} = {:02x}", addr, value)
+      _ => panic!("Unsupported write at ${:04x} = {:02x}", addr, value),
     }
   }
   fn read_internal(&mut self, addr: u16) -> u8 {
-   match addr >> 8 {
+    match addr >> 8 {
       0x00 if self.bootrom.is_active() => self.read_cycle_generic(|hw| hw.bootrom[addr]),
-      0x00 ... 0x3f => self.read_cycle_generic(|hw| hw.cartridge.read_rom_bank0(addr)),
-      0x40 ... 0x7f => self.read_cycle_generic(|hw| hw.cartridge.read_rom_bankx(addr)),
-      0x80 ... 0x97 => self.read_cycle_generic(|hw| hw.gpu.read_character_ram(addr - 0x8000)),
-      0x98 ... 0x9b => self.read_cycle_generic(|hw| hw.gpu.read_tile_map1(addr - 0x9800)),
-      0x9c ... 0x9f => self.read_cycle_generic(|hw| hw.gpu.read_tile_map2(addr - 0x9c00)),
-      0xa0 ... 0xbf => self.read_cycle_generic(|hw| hw.cartridge.read_ram(addr)),
-      0xc0 ... 0xcf => self.read_cycle_generic(|hw| hw.work_ram.read_lower(addr)),
-      0xd0 ... 0xdf => self.read_cycle_generic(|hw| hw.work_ram.read_upper(addr)),
+      0x00...0x3f => self.read_cycle_generic(|hw| hw.cartridge.read_rom_bank0(addr)),
+      0x40...0x7f => self.read_cycle_generic(|hw| hw.cartridge.read_rom_bankx(addr)),
+      0x80...0x97 => self.read_cycle_generic(|hw| hw.gpu.read_character_ram(addr - 0x8000)),
+      0x98...0x9b => self.read_cycle_generic(|hw| hw.gpu.read_tile_map1(addr - 0x9800)),
+      0x9c...0x9f => self.read_cycle_generic(|hw| hw.gpu.read_tile_map2(addr - 0x9c00)),
+      0xa0...0xbf => self.read_cycle_generic(|hw| hw.cartridge.read_ram(addr)),
+      0xc0...0xcf => self.read_cycle_generic(|hw| hw.work_ram.read_lower(addr)),
+      0xd0...0xdf => self.read_cycle_generic(|hw| hw.work_ram.read_upper(addr)),
       // Echo RAM
-      0xe0 ... 0xef => self.read_cycle_generic(|hw| hw.work_ram.read_lower(addr)),
-      0xf0 ... 0xfd => self.read_cycle_generic(|hw| hw.work_ram.read_upper(addr)),
+      0xe0...0xef => self.read_cycle_generic(|hw| hw.work_ram.read_lower(addr)),
+      0xf0...0xfd => self.read_cycle_generic(|hw| hw.work_ram.read_upper(addr)),
       0xfe => {
         match addr & 0xff {
-          0x00 ... 0x9f =>
-            self.read_cycle_generic(|hw| if hw.oam_dma.is_active() { 0xff } else { hw.gpu.read_oam(addr as u8) }),
+          0x00...0x9f => self.read_cycle_generic(|hw| {
+            if hw.oam_dma.is_active() {
+              0xff
+            } else {
+              hw.gpu.read_oam(addr as u8)
+            }
+          }),
           // 0x00 ... 0x9f => handle_oam!(),
           // 0xa0 ... 0xff => handle_unusable!(),
-          _ => panic!("Unsupported read at ${:04x}", addr)
+          _ => panic!("Unsupported read at ${:04x}", addr),
         }
+      }
+      0xff => match addr & 0xff {
+        0x00 => self.read_cycle_generic(|hw| hw.joypad.get_register()),
+        0x01 => self.read_cycle_generic(|hw| hw.serial.get_data()),
+        0x02 => self.read_cycle_generic(|hw| hw.serial.get_control()),
+        0x04 => self.read_cycle_timer(TimerReg::Div),
+        0x05 => self.read_cycle_timer(TimerReg::Tima),
+        0x06 => self.read_cycle_timer(TimerReg::Tma),
+        0x07 => self.read_cycle_timer(TimerReg::Tac),
+        0x0f => self.read_cycle_generic(|hw| hw.irq.get_interrupt_flag()),
+        0x10...0x3f => self.read_cycle_generic(|hw| hw.apu.read(addr)),
+        0x40 => self.read_cycle_generic(|hw| hw.gpu.get_control()),
+        0x41 => self.read_cycle_generic(|hw| hw.gpu.get_stat()),
+        0x42 => self.read_cycle_generic(|hw| hw.gpu.get_scroll_y()),
+        0x43 => self.read_cycle_generic(|hw| hw.gpu.get_scroll_x()),
+        0x44 => self.read_cycle_generic(|hw| hw.gpu.get_current_line()),
+        0x45 => self.read_cycle_generic(|hw| hw.gpu.get_compare_line()),
+        0x46 => self.read_cycle_generic(|hw| hw.oam_dma.source),
+        0x47 => self.read_cycle_generic(|hw| hw.gpu.get_bg_palette()),
+        0x48 => self.read_cycle_generic(|hw| hw.gpu.get_obj_palette0()),
+        0x49 => self.read_cycle_generic(|hw| hw.gpu.get_obj_palette1()),
+        0x4a => self.read_cycle_generic(|hw| hw.gpu.get_window_y()),
+        0x4b => self.read_cycle_generic(|hw| hw.gpu.get_window_x()),
+        0x80...0xfe => self.read_cycle_generic(|hw| hw.hiram[(addr as usize) & 0x7f]),
+        0xff => self.read_cycle_generic(|hw| hw.irq.get_interrupt_enable()),
+        _ => self.read_cycle_generic(|_| 0xff),
       },
-      0xff => {
-        match addr & 0xff {
-          0x00 => self.read_cycle_generic(|hw| hw.joypad.get_register()),
-          0x01 => self.read_cycle_generic(|hw| hw.serial.get_data()),
-          0x02 => self.read_cycle_generic(|hw| hw.serial.get_control()),
-          0x04 => self.read_cycle_timer(TimerReg::Div),
-          0x05 => self.read_cycle_timer(TimerReg::Tima),
-          0x06 => self.read_cycle_timer(TimerReg::Tma),
-          0x07 => self.read_cycle_timer(TimerReg::Tac),
-          0x0f => self.read_cycle_generic(|hw| hw.irq.get_interrupt_flag()),
-          0x10 ... 0x3f => self.read_cycle_generic(|hw| hw.apu.read(addr)),
-          0x40 => self.read_cycle_generic(|hw| hw.gpu.get_control()),
-          0x41 => self.read_cycle_generic(|hw| hw.gpu.get_stat()),
-          0x42 => self.read_cycle_generic(|hw| hw.gpu.get_scroll_y()),
-          0x43 => self.read_cycle_generic(|hw| hw.gpu.get_scroll_x()),
-          0x44 => self.read_cycle_generic(|hw| hw.gpu.get_current_line()),
-          0x45 => self.read_cycle_generic(|hw| hw.gpu.get_compare_line()),
-          0x46 => self.read_cycle_generic(|hw| hw.oam_dma.source),
-          0x47 => self.read_cycle_generic(|hw| hw.gpu.get_bg_palette()),
-          0x48 => self.read_cycle_generic(|hw| hw.gpu.get_obj_palette0()),
-          0x49 => self.read_cycle_generic(|hw| hw.gpu.get_obj_palette1()),
-          0x4a => self.read_cycle_generic(|hw| hw.gpu.get_window_y()),
-          0x4b => self.read_cycle_generic(|hw| hw.gpu.get_window_x()),
-          0x80 ... 0xfe => self.read_cycle_generic(|hw| hw.hiram[(addr as usize) & 0x7f]),
-          0xff => self.read_cycle_generic(|hw| hw.irq.get_interrupt_enable()),
-          _ => self.read_cycle_generic(|_| 0xff)
-        }
-      },
-      _ => panic!("Unsupported read at ${:04x}", addr)
+      _ => panic!("Unsupported read at ${:04x}", addr),
     }
   }
   fn emulate_oam_dma(&mut self) {
     if let Some(addr) = self.oam_dma.emulate() {
       let value = match addr >> 8 {
-        0x00 ... 0x3f => self.cartridge.read_rom_bank0(addr),
-        0x40 ... 0x7f => self.cartridge.read_rom_bankx(addr),
-        0x80 ... 0x97 => self.gpu.read_character_ram(addr - 0x8000),
-        0x98 ... 0x9b => self.gpu.read_tile_map1(addr - 0x9800),
-        0x9c ... 0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
-        0xa0 ... 0xbf => self.cartridge.read_ram(addr),
-        0xc0 ... 0xcf => self.work_ram.read_lower(addr),
-        0xd0 ... 0xdf => self.work_ram.read_upper(addr),
-        0xe0 ... 0xef => self.work_ram.read_lower(addr),
-        0xf0 ... 0xff => self.work_ram.read_upper(addr),
-        _ => unreachable!("Unreachable OAM DMA read from ${:04x}", addr)
+        0x00...0x3f => self.cartridge.read_rom_bank0(addr),
+        0x40...0x7f => self.cartridge.read_rom_bankx(addr),
+        0x80...0x97 => self.gpu.read_character_ram(addr - 0x8000),
+        0x98...0x9b => self.gpu.read_tile_map1(addr - 0x9800),
+        0x9c...0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
+        0xa0...0xbf => self.cartridge.read_ram(addr),
+        0xc0...0xcf => self.work_ram.read_lower(addr),
+        0xd0...0xdf => self.work_ram.read_upper(addr),
+        0xe0...0xef => self.work_ram.read_lower(addr),
+        0xf0...0xff => self.work_ram.read_upper(addr),
+        _ => unreachable!("Unreachable OAM DMA read from ${:04x}", addr),
       };
       self.gpu.write_oam(addr as u8, value);
     }
@@ -329,7 +337,7 @@ impl Hardware {
     self.timer.tick_cycle(&mut self.irq);
     f(self)
   }
-  fn write_cycle_timer(&mut self, addr: TimerReg, value: u8){
+  fn write_cycle_timer(&mut self, addr: TimerReg, value: u8) {
     self.emulate_internal();
     self.timer.write_cycle(addr, value, &mut self.irq)
   }
@@ -342,10 +350,7 @@ impl Bus for Hardware {
     let opcode = self.read_internal(addr);
     let interrupt = self.irq.has_mid_interrupt();
 
-    FetchResult {
-      opcode,
-      interrupt,
-    }
+    FetchResult { opcode, interrupt }
   }
   fn read_cycle(&mut self, addr: u16) -> u8 {
     self.irq.begin_cycle();
@@ -360,9 +365,15 @@ impl Bus for Hardware {
     self.emulate_internal();
     self.timer.tick_cycle(&mut self.irq);
   }
-  fn ack_interrupt(&mut self) -> Option<Interrupt> { self.irq.ack_interrupt() }
-  fn has_interrupt(&self) -> bool { self.irq.has_end_interrupt() }
-  fn trigger_emu_events(&mut self, events: EmuEvents) { self.emu_events.insert(events) }
+  fn ack_interrupt(&mut self) -> Option<Interrupt> {
+    self.irq.ack_interrupt()
+  }
+  fn has_interrupt(&self) -> bool {
+    self.irq.has_end_interrupt()
+  }
+  fn trigger_emu_events(&mut self, events: EmuEvents) {
+    self.emu_events.insert(events)
+  }
 }
 
 impl fmt::Debug for Hardware {

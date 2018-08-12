@@ -22,7 +22,7 @@ fn test_e0() {
     &[0xe0, 0x80], // LDH (n), A
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
   assert_eq!(machine.hardware.memory[0xff80], 0x42);
@@ -35,7 +35,7 @@ fn test_e2() {
     |machine| {
       machine.cpu.regs.a = 0x42;
       machine.cpu.regs.c = 0x80;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0xff80], 0x42);
@@ -47,7 +47,7 @@ fn test_ea() {
     &[0xea, 0x04, 0x00, 0xed, 0x00], // LD (nn), A
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 16);
   assert_eq!(machine.hardware.memory[0x04], 0x42);
@@ -59,7 +59,7 @@ fn test_ee() {
     &[0xee, 0x38], // XOR (n)
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x7a);
@@ -72,7 +72,7 @@ fn test_ee_zero() {
     &[0xee, 0x42], // XOR (n)
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x00);

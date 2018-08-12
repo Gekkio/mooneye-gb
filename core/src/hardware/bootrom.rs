@@ -19,24 +19,25 @@ use gameboy::BootromData;
 
 pub struct Bootrom {
   data: Box<BootromData>,
-  active: bool
+  active: bool,
 }
 
 impl Bootrom {
   pub fn new(config: Option<Box<BootromData>>) -> Bootrom {
     let (active, data) = match config {
       Some(config_data) => (true, config_data),
-      None => (false, Box::new(BootromData::new()))
+      None => (false, Box::new(BootromData::new())),
     };
 
-    Bootrom {
-      data,
-      active,
-    }
+    Bootrom { data, active }
   }
 
-  pub fn is_active(&self) -> bool { self.active }
-  pub fn deactivate(&mut self) { self.active = false; }
+  pub fn is_active(&self) -> bool {
+    self.active
+  }
+  pub fn deactivate(&mut self) {
+    self.active = false;
+  }
 }
 
 impl Index<u16> for Bootrom {

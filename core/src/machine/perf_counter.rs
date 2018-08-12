@@ -23,14 +23,14 @@ const HISTORY_SIZE: usize = 128;
 /// A cycles-per-second counter
 pub struct PerfCounter {
   history: VecDeque<f64>,
-  last_time: Instant
+  last_time: Instant,
 }
 
 impl PerfCounter {
   pub fn new() -> PerfCounter {
     PerfCounter {
       history: VecDeque::with_capacity(HISTORY_SIZE),
-      last_time: Instant::now()
+      last_time: Instant::now(),
     }
   }
   pub fn update(&mut self, duration: EmuTime, current_time: Instant) {
@@ -44,7 +44,7 @@ impl PerfCounter {
 
     self.last_time = current_time;
   }
-  pub fn get_machine_cycles_per_s (&self) -> f64 {
+  pub fn get_machine_cycles_per_s(&self) -> f64 {
     let sum = self.history.iter().fold(0.0, |acc, &item| acc + item);
     sum / self.history.len() as f64
   }

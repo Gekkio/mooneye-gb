@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::{Cpu, Step};
 use cpu::disasm;
 use cpu::disasm::{DisasmStr, ToDisasmStr};
+use cpu::{Cpu, Step};
 use emulation::EmuEvents;
-use hardware::{Bus, FetchResult};
 use hardware::irq::Interrupt;
+use hardware::{Bus, FetchResult};
 
 mod cb_test;
 mod test_0x;
@@ -34,15 +34,15 @@ mod test_cx;
 mod test_ex;
 mod test_fx;
 
-mod test_load16;
-mod test_load16_sp_hl;
-mod test_load16_hl_sp_e;
-mod test_push16;
-mod test_pop16;
 mod test_add16;
 mod test_add16_sp_e;
-mod test_inc16;
 mod test_dec16;
+mod test_inc16;
+mod test_load16;
+mod test_load16_hl_sp_e;
+mod test_load16_sp_hl;
+mod test_pop16;
+mod test_push16;
 
 pub struct TestMachine {
   cpu: Cpu,
@@ -60,11 +60,13 @@ impl TestHardware {
     let mut memory = vec![0x00; 0x10000];
     memory[0..input.len()].copy_from_slice(input);
     TestHardware {
-      memory: memory,
+      memory,
       t_cycles: 0,
     }
   }
-  fn clock_cycles(&self) -> usize { self.t_cycles }
+  fn clock_cycles(&self) -> usize {
+    self.t_cycles
+  }
   fn read(&self, addr: u16) -> u8 {
     self.memory[addr as usize]
   }
@@ -75,7 +77,7 @@ impl<'a> Bus for TestHardware {
     self.t_cycles += 4;
     FetchResult {
       opcode: self.read(addr),
-      interrupt: false
+      interrupt: false,
     }
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
@@ -89,9 +91,13 @@ impl<'a> Bus for TestHardware {
   fn tick_cycle(&mut self) {
     self.t_cycles += 4;
   }
-  fn ack_interrupt(&mut self) -> Option<Interrupt> { None }
-  fn has_interrupt(&self) -> bool { false }
-  fn trigger_emu_events(&mut self, _: EmuEvents) { }
+  fn ack_interrupt(&mut self) -> Option<Interrupt> {
+    None
+  }
+  fn has_interrupt(&self) -> bool {
+    false
+  }
+  fn trigger_emu_events(&mut self, _: EmuEvents) {}
 }
 
 pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> TestMachine {
@@ -105,11 +111,15 @@ pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> 
   };
   init(&mut machine);
 
-  machine.step = machine.cpu.execute_step(&mut machine.hardware, machine.step);
+  machine.step = machine
+    .cpu
+    .execute_step(&mut machine.hardware, machine.step);
   machine.hardware.t_cycles = 0;
 
   while machine.hardware.memory[machine.cpu.regs.pc as usize] != 0xed {
-    machine.step = machine.cpu.execute_step(&mut machine.hardware, machine.step);
+    machine.step = machine
+      .cpu
+      .execute_step(&mut machine.hardware, machine.step);
   }
   machine
 }
@@ -117,9 +127,7 @@ pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> 
 fn disasm_op(cpu: &Cpu, bus: &TestHardware) -> DisasmStr {
   let pc = cpu.regs.pc;
 
-  disasm::disasm(pc, &mut |addr| {
-    bus.read(addr)
-  }).to_disasm_str()
+  disasm::disasm(pc, &mut |addr| bus.read(addr)).to_disasm_str()
 }
 
 #[test]
@@ -141,5 +149,3 @@ fn test_disasm_all_opcodes() {
     }
   }
 }
-
-

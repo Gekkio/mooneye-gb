@@ -16,11 +16,15 @@
 pub struct BootromData(pub [u8; 0x100]);
 
 impl BootromData {
-  pub fn new() -> BootromData { BootromData([0; 0x100]) }
+  pub fn new() -> BootromData {
+    BootromData([0; 0x100])
+  }
 }
 
 impl Clone for BootromData {
-  fn clone(&self) -> BootromData { BootromData((*self).0) }
+  fn clone(&self) -> BootromData {
+    BootromData((*self).0)
+  }
 }
 
 pub type HiramData = [u8; HIRAM_SIZE];
@@ -32,7 +36,7 @@ pub enum Color {
   Off = 0,
   Light = 1,
   Dark = 2,
-  On = 3
+  On = 3,
 }
 
 impl Color {
@@ -43,7 +47,7 @@ impl Color {
       1 => Light,
       2 => Dark,
       3 => On,
-      _ => Off
+      _ => Off,
     }
   }
 }

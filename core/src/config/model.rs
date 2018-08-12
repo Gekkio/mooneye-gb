@@ -16,13 +16,8 @@
 
 use std::fmt;
 
-pub static DEFAULT_MODEL_PRIORITY: [Model; 5] = [
-  Model::Dmg,
-  Model::Mgb,
-  Model::Sgb2,
-  Model::Sgb,
-  Model::Dmg0,
-];
+pub static DEFAULT_MODEL_PRIORITY: [Model; 5] =
+  [Model::Dmg, Model::Mgb, Model::Sgb2, Model::Sgb, Model::Dmg0];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
 pub enum Model {
@@ -30,7 +25,7 @@ pub enum Model {
   Dmg,
   Mgb,
   Sgb,
-  Sgb2
+  Sgb2,
 }
 
 impl Model {
@@ -40,8 +35,8 @@ impl Model {
       Dmg0 => "dmg0_boot.bin",
       Dmg => "dmg_boot.bin",
       Mgb => "mgb_boot.bin",
-      Sgb  => "sgb_boot.bin",
-      Sgb2 => "sgb2_boot.bin"
+      Sgb => "sgb_boot.bin",
+      Sgb2 => "sgb2_boot.bin",
     }
   }
 }
@@ -54,7 +49,7 @@ impl fmt::Display for Model {
       Dmg => "DMG (Game Boy)",
       Mgb => "MGB (Game Boy Pocket)",
       Sgb => "SGB (Super Game Boy)",
-      Sgb2 => "SGB2 (Super Game Boy 2)"
+      Sgb2 => "SGB2 (Super Game Boy 2)",
     })
   }
 }

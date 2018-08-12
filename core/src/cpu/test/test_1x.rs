@@ -24,7 +24,7 @@ fn test_12() {
       machine.cpu.regs.a = 0x42;
       machine.cpu.regs.d = 0x00;
       machine.cpu.regs.e = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.hardware.memory[0x02], 0x42);
@@ -36,7 +36,7 @@ fn test_14() {
     &[0x14], // INC D
     |machine| {
       machine.cpu.regs.d = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.d, 0x43);
@@ -49,7 +49,7 @@ fn test_14_zero() {
     &[0x14], // INC D
     |machine| {
       machine.cpu.regs.d = 0xff;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.d, 0x00);
@@ -62,7 +62,7 @@ fn test_14_half_carry() {
     &[0x14], // INC D
     |machine| {
       machine.cpu.regs.d = 0x0f;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.d, 0x10);
@@ -75,7 +75,7 @@ fn test_15() {
     &[0x15], // DEC D
     |machine| {
       machine.cpu.regs.d = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.d, 0x41);
@@ -88,7 +88,7 @@ fn test_15_zero() {
     &[0x15], // DEC D
     |machine| {
       machine.cpu.regs.d = 0x01;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.d, 0x00);
@@ -101,7 +101,7 @@ fn test_15_half_carry() {
     &[0x15], // DEC D
     |machine| {
       machine.cpu.regs.d = 0x00;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.d, 0xff);
@@ -112,7 +112,7 @@ fn test_15_half_carry() {
 fn test_16() {
   let machine = run_test(
     &[0x16, 0x42], // LD D, n
-    |_| {}
+    |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.d, 0x42);
@@ -124,7 +124,7 @@ fn test_17() {
     &[0x17], // RLA
     |machine| {
       machine.cpu.regs.a = 0x55;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0xaa);
@@ -138,7 +138,7 @@ fn test_17_carry() {
     |machine| {
       machine.cpu.regs.a = 0xaa;
       machine.cpu.regs.f = Flags::CARRY;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x55);
@@ -152,7 +152,7 @@ fn test_1a() {
     |machine| {
       machine.cpu.regs.d = 0x00;
       machine.cpu.regs.e = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.a, 0x42);
@@ -164,7 +164,7 @@ fn test_1c() {
     &[0x1c], // INC E
     |machine| {
       machine.cpu.regs.e = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.e, 0x43);
@@ -177,7 +177,7 @@ fn test_1c_zero() {
     &[0x1c], // INC E
     |machine| {
       machine.cpu.regs.e = 0xff;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.e, 0x00);
@@ -190,7 +190,7 @@ fn test_1c_half_carry() {
     &[0x1c], // INC E
     |machine| {
       machine.cpu.regs.e = 0x0f;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.e, 0x10);
@@ -203,7 +203,7 @@ fn test_1d() {
     &[0x1d], // DEC E
     |machine| {
       machine.cpu.regs.e = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.e, 0x41);
@@ -216,7 +216,7 @@ fn test_1d_zero() {
     &[0x1d], // DEC E
     |machine| {
       machine.cpu.regs.e = 0x01;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.e, 0x00);
@@ -229,7 +229,7 @@ fn test_1d_half_carry() {
     &[0x1d], // DEC E
     |machine| {
       machine.cpu.regs.e = 0x00;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.e, 0xff);
@@ -240,7 +240,7 @@ fn test_1d_half_carry() {
 fn test_1e() {
   let machine = run_test(
     &[0x1e, 0x42], // LD E, n
-    |_| {}
+    |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.e, 0x42);
@@ -252,7 +252,7 @@ fn test_1f() {
     &[0x1f], // RRA
     |machine| {
       machine.cpu.regs.a = 0xaa;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0x55);
@@ -266,7 +266,7 @@ fn test_1f_carry() {
     |machine| {
       machine.cpu.regs.a = 0x55;
       machine.cpu.regs.f = Flags::CARRY;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.a, 0xaa);

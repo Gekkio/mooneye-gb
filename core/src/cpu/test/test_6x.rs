@@ -21,7 +21,7 @@ fn test_60() {
     &[0x60], // LD H, B
     |machine| {
       machine.cpu.regs.b = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -33,7 +33,7 @@ fn test_61() {
     &[0x61], // LD H, C
     |machine| {
       machine.cpu.regs.c = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -45,7 +45,7 @@ fn test_62() {
     &[0x62], // LD H, D
     |machine| {
       machine.cpu.regs.d = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -57,7 +57,7 @@ fn test_63() {
     &[0x63], // LD H, E
     |machine| {
       machine.cpu.regs.e = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -69,7 +69,7 @@ fn test_64() {
     &[0x64], // LD H, H
     |machine| {
       machine.cpu.regs.h = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -81,7 +81,7 @@ fn test_65() {
     &[0x65], // LD H, L
     |machine| {
       machine.cpu.regs.l = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -94,7 +94,7 @@ fn test_66() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -106,7 +106,7 @@ fn test_67() {
     &[0x67], // LD H, A
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.h, 0x42);
@@ -118,7 +118,7 @@ fn test_68() {
     &[0x68], // LD L, B
     |machine| {
       machine.cpu.regs.b = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.l, 0x42);
@@ -130,7 +130,7 @@ fn test_69() {
     &[0x69], // LD L, C
     |machine| {
       machine.cpu.regs.c = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.l, 0x42);
@@ -142,7 +142,7 @@ fn test_6a() {
     &[0x6a], // LD L, D
     |machine| {
       machine.cpu.regs.d = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.l, 0x42);
@@ -154,7 +154,7 @@ fn test_6b() {
     &[0x6b], // LD L, E
     |machine| {
       machine.cpu.regs.e = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.l, 0x42);
@@ -166,7 +166,7 @@ fn test_6c() {
     &[0x6c], // LD L, H
     |machine| {
       machine.cpu.regs.h = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.l, 0x42);
@@ -178,7 +178,7 @@ fn test_6d() {
     &[0x6d], // LD L, L
     |machine| {
       machine.cpu.regs.l = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.l, 0x42);
@@ -191,7 +191,7 @@ fn test_6e() {
     |machine| {
       machine.cpu.regs.h = 0x00;
       machine.cpu.regs.l = 0x02;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
   assert_eq!(machine.cpu.regs.l, 0x42);
@@ -203,7 +203,7 @@ fn test_6f() {
     &[0x6f], // LD L, A
     |machine| {
       machine.cpu.regs.a = 0x42;
-    }
+    },
   );
   assert_eq!(machine.hardware.clock_cycles(), 4);
   assert_eq!(machine.cpu.regs.l, 0x42);

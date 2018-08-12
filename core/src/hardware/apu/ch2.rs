@@ -22,7 +22,7 @@ pub struct Ch2 {
   freq_bits: u16,
   use_counter: bool,
   counter: usize,
-  pub status: bool
+  pub status: bool,
 }
 
 impl Ch2 {
@@ -33,7 +33,7 @@ impl Ch2 {
       freq_bits: 0,
       use_counter: false,
       counter: 0,
-      status: false
+      status: false,
     }
   }
   pub fn reset(&mut self) {
@@ -42,8 +42,7 @@ impl Ch2 {
   pub fn read_reg1(&self) -> u8 {
     const REG1_MASK: u8 = 0x3F;
 
-    REG1_MASK |
-    ((self.wave_duty as u8) << 6)
+    REG1_MASK | ((self.wave_duty as u8) << 6)
   }
   pub fn write_reg1(&mut self, value: u8) {
     self.wave_duty = WaveDuty::from_u8((value >> 6) & 0x03).unwrap();
@@ -55,8 +54,7 @@ impl Ch2 {
   pub fn read_reg4(&self) -> u8 {
     const REG4_MASK: u8 = 0xBF;
 
-    REG4_MASK |
-    if self.use_counter { 1 << 6 } else { 0 }
+    REG4_MASK | if self.use_counter { 1 << 6 } else { 0 }
   }
   pub fn write_reg4(&mut self, value: u8) {
     self.status = value & (1 << 7) != 0;
