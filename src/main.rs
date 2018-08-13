@@ -90,8 +90,7 @@ fn run() -> Result<(), Error> {
     .and_then(|d| d.deserialize())
     .unwrap_or_else(|e| e.exit());
 
-  TermLogger::init(LevelFilter::Debug, simplelog::Config::default())
-    .expect("Failed to initialize logging");
+  let _ = TermLogger::init(LevelFilter::Debug, simplelog::Config::default());
 
   info!("Starting Mooneye GB v{}", VERSION);
 
