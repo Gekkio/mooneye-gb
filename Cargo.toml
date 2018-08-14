@@ -8,6 +8,7 @@ authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 license = "GPL-3.0+"
 
 [dependencies]
+arraydeque = "0.4"
 docopt = "1.0"
 failure = "0.1"
 glium_sdl2 = { git = "https://github.com/Gekkio/glium-sdl2.git", branch = "glium0.22-sdl0.31" }

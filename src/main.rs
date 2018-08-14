@@ -15,6 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #![windows_subsystem = "windows"]
 
+extern crate arraydeque;
 extern crate docopt;
 #[macro_use]
 extern crate failure;
@@ -44,7 +45,9 @@ use std::process;
 
 use frontend::SdlFrontend;
 
+mod fps_counter;
 mod frontend;
+mod perf_counter;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 

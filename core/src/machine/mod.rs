@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-pub use self::perf_counter::PerfCounter;
 use config::HardwareConfig;
 use cpu::registers::Registers;
 use cpu::{Cpu, Step};
@@ -21,8 +20,6 @@ use emulation::{EmuEvents, EmuTime};
 use gameboy;
 use hardware::Hardware;
 use GbKey;
-
-mod perf_counter;
 
 pub struct Machine {
   cpu: Cpu,

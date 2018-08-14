@@ -29,15 +29,15 @@ use std::thread;
 use std::time::{Duration, Instant};
 use url::Url;
 
-use self::fps::FpsCounter;
 use self::gui::Screen;
 use self::renderer::Renderer;
+use fps_counter::FpsCounter;
 use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig};
 use mooneye_gb::emulation::{EmuEvents, EmuTime};
-use mooneye_gb::machine::{Machine, PerfCounter};
+use mooneye_gb::machine::Machine;
 use mooneye_gb::*;
+use perf_counter::PerfCounter;
 
-mod fps;
 mod gui;
 mod renderer;
 
@@ -182,6 +182,7 @@ impl SdlFrontend {
 
     'main: loop {
       let delta = self.times.update();
+      let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
 
       for event in self.event_pump.poll_iter() {
         match event {
@@ -213,14 +214,12 @@ impl SdlFrontend {
       let mut target = self.display.draw();
       target.clear_color(1.0, 1.0, 1.0, 1.0);
 
-      let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
       let frame_size = FrameSize {
         logical_size: (width.into(), height.into()),
         hidpi_factor: 1.0,
       };
-
-      let ui = self.imgui.frame(frame_size, delta_s);
+      let ui = self.imgui.frame(frame_size, delta_s as f32);
       screen.render(&ui);
       self
         .gui_renderer
@@ -251,8 +250,9 @@ impl SdlFrontend {
 
     'main: loop {
       let delta = self.times.update();
+      let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
 
-      fps_counter.update(self.times.last_time);
+      fps_counter.update(delta_s);
       screen.fps = fps_counter.get_fps();
       screen.perf = 100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
 
@@ -343,13 +343,12 @@ impl SdlFrontend {
       let mut target = self.display.draw();
       target.clear_color(0.0, 0.0, 0.0, 1.0);
 
-      let delta_s = delta.as_secs() as f32 / 1_000_000_000.0;
       let (width, height) = target.get_dimensions();
       let frame_size = FrameSize {
         logical_size: (width.into(), height.into()),
         hidpi_factor: 1.0,
       };
-      let ui = self.imgui.frame(frame_size, delta_s);
+      let ui = self.imgui.frame(frame_size, delta_s as f32);
       let machine_cycles = EmuTime::from_machine_cycles(
         if turbo {
           CPU_SPEED_HZ as u64 / 60
@@ -367,7 +366,7 @@ impl SdlFrontend {
         }
 
         if end_time >= target_time {
-          perf_counter.update(end_time - emu_time, self.times.last_time);
+          perf_counter.update(end_time - emu_time, delta_s);
           emu_time = end_time;
           break;
         }
