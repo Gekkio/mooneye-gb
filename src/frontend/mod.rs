@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use failure::Error;
-use glium::{Api, Surface, Version};
-use glium_sdl2::{Display, DisplayBuild};
+use glium::{glutin, Api, Display, Surface, Version};
 use imgui::{FrameSize, ImGui};
 use imgui_glium_renderer;
 use sdl2;
 use sdl2::controller::{Axis, Button};
-use sdl2::event::{Event, WindowEvent};
-use sdl2::keyboard::Keycode;
-use sdl2::video::gl_attr::GLAttr;
+use sdl2::event::Event;
 use sdl2::{EventPump, GameControllerSubsystem};
-use std::path::PathBuf;
 use std::time::Duration;
-use url::Url;
 
 use self::gui::Screen;
 use self::renderer::Renderer;
@@ -44,6 +39,7 @@ mod renderer;
 
 pub struct SdlFrontend {
   sdl_game_controller: GameControllerSubsystem,
+  events_loop: glutin::EventsLoop,
   event_pump: EventPump,
   display: Display,
   imgui: ImGui,
@@ -103,27 +99,40 @@ impl FrontendState {
   }
 }
 
+enum InGameEvent {
+  Exit,
+  Turbo,
+  TurboOff,
+  LoadCartridge(Cartridge),
+}
+
 impl SdlFrontend {
   pub fn init() -> Result<SdlFrontend, Error> {
     let sdl = sdl2::init().map_err(|msg| format_err!("SDL2 initialization failed: {}", msg))?;
-    let sdl_video = sdl
-      .video()
-      .map_err(|msg| format_err!("SDL2 video initialization failed: {}", msg))?;
-    configure_gl_attr(&mut sdl_video.gl_attr());
-
     let sdl_game_controller = sdl
       .game_controller()
       .map_err(|msg| format_err!("SDL2 game controller initialization failure: {}", msg))?;
 
+    use glium::glutin::dpi::LogicalSize;
+
+    let events_loop = glutin::EventsLoop::new();
+
+    let window = glutin::WindowBuilder::new()
+      .with_min_dimensions(LogicalSize::new(160., 144.))
+      .with_dimensions(LogicalSize::new(640., 576.))
+      .with_title("Mooneye GB");
+
+    let context = glutin::ContextBuilder::new()
+      .with_hardware_acceleration(Some(true))
+      .with_vsync(true)
+      .with_srgb(true)
+      .with_double_buffer(Some(true));
+
+    let display = Display::new(window, context, &events_loop).unwrap();
+
     let event_pump = sdl
       .event_pump()
       .map_err(|msg| format_err!("SDL2 event pump failure: {}", msg))?;
-
-    let display = sdl_video
-      .window("Mooneye GB", 640, 576)
-      .opengl()
-      .position_centered()
-      .build_glium()?;
 
     info!(
       "Initialized renderer with {}",
@@ -143,6 +152,7 @@ impl SdlFrontend {
 
     Ok(SdlFrontend {
       sdl_game_controller,
+      events_loop,
       event_pump,
       display,
       imgui,
@@ -172,37 +182,48 @@ impl SdlFrontend {
 
     self.times.reset();
 
+    let mut loaded_bootrom = None;
+
     'main: loop {
       let delta = self.times.update();
       let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
 
-      for event in self.event_pump.poll_iter() {
-        match event {
-          Event::Quit { .. } => break 'main,
-          Event::KeyDown {
-            keycode: Some(keycode),
-            ..
-          } if keycode == Keycode::Escape =>
-          {
-            break 'main
-          }
-          Event::MouseMotion { x, y, .. } => self.imgui.set_mouse_pos(x as f32, y as f32),
-          Event::DropFile { filename, .. } => {
-            let result =
-              resolve_sdl_filename(filename).and_then(|path| Ok(Bootrom::from_path(&path)?));
-            match result {
+      let renderer = &mut self.renderer;
+      let display = &self.display;
+      let imgui = &mut self.imgui;
+      let mut exit = false;
+      self.events_loop.poll_events(|event| {
+        if let glutin::Event::WindowEvent { event, .. } = event {
+          use glium::glutin::WindowEvent;
+          match event {
+            WindowEvent::Resized(..) => {
+              renderer.update_dimensions(display);
+            }
+            WindowEvent::CloseRequested | WindowEvent::Destroyed => exit = true,
+            WindowEvent::CursorMoved { position, .. } => {
+              imgui.set_mouse_pos(position.x as f32, position.y as f32);
+            }
+            WindowEvent::DroppedFile(path) => match Bootrom::from_path(&path) {
               Ok(bootrom) => {
                 if let Err(error) = bootrom.save_to_data_dir() {
                   println!("Failed to save boot rom: {}", error);
                 }
-                return Ok(FrontendState::from_roms(Some(bootrom), cartridge));
+                loaded_bootrom = Some(bootrom);
               }
               Err(e) => screen.set_error(format!("{}", e)),
-            };
+            },
+            _ => (),
           }
-          _ => (),
         }
+      });
+      for _ in self.event_pump.poll_iter() {}
+      if let Some(bootrom) = loaded_bootrom {
+        return Ok(FrontendState::from_roms(Some(bootrom), cartridge));
       }
+      if exit {
+        break 'main;
+      }
+
       let mut target = self.display.draw();
       target.clear_color(1.0, 1.0, 1.0, 1.0);
 
@@ -211,7 +232,7 @@ impl SdlFrontend {
         logical_size: (width.into(), height.into()),
         hidpi_factor: 1.0,
       };
-      let ui = self.imgui.frame(frame_size, delta_s as f32);
+      let ui = imgui.frame(frame_size, delta_s as f32);
       screen.render(&ui);
       self
         .gui_renderer
@@ -242,46 +263,92 @@ impl SdlFrontend {
       screen.fps = fps_counter.get_fps();
       screen.perf = 100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
 
+      let renderer = &mut self.renderer;
+      let display = &self.display;
+      let imgui = &mut self.imgui;
+      let mut ig_event = None;
+      self.events_loop.poll_events(|event| {
+        if let glutin::Event::WindowEvent { event, .. } = event {
+          use glium::glutin::ElementState;
+          use glium::glutin::KeyboardInput;
+          use glium::glutin::VirtualKeyCode;
+          use glium::glutin::WindowEvent;
+          match event {
+            WindowEvent::Resized(..) => {
+              renderer.update_dimensions(display);
+            }
+            WindowEvent::CloseRequested | WindowEvent::Destroyed => {
+              ig_event = Some(InGameEvent::Exit)
+            }
+            WindowEvent::KeyboardInput {
+              input:
+                KeyboardInput {
+                  state: ElementState::Pressed,
+                  virtual_keycode: Some(keycode),
+                  ..
+                },
+              ..
+            } => {
+              if let Some(key) = map_keycode(keycode) {
+                machine.key_down(key);
+              }
+              match keycode {
+                VirtualKeyCode::LShift => ig_event = Some(InGameEvent::Turbo),
+                VirtualKeyCode::F2 => screen.toggle_info_overlay(),
+                VirtualKeyCode::Escape => ig_event = Some(InGameEvent::Exit),
+                _ => (),
+              }
+            }
+            WindowEvent::KeyboardInput {
+              input:
+                KeyboardInput {
+                  state: ElementState::Released,
+                  virtual_keycode: Some(keycode),
+                  ..
+                },
+              ..
+            } => {
+              if let Some(key) = map_keycode(keycode) {
+                machine.key_up(key);
+              }
+            }
+            WindowEvent::CursorMoved { position, .. } => {
+              imgui.set_mouse_pos(position.x as f32, position.y as f32);
+            }
+            WindowEvent::DroppedFile(path) => match Cartridge::from_path(&path) {
+              Ok(cartridge) => {
+                ig_event = Some(InGameEvent::LoadCartridge(cartridge));
+              }
+              Err(e) => screen.set_error(format!("{}", e)),
+            },
+            _ => (),
+          }
+        }
+      });
+      match ig_event {
+        Some(InGameEvent::Exit) => break 'main,
+        Some(InGameEvent::Turbo) => {
+          return Ok(FrontendState::InGameTurbo(InGameState {
+            config,
+            machine,
+            screen,
+            fps_counter,
+            perf_counter,
+          }))
+        }
+        Some(InGameEvent::LoadCartridge(cartridge)) => {
+          return Ok(FrontendState::InGame(InGameState::from_config(
+            HardwareConfig {
+              cartridge,
+              ..config
+            },
+          )))
+        }
+        _ => (),
+      }
+
       for event in self.event_pump.poll_iter() {
         match event {
-          Event::Quit { .. } => break 'main,
-          Event::Window {
-            win_event: WindowEvent::SizeChanged(..),
-            ..
-          } => {
-            self.renderer.update_dimensions(&self.display);
-          }
-          Event::KeyDown {
-            keycode: Some(keycode),
-            ..
-          } => {
-            if let Some(key) = map_keycode(keycode) {
-              machine.key_down(key);
-            }
-            match keycode {
-              Keycode::LShift => {
-                return Ok(FrontendState::InGameTurbo(InGameState {
-                  config,
-                  machine,
-                  screen,
-                  fps_counter,
-                  perf_counter,
-                }))
-              }
-              Keycode::F2 => screen.toggle_info_overlay(),
-              Keycode::Escape => break 'main,
-              _ => (),
-            }
-          }
-          Event::MouseMotion { x, y, .. } => self.imgui.set_mouse_pos(x as f32, y as f32),
-          Event::KeyUp {
-            keycode: Some(keycode),
-            ..
-          } => {
-            if let Some(key) = map_keycode(keycode) {
-              machine.key_up(key);
-            }
-          }
           Event::ControllerDeviceAdded { which: id, .. } => {
             self.sdl_game_controller.open(id as u32)?;
           }
@@ -304,21 +371,6 @@ impl SdlFrontend {
               }
             }
           }
-          Event::DropFile { filename, .. } => {
-            let result =
-              resolve_sdl_filename(filename).and_then(|path| Ok(Cartridge::from_path(&path)?));
-            match result {
-              Ok(cartridge) => {
-                return Ok(FrontendState::InGame(InGameState::from_config(
-                  HardwareConfig {
-                    cartridge,
-                    ..config
-                  },
-                )))
-              }
-              Err(e) => screen.set_error(format!("{}", e)),
-            };
-          }
           _ => (),
         }
       }
@@ -331,7 +383,7 @@ impl SdlFrontend {
         logical_size: (width.into(), height.into()),
         hidpi_factor: 1.0,
       };
-      let ui = self.imgui.frame(frame_size, delta_s as f32);
+      let ui = imgui.frame(frame_size, delta_s as f32);
 
       let machine_cycles =
         EmuTime::from_machine_cycles(((delta * CPU_SPEED_HZ as u32).as_secs() as u64) / 4);
@@ -341,7 +393,7 @@ impl SdlFrontend {
         let (events, end_time) = machine.emulate(target_time);
 
         if events.contains(EmuEvents::VSYNC) {
-          self.renderer.update_pixels(machine.screen_buffer());
+          renderer.update_pixels(machine.screen_buffer());
         }
 
         if end_time >= target_time {
@@ -350,7 +402,7 @@ impl SdlFrontend {
           break;
         }
       }
-      self.renderer.draw(&mut target)?;
+      renderer.draw(&mut target)?;
 
       screen.render(&ui);
       self
@@ -383,47 +435,95 @@ impl SdlFrontend {
       fps_counter.update(delta_s);
       screen.fps = fps_counter.get_fps();
 
+      let renderer = &mut self.renderer;
+      let display = &self.display;
+      let imgui = &mut self.imgui;
+      let mut ig_event = None;
+      self.events_loop.poll_events(|event| {
+        if let glutin::Event::WindowEvent { event, .. } = event {
+          use glium::glutin::ElementState;
+          use glium::glutin::KeyboardInput;
+          use glium::glutin::VirtualKeyCode;
+          use glium::glutin::WindowEvent;
+          match event {
+            WindowEvent::Resized(..) => {
+              renderer.update_dimensions(display);
+            }
+            WindowEvent::CloseRequested | WindowEvent::Destroyed => {
+              ig_event = Some(InGameEvent::Exit)
+            }
+            WindowEvent::KeyboardInput {
+              input:
+                KeyboardInput {
+                  state: ElementState::Pressed,
+                  virtual_keycode: Some(keycode),
+                  ..
+                },
+              ..
+            } => {
+              if let Some(key) = map_keycode(keycode) {
+                let _ = handle.key_down(key);
+              }
+              match keycode {
+                VirtualKeyCode::F2 => screen.toggle_info_overlay(),
+                VirtualKeyCode::Escape => ig_event = Some(InGameEvent::Exit),
+                _ => (),
+              }
+            }
+            WindowEvent::KeyboardInput {
+              input:
+                KeyboardInput {
+                  state: ElementState::Released,
+                  virtual_keycode: Some(keycode),
+                  ..
+                },
+              ..
+            } => {
+              if let Some(key) = map_keycode(keycode) {
+                let _ = handle.key_up(key);
+              }
+              if keycode == VirtualKeyCode::LShift {
+                ig_event = Some(InGameEvent::TurboOff);
+              }
+            }
+            WindowEvent::CursorMoved { position, .. } => {
+              imgui.set_mouse_pos(position.x as f32, position.y as f32);
+            }
+            WindowEvent::DroppedFile(path) => match Cartridge::from_path(&path) {
+              Ok(cartridge) => {
+                ig_event = Some(InGameEvent::LoadCartridge(cartridge));
+              }
+              Err(e) => screen.set_error(format!("{}", e)),
+            },
+            _ => (),
+          }
+        }
+      });
+      match ig_event {
+        Some(InGameEvent::Exit) => break 'main,
+        Some(InGameEvent::TurboOff) => {
+          let (machine, perf_counter) = handle.stop()?;
+          return Ok(FrontendState::InGame(InGameState {
+            config,
+            machine,
+            screen,
+            fps_counter,
+            perf_counter,
+          }));
+        }
+        Some(InGameEvent::LoadCartridge(cartridge)) => {
+          return Ok(FrontendState::InGame(InGameState::from_config(
+            HardwareConfig {
+              cartridge,
+              ..config
+            },
+          )))
+        }
+        _ => (),
+      }
+
       for event in self.event_pump.poll_iter() {
         match event {
-          Event::Quit { .. } => break 'main,
-          Event::Window {
-            win_event: WindowEvent::SizeChanged(..),
-            ..
-          } => {
-            self.renderer.update_dimensions(&self.display);
-          }
-          Event::KeyDown {
-            keycode: Some(keycode),
-            ..
-          } => {
-            if let Some(key) = map_keycode(keycode) {
-              handle.key_down(key)?;
-            }
-            match keycode {
-              Keycode::F2 => screen.toggle_info_overlay(),
-              Keycode::Escape => break 'main,
-              _ => (),
-            }
-          }
-          Event::MouseMotion { x, y, .. } => self.imgui.set_mouse_pos(x as f32, y as f32),
-          Event::KeyUp {
-            keycode: Some(keycode),
-            ..
-          } => {
-            if let Some(key) = map_keycode(keycode) {
-              handle.key_up(key)?;
-            }
-            if keycode == Keycode::LShift {
-              let (machine, perf_counter) = handle.stop()?;
-              return Ok(FrontendState::InGame(InGameState {
-                config,
-                machine,
-                screen,
-                fps_counter,
-                perf_counter,
-              }));
-            }
-          }
           Event::ControllerDeviceAdded { which: id, .. } => {
             self.sdl_game_controller.open(id as u32)?;
           }
@@ -446,21 +546,6 @@ impl SdlFrontend {
               }
             }
           }
-          Event::DropFile { filename, .. } => {
-            let result =
-              resolve_sdl_filename(filename).and_then(|path| Ok(Cartridge::from_path(&path)?));
-            match result {
-              Ok(cartridge) => {
-                return Ok(FrontendState::InGame(InGameState::from_config(
-                  HardwareConfig {
-                    cartridge,
-                    ..config
-                  },
-                )))
-              }
-              Err(e) => screen.set_error(format!("{}", e)),
-            };
-          }
           _ => (),
         }
       }
@@ -473,17 +558,17 @@ impl SdlFrontend {
         logical_size: (width.into(), height.into()),
         hidpi_factor: 1.0,
       };
-      let ui = self.imgui.frame(frame_size, delta_s as f32);
+      let ui = imgui.frame(frame_size, delta_s as f32);
 
       if let Some(tick) = handle.check_tick() {
         screen.perf = 100.0 * tick.cycles_per_s * 4.0 / CPU_SPEED_HZ as f64;
         if tick.screen_buffer_updated {
-          self.renderer.update_pixels(&tick.screen_buffer);
+          renderer.update_pixels(&tick.screen_buffer);
         }
         handle.next_tick(tick.screen_buffer)?;
       }
 
-      self.renderer.draw(&mut target)?;
+      renderer.draw(&mut target)?;
 
       screen.render(&ui);
       self
@@ -496,16 +581,17 @@ impl SdlFrontend {
   }
 }
 
-fn map_keycode(key: Keycode) -> Option<GbKey> {
+fn map_keycode(key: glutin::VirtualKeyCode) -> Option<GbKey> {
+  use glium::glutin::VirtualKeyCode::*;
   match key {
-    Keycode::Right => Some(GbKey::Right),
-    Keycode::Left => Some(GbKey::Left),
-    Keycode::Up => Some(GbKey::Up),
-    Keycode::Down => Some(GbKey::Down),
-    Keycode::Z => Some(GbKey::A),
-    Keycode::X => Some(GbKey::B),
-    Keycode::Return => Some(GbKey::Start),
-    Keycode::Backspace => Some(GbKey::Select),
+    Right => Some(GbKey::Right),
+    Left => Some(GbKey::Left),
+    Up => Some(GbKey::Up),
+    Down => Some(GbKey::Down),
+    Z => Some(GbKey::A),
+    X => Some(GbKey::B),
+    Return => Some(GbKey::Start),
+    Back => Some(GbKey::Select),
     _ => None,
   }
 }
@@ -542,25 +628,4 @@ fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
     },
     _ => None,
   }
-}
-
-fn resolve_sdl_filename(filename: String) -> Result<PathBuf, Error> {
-  let mut url_str = "file://".to_owned();
-  url_str.push_str(&filename);
-  let url = Url::parse(&url_str)?;
-  url
-    .to_file_path()
-    .map_err(|_| format_err!("Failed to parse path"))
-}
-
-#[cfg(not(target_os = "macos"))]
-fn configure_gl_attr(_: &mut GLAttr) {}
-
-#[cfg(target_os = "macos")]
-fn configure_gl_attr(gl_attr: &mut GLAttr) {
-  use sdl2::video::GLProfile;
-  gl_attr.set_context_major_version(3);
-  gl_attr.set_context_minor_version(2);
-  gl_attr.set_context_profile(GLProfile::Core);
-  gl_attr.set_context_flags().forward_compatible().set();
 }

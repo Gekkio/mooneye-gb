@@ -21,7 +21,6 @@ extern crate docopt;
 extern crate failure;
 #[macro_use]
 extern crate glium;
-extern crate glium_sdl2;
 #[macro_use]
 extern crate imgui;
 extern crate imgui_glium_renderer;
@@ -34,7 +33,6 @@ extern crate num_traits;
 extern crate serde_derive;
 extern crate sdl2;
 extern crate simplelog;
-extern crate url;
 
 use docopt::Docopt;
 use failure::Error;
