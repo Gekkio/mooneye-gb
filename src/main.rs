@@ -46,6 +46,7 @@ use std::process;
 use frontend::SdlFrontend;
 
 mod fps_counter;
+mod frame_times;
 mod frontend;
 mod perf_counter;
 

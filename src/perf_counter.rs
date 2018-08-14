@@ -36,10 +36,10 @@ impl PerfCounter {
     let _ = self.history.push_back(machine_cycles_per_s);
   }
   pub fn get_machine_cycles_per_s(&self) -> f64 {
-    if self.history.is_full() {
-      self.history.iter().sum::<f64>() / self.history.len() as f64
-    } else {
+    if self.history.is_empty() {
       0.0
+    } else {
+      self.history.iter().sum::<f64>() / self.history.len() as f64
     }
   }
 }

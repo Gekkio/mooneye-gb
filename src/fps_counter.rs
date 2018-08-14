@@ -32,10 +32,11 @@ impl FpsCounter {
     let _ = self.history.push_back(delta_s);
   }
   pub fn get_fps(&self) -> f64 {
-    if self.history.is_full() {
-      self.history.len() as f64 / self.history.iter().sum::<f64>()
-    } else {
+    let sum = self.history.iter().sum::<f64>();
+    if sum == 0.0 {
       0.0
+    } else {
+      self.history.len() as f64 / sum
     }
   }
 }

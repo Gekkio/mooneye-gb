@@ -46,6 +46,9 @@ impl Machine {
     self.step = step;
     (self.hardware.ack_emu_events(), self.hardware.emu_time())
   }
+  pub fn emu_time(&self) -> EmuTime {
+    self.hardware.emu_time()
+  }
   pub fn key_down(&mut self, key: GbKey) {
     self.hardware.key_down(key);
   }
