@@ -11,6 +11,7 @@ license = "GPL-3.0+"
 arraydeque = "0.4"
 docopt = "1.0"
 failure = "0.1"
+glium = "0.22"
 imgui = "0.0.20"
 imgui-glium-renderer = "0.0.20"
 log = "0.4"
@@ -21,9 +22,6 @@ serde = "1.0"
 serde_derive = "1.0"
 sdl2 = "0.31"
 simplelog = "0.5"
-
-[dependencies.glium]
-version = "0.22"
 
 [profile.test]
 opt-level = 2
