@@ -8,3 +8,4 @@ imgui.ini
 target/
 Cargo.lock
 /roms
+/tests/tags

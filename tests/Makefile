@@ -36,7 +36,7 @@ $(OBJS): | $(BUILD_PATH)
 $(BUILD_PATH)/flags: force | $(BUILD_PATH)
 	@echo '${WLAFLAGS}' | cmp -s - $@ || echo '${WLAFLAGS}' > $@
 
-$(BUILD_PATH)/%.o: %.s common/*.s $(BUILD_PATH)/flags
+$(BUILD_PATH)/%.o: %.s common/**/*.s $(BUILD_PATH)/flags
 	@mkdir -p $(dir $@)
 	@$(WLA) -I $(abspath common) $(WLAFLAGS) -o $(abspath $@) $<
 
@@ -44,8 +44,11 @@ $(BUILD_PATH)/%.link: $(BUILD_PATH)/%.o
 	@printf "[objects]\n%s\n" $< > $@
 
 $(BUILD_PATH)/%.gb: $(BUILD_PATH)/%.link
-	@$(WLALINK) -S $< $(abspath $@)
+	@$(WLALINK) -d -S $(WLALINKFLAGS) $< $(abspath $@)
 	@echo --- $(notdir $(basename $@))
+
+tags: common/**/*.s $(BUILD_PATH)/flags
+	@ctags --recurse=yes --languages=asm --langmap=asm:.s ./common
 
 clean:
 	@rm -rf $(BUILD_PATH)
