@@ -25,7 +25,6 @@
 ;   pass: DMG, MGB, SGB, SGB2
 ;   fail: CGB, AGB, AGS
 
-.incdir "../../common"
 .include "common.s"
 
 .macro clear_interrupts

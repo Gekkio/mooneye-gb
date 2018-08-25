@@ -121,13 +121,13 @@ prepare_part3:
   xor a
   call memset
 
-  ld hl, $A000
+  ld hl, $a000
   call copy_ram_pattern_1
-  ld hl, $BF00
+  ld hl, $bf00
   call copy_ram_pattern_2
 
 test_a000:
-  ld a, $A0
+  ld a, $a0
   call $ff80
 
   ld hl, ram_pattern_1
@@ -138,7 +138,7 @@ test_a000:
   test_failure_string "Fail: $A000"
 
 test_bf00:
-  ld a, $BF
+  ld a, $bf
   call $ff80
 
   ld hl, ram_pattern_2
@@ -152,15 +152,15 @@ prepare_part4:
   xor a
   ld ($0000), a
 
-  ld hl, $C000
+  ld hl, $c000
   call copy_ram_pattern_1
-  ld hl, $DE00
+  ld hl, $de00
   call copy_ram_pattern_1
-  ld hl, $DF00
+  ld hl, $df00
   call copy_ram_pattern_2
 
 test_c000:
-  ld a, $C0
+  ld a, $c0
   call $ff80
 
   ld hl, ram_pattern_1
@@ -171,7 +171,7 @@ test_c000:
   test_failure_string "Fail: $C000"
 
 test_df00:
-  ld a, $DF
+  ld a, $df
   call $ff80
 
   ld hl, ram_pattern_2
@@ -182,7 +182,7 @@ test_df00:
   test_failure_string "Fail: $DF00"
 
 test_e000:
-  ld a, $E0
+  ld a, $e0
   call $ff80
 
   ld hl, ram_pattern_1
@@ -194,7 +194,7 @@ test_e000:
 
 test_fe00:
   call clear_oam
-  ld a, $FE
+  ld a, $fe
   call $ff80
 
   ld hl, ram_pattern_1
@@ -205,7 +205,7 @@ test_fe00:
   test_failure_string "Fail: $FE00"
 
 test_ff00:
-  ld a, $FF
+  ld a, $ff
   call $ff80
 
   ld hl, ram_pattern_2

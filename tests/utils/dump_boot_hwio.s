@@ -20,9 +20,8 @@
 
 ; Dumps the contents of all hardware IO registers ($FF00 - $FF7F)
 
-.incdir "../common"
 .include "common.s"
 
-  ld hl, $FF00
+  ld hl, $ff00
   ld a, $80
-  jp dump_mem
+  jp quit_dump_mem

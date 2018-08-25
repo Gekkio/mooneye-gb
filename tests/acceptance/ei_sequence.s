@@ -22,7 +22,6 @@
 ;   pass: DMG0, DMG, MGB, SGB, SGB2, CGB, AGB, AGS
 ;   fail: -
 
-.incdir "../common"
 .include "common.s"
 
   di

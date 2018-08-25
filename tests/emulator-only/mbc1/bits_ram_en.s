@@ -29,10 +29,10 @@
 
 .include "common.s"
 
-  ld sp, $FFFE
+  ld sp, $fffe
 
-  ; Enable RAM
-  ld a, $0A
+  ; enable ram
+  ld a, $0a
   ld ($0000), a
 
   ; Copy RAM data
@@ -42,7 +42,7 @@
   call memcpy
 
 test_round1
-  ld hl, $1FFF
+  ld hl, $1fff
 
 - ld a, l
   ld (test_address_l), a
@@ -61,7 +61,7 @@ test_round1
   push hl
 
   ; Enable RAM
-  ld (hl), $0A
+  ld (hl), $0a
 
   ld de, ram_data_enabled
   call compare_ram_data
@@ -114,16 +114,16 @@ test_round2:
   test_ok
 
 ram_data_enabled:
-.db $19 $9D $91 $12 $F6 $12 $64 $4D $E4 $34 $3B $2E $FB $C7 $1F $3F
+.db $19 $9d $91 $12 $f6 $12 $64 $4d $e4 $34 $3b $2e $fb $c7 $1f $3f
 ram_data_disabled:
-.dsb 16 $FF
+.dsb 16 $ff
 
 ; Inputs:
 ;   DE: ram data address
 ; Outputs:
 ;   cf 0 if data matched
 compare_ram_data:
-  ld hl, $A000
+  ld hl, $a000
   ld bc, _sizeof_ram_data_enabled
   jp memcmp
 

@@ -27,7 +27,6 @@
 ;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
 ;   fail: -
 
-.incdir "../common"
 .include "common.s"
 
   ; Make sure IE, IF, and E are all $00

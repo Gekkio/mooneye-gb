@@ -42,7 +42,6 @@
 ;   CGB: Checkerboard without sprites (probably different logic with the values)
 ;   AGB/AGS: A different sprite (probably different logic with the values)
 
-.incdir "../common"
 .include "common.s"
 
   di

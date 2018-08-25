@@ -27,7 +27,6 @@
 ;   pass: SGB, SGB2
 ;   fail: DMG, MGB, CGB, AGB, AGS
 
-.incdir "../common"
 .include "common.s"
 
   ld hl, $FF00

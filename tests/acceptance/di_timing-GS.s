@@ -25,7 +25,6 @@
 ; immediately
 ; On CGB/GBA DI has a delay and this test fails in round 2!!
 
-.incdir "../common"
 .include "common.s"
 
 ; Verified results:

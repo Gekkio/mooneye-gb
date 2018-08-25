@@ -24,7 +24,6 @@
 ;   pass: MGB
 ;   fail: DMG, SGB, SGB2, CGB, AGB, AGS
 
-.incdir "../common"
 .include "common.s"
 
 ; First, let's check SP since it's not part of the normal save_results

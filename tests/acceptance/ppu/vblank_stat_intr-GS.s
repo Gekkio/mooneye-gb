@@ -27,7 +27,6 @@
 ;   pass: DMG, MGB, SGB, SGB2
 ;   fail: CGB, AGB, AGS
 
-.incdir "../../common"
 .include "common.s"
 
 .macro halt_until ARGS intr

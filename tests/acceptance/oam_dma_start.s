@@ -36,7 +36,6 @@
 ;   pass: DMG, MGB, SGB, SGB2, CGB, AGB, AGS
 ;   fail: -
 
-.incdir "../common"
 .include "common.s"
 
 .macro wait_dma_finish
