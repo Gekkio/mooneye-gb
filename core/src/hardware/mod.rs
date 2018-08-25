@@ -26,7 +26,7 @@ use hardware::gpu::Gpu;
 use hardware::irq::{Interrupt, InterruptRequest, Irq};
 use hardware::joypad::Joypad;
 use hardware::serial::Serial;
-use hardware::timer::{Timer, TimerReg};
+use hardware::timer::{Timer, Div, Tima, Tma, Tac};
 use hardware::work_ram::WorkRam;
 use GbKey;
 
@@ -205,10 +205,10 @@ impl Hardware {
         0x00 => self.write_cycle_generic(|hw| hw.joypad.set_register(value)),
         0x01 => self.write_cycle_generic(|hw| hw.serial.set_data(value)),
         0x02 => self.write_cycle_generic(|hw| hw.serial.set_control(value)),
-        0x04 => self.write_cycle_timer(TimerReg::Div, value),
-        0x05 => self.write_cycle_timer(TimerReg::Tima, value),
-        0x06 => self.write_cycle_timer(TimerReg::Tma, value),
-        0x07 => self.write_cycle_timer(TimerReg::Tac, value),
+        0x04 => self.write_cycle_timer(Div, value),
+        0x05 => self.write_cycle_timer(Tima, value),
+        0x06 => self.write_cycle_timer(Tma, value),
+        0x07 => self.write_cycle_timer(Tac, value),
         0x0f => self.write_cycle_generic(|hw| hw.irq.set_interrupt_flag(value)),
         0x10...0x3f => self.write_cycle_generic(|hw| hw.apu.write(addr, value)),
         0x40 => self.write_cycle_generic(|hw| hw.gpu.set_control(value)),
@@ -268,10 +268,10 @@ impl Hardware {
         0x00 => self.read_cycle_generic(|hw| hw.joypad.get_register()),
         0x01 => self.read_cycle_generic(|hw| hw.serial.get_data()),
         0x02 => self.read_cycle_generic(|hw| hw.serial.get_control()),
-        0x04 => self.read_cycle_timer(TimerReg::Div),
-        0x05 => self.read_cycle_timer(TimerReg::Tima),
-        0x06 => self.read_cycle_timer(TimerReg::Tma),
-        0x07 => self.read_cycle_timer(TimerReg::Tac),
+        0x04 => self.read_cycle_timer(Div),
+        0x05 => self.read_cycle_timer(Tima),
+        0x06 => self.read_cycle_timer(Tma),
+        0x07 => self.read_cycle_timer(Tac),
         0x0f => self.read_cycle_generic(|hw| hw.irq.get_interrupt_flag()),
         0x10...0x3f => self.read_cycle_generic(|hw| hw.apu.read(addr)),
         0x40 => self.read_cycle_generic(|hw| hw.gpu.get_control()),
@@ -328,7 +328,7 @@ impl Hardware {
     self.timer.tick_cycle(&mut self.irq);
     f(self)
   }
-  fn read_cycle_timer(&mut self, addr: TimerReg) -> u8 {
+  fn read_cycle_timer<T>(&mut self, addr: T) -> u8 where Timer: MappedHardware<T> {
     self.emulate_internal();
     self.timer.read_cycle(addr, &mut self.irq)
   }
@@ -337,7 +337,7 @@ impl Hardware {
     self.timer.tick_cycle(&mut self.irq);
     f(self)
   }
-  fn write_cycle_timer(&mut self, addr: TimerReg, value: u8) {
+  fn write_cycle_timer<T>(&mut self, addr: T, value: u8) where Timer: MappedHardware<T> {
     self.emulate_internal();
     self.timer.write_cycle(addr, value, &mut self.irq)
   }

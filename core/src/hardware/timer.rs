@@ -22,6 +22,7 @@ pub struct Timer {
   counter: u8,
   modulo: u8,
   overflow: bool,
+  enabled: bool,
 }
 
 bitflags!(
@@ -43,56 +44,69 @@ impl TacReg {
   }
 }
 
-pub enum TimerReg {
-  Div,
-  Tima,
-  Tma,
-  Tac,
+pub struct Div;
+pub struct Tima;
+pub struct Tma;
+pub struct Tac;
+
+impl MappedHardware<Div> for Timer {
+  fn read_cycle<I: InterruptRequest>(&mut self, _: Div, intr_req: &mut I) -> u8 {
+    self.tick_cycle(intr_req);
+    (self.internal_counter >> 6) as u8
+  }
+  fn write_cycle<I: InterruptRequest>(&mut self, _: Div, _: u8, intr_req: &mut I) {
+    self.tick_cycle(intr_req);
+    if self.counter_bit() {
+      self.increment();
+    }
+    self.internal_counter = 0;
+  }
 }
 
-impl MappedHardware<TimerReg> for Timer {
-  fn read_cycle<I: InterruptRequest>(&mut self, addr: TimerReg, intr_req: &mut I) -> u8 {
+impl MappedHardware<Tima> for Timer {
+  fn read_cycle<I: InterruptRequest>(&mut self, _: Tima, intr_req: &mut I) -> u8 {
     self.tick_cycle(intr_req);
-    match addr {
-      TimerReg::Div => (self.internal_counter >> 6) as u8,
-      TimerReg::Tima => self.counter,
-      TimerReg::Tma => self.modulo,
-      TimerReg::Tac => {
-        const TAC_UNUSED: u8 = 0b11111_000;
-        TAC_UNUSED | self.tac.bits()
-      }
-    }
+    self.counter
   }
-  fn write_cycle<I: InterruptRequest>(&mut self, addr: TimerReg, value: u8, intr_req: &mut I) {
+  fn write_cycle<I: InterruptRequest>(&mut self, _: Tima, value: u8, intr_req: &mut I) {
     let overflow = self.overflow;
     self.tick_cycle(intr_req);
-    match addr {
-      TimerReg::Div => {
-        if self.counter_bit() {
-          self.increment();
-        }
-        self.internal_counter = 0;
-      }
-      TimerReg::Tima => {
-        if !overflow {
-          self.overflow = false;
-          self.counter = value
-        }
-      }
-      TimerReg::Tma => {
-        self.modulo = value;
-        if overflow {
-          self.counter = value;
-        }
-      }
-      TimerReg::Tac => {
-        let old_bit = self.tac.contains(TacReg::ENABLE) && self.counter_bit();
-        self.tac = TacReg::from_bits_truncate(value);
-        let new_bit = self.tac.contains(TacReg::ENABLE) && self.counter_bit();
-        if old_bit && !new_bit {
-          self.increment();
-        }
-      }
+    if !overflow {
+      self.overflow = false;
+      self.counter = value
+    }
+  }
+}
+
+impl MappedHardware<Tma> for Timer {
+  fn read_cycle<I: InterruptRequest>(&mut self, _: Tma, intr_req: &mut I) -> u8 {
+    self.tick_cycle(intr_req);
+    self.modulo
+  }
+  fn write_cycle<I: InterruptRequest>(&mut self, _: Tma, value: u8, intr_req: &mut I) {
+    let overflow = self.overflow;
+    self.tick_cycle(intr_req);
+    self.modulo = value;
+    if overflow {
+      self.counter = value;
+    }
+  }
+}
+
+impl MappedHardware<Tac> for Timer {
+  fn read_cycle<I: InterruptRequest>(&mut self, _: Tac, intr_req: &mut I) -> u8 {
+    self.tick_cycle(intr_req);
+    const TAC_UNUSED: u8 = 0b11111_000;
+    TAC_UNUSED | self.tac.bits()
+  }
+  fn write_cycle<I: InterruptRequest>(&mut self, _: Tac, value: u8, intr_req: &mut I) {
+    self.tick_cycle(intr_req);
+    let old_bit = self.enabled && self.counter_bit();
+    self.tac = TacReg::from_bits_truncate(value);
+    self.enabled = self.tac.contains(TacReg::ENABLE);
+    let new_bit = self.enabled && self.counter_bit();
+    if old_bit && !new_bit {
+      self.increment();
     }
   }
 }
@@ -105,6 +119,7 @@ impl Timer {
       counter: 0,
       modulo: 0,
       overflow: false,
+      enabled: false,
     }
   }
   fn counter_bit(&self) -> bool {
@@ -121,7 +136,7 @@ impl Timer {
       self.counter = self.modulo;
       intr_req.request_t12_interrupt(Interrupt::TimerOverflow);
       self.overflow = false;
-    } else if self.tac.contains(TacReg::ENABLE) && self.counter_bit() {
+    } else if self.enabled && self.counter_bit() {
       self.internal_counter = self.internal_counter.wrapping_add(1);
       let new_bit = self.counter_bit();
       if !new_bit {
