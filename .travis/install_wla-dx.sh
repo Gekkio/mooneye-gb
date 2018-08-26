@@ -8,7 +8,7 @@ if [ "${CACHED_VERSION}" = "${WLA_DX_COMMIT}" ]; then
   exit 0
 fi
 
-curl -sSL "https://github.com/vhelin/wla-dx/archive/${WLA_DX_COMMIT}.tar.gz" | tar xzv -C "${HOME}"
+curl -sSL "https://github.com/${WLA_DX_REPO}/archive/${WLA_DX_COMMIT}.tar.gz" | tar xzv -C "${HOME}"
 cd "${HOME}/wla-dx-${WLA_DX_COMMIT}"
 cmake .
 make
