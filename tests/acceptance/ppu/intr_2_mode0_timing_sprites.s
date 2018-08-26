@@ -307,7 +307,7 @@ test_fail:
 _test_fail_cb:
   print_string_literal "TEST #"
   ld a, (testcase_id)
-  call print_a
+  call print_hex8
   print_string_literal " FAILED"
   ld d, $42
   ret

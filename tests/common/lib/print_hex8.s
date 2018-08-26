@@ -18,43 +18,17 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-.section "quit_dump_mem"
+.section "print_hex8"
 ; Inputs:
-;   A: number of bytes
-;   HL: source address
-; Outputs: -
-; Preserved: -
-quit_dump_mem:
+;   A value
+;   HL pointer
+; Outputs:
+;   HL pointer
+; Preserved: BC, DE
+print_hex8:
   push af
-  push hl
-  call disable_lcd_safe
-  call reset_screen
-  call print_load_font
-
-  ld hl, $9800
-  pop de
-  pop bc
-@line:
-  ld a, d
-  call print_hex8
-  ld a, e
-  call print_hex8
-
-- ld a, (de)
-  call print_hex8
-  inc de
-  dec b
-  jr z, +
-
-  ld a, l
-  and $1f
-  cp 20
-  jr nz, -
-
-  call print_newline
-  jr @line
-
-+
-  enable_lcd
-  halt_execution
+  swap a
+  call print_hex4
+  pop af
+  jp print_hex4
 .ends

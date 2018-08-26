@@ -71,8 +71,11 @@
 .include "lib/memcmp.s"
 .include "lib/memcpy.s"
 .include "lib/memset.s"
-.include "lib/print_a.s"
-.include "lib/print_digit.s"
+.include "lib/print_bin1.s"
+.include "lib/print_bin4.s"
+.include "lib/print_bin8.s"
+.include "lib/print_hex4.s"
+.include "lib/print_hex8.s"
 .include "lib/print_inline_string.s"
 .include "lib/print_load_font.s"
 .include "lib/print_newline.s"
@@ -164,7 +167,7 @@ font:
       cp c
       jr z, __check_assert_ok\@
     __check_assert_fail\@:
-      call print_a
+      call print_hex8
       print_string_literal "! "
       inc d
       jr __check_assert_out\@

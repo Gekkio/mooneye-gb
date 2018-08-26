@@ -18,18 +18,17 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-.section "print_digit"
+.section "print_bin8"
 ; Inputs:
 ;   A value
+;   HL pointer
 ; Outputs:
 ;   HL pointer
 ; Preserved: BC, DE
-print_digit:
-  and $0f
-  cp $0a
-  jr c, +
-  add $07
-+ add $30
-  ld (hl+), a
-  ret
+print_bin8:
+  push af
+  swap a
+  call print_bin4
+  pop af
+  jp print_bin4
 .ends

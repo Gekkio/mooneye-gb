@@ -77,20 +77,20 @@ mismatch:
 mismatch_cb
   print_string_literal "MISMATCH AT $"
   ld a, (mismatch_addr + 1)
-  call print_a
+  call print_hex8
   ld a, (mismatch_addr)
-  call print_a
+  call print_hex8
   call print_newline
   call print_newline
 
   print_string_literal "EXPECTED "
   ld a, (mismatch_data)
-  call print_a
+  call print_hex8
   call print_newline
 
   print_string_literal "GOT      "
   ld a, (mismatch_mem)
-  call print_a
+  call print_hex8
 
   ld d, $42
   ret

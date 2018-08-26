@@ -200,7 +200,7 @@ test_failure_cb:
   print_string_literal "$FF"
 
   ld a, (test_reg)
-  call print_a
+  call print_hex8
 
   print_string_literal "       76543210"
   call print_newline
@@ -277,7 +277,7 @@ _print_one:
 _print_bit:
   push bc
   push de
-  call print_digit
+  call print_hex4
   pop de
   pop bc
   jr _next

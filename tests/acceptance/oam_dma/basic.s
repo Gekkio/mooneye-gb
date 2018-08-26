@@ -52,7 +52,7 @@ test_failure:
 test_failure_cb:
   print_string_literal "Fail: $FE"
   ldh a, (<fail_offset)
-  call print_a
+  call print_hex8
   ld d, $42
   ret
 

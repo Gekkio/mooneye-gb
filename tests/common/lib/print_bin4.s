@@ -18,17 +18,29 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-.section "print_a"
+.section "print_bin4"
 ; Inputs:
 ;   A value
 ;   HL pointer
 ; Outputs:
 ;   HL pointer
 ; Preserved: BC, DE
-print_a:
-  push af
+print_bin4:
   swap a
-  call print_digit
+
+.repeat 4
+  rlca
+  push af
+  jr c, +
+
+  ld a, $30
+  jr ++
+
++ ld a, $31
+++
+  ld (hl+), a
   pop af
-  jp print_digit
+.endr
+
+  ret
 .ends

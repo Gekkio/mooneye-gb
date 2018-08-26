@@ -151,9 +151,9 @@ fail_round1_enable@cb:
 
 fail_round1_print_test_address:
   ld a, (test_address_h)
-  call print_a
+  call print_hex8
   ld a, (test_address_l)
-  call print_a
+  call print_hex8
   ret
 
 fail_round2_disable:
@@ -166,7 +166,7 @@ fail_round2_expect@cb:
   call print_newline
   print_string_literal "RAM_EN="
   ld a, (ram_en_value)
-  call print_a
+  call print_hex8
 
   ld d, $42
   ret

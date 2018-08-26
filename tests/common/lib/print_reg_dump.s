@@ -28,12 +28,12 @@ print_reg_dump:
     inc de
     print_string_literal reg_a
     ld a, (de)
-    call print_a
+    call print_hex8
 
     dec de
     print_string_literal reg_b
     ld a, (de)
-    call print_a
+    call print_hex8
 
     inc de
     inc de

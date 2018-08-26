@@ -131,17 +131,17 @@ _verify_fail_cb:
   add hl, bc
   ld a, (hl)
   pop hl
-  call print_a
+  call print_hex8
   call print_newline
 
   print_string_literal "Expected: $"
   ld a, (v_fail_expect)
-  call print_a
+  call print_hex8
   call print_newline
 
   print_string_literal "Actual:   $"
   ld a, (v_fail_actual)
-  call print_a
+  call print_hex8
 
   ld d, $42
   ret

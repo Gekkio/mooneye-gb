@@ -67,24 +67,24 @@ _fail_cb:
 
   print_string_literal "MODE "
   ldh a, (<g_mode)
-  call print_a
+  call print_hex8
 
   call print_newline
   call print_newline
 
   print_string_literal "BANK NUMBER "
   ldh a, (<g_bank_number)
-  call print_a
+  call print_hex8
   call print_newline
 
   print_string_literal "EXPECTED    "
   ldh a, (<g_expected_value)
-  call print_a
+  call print_hex8
   call print_newline
 
   print_string_literal "ACTUAL      "
   ldh a, (<g_actual_value)
-  call print_a
+  call print_hex8
   call print_newline
   ld d, $42
   ret
