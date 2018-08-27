@@ -268,6 +268,12 @@ Notes:
 | reg f          | :+1:       | :+1: | :+1:     | :+1:  | :+1: |
 | unused_hwio GS | :+1:       | :x:  | :+1:     | :x:   | :+1: |
 
+#### Instructions
+
+| Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
+| --------------------------- | ---------- | ---- | -------- | ------ | ---- |
+| daa                         | :+1:       | :+1: | :+1:     | :+1:   | :+1: |
+
 #### Interrupt handling
 
 | Test                        | mooneye-gb | BGB  | Gambatte | Higan  | MESS |

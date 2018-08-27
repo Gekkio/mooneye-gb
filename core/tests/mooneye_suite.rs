@@ -118,6 +118,7 @@ testcases! {
   bits_mem_oam("acceptance/bits/mem_oam", all);
   bits_reg_f("acceptance/bits/reg_f", all);
   bits_unused_hwio_gs("acceptance/bits/unused_hwio-GS", all);
+  instr_daa("acceptance/instr/daa", all);
   interrupts_ie_push("acceptance/interrupts/ie_push", all);
   oam_dma_basic("acceptance/oam_dma/basic", all);
   oam_dma_reg_read("acceptance/oam_dma/reg_read", all);
