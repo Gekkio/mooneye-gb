@@ -217,6 +217,10 @@ Notes:
 | Test                    | mooneye-gb | BGB  | Gambatte | Higan  | MESS |
 | ----------------------- | ---------- | ---- | -------- | ------ | ---- |
 | add sp e timing         | :+1:       | :x:  | :+1:     | :+1:   | :+1: |
+| boot div dmg0           | :x:        | :o:  |          |        | :+1: |
+| boot div dmgABCmgb      | :x:        | :+1: | :+1:     | :x:    | :+1: |
+| boot div S              | :x:        | :o:  |          | :+1:   | :+1: |
+| boot div2 S             | :x:        | :o:  |          | :+1:   | :+1: |
 | boot hwio dmg0          | :x:        | :o:  |          |        | :+1: |
 | boot hwio dmgABCmgb     | :x:        | :+1: | :+1:     | :x:    | :+1: |
 | boot hwio S             | :+1:       | :o:  |          | :+1:   | :x:  |
@@ -256,9 +260,10 @@ Notes:
 
 Notes:
 
-* BGB passes most boot tests only if you explicitly enable boot ROMs and give it the right one.
-  This makes sense for DMG0, MGB, and SGB2 because they are not selectable, but SGB should work
-  without boot ROMs out of the box.
+* BGB passes most boot tests only if you explicitly enable boot ROMs and give
+  it the right one. This makes sense for some device versions (e.g. DMG0)
+  because they are not selectable, but SGB should work without boot ROMs out of
+  the box.
 
 #### Bits (unusable bits in memory and registers)
 
@@ -360,11 +365,14 @@ Notes:
 
 ### Mooneye GB misc tests
 
-| Test            | mooneye-gb | BGB  | Gambatte | Higan | MESS |
-| --------------- | ---------- | ---- | -------- | ----- | ---- |
-| boot hwio C     |            | :+1: |          |       | :x:  |
-| boot regs A     |            | :x:  |          |       |      |
-| boot regs cgb   |            | :+1: |          |       | :+1: |
+| Test              | mooneye-gb | BGB  | Gambatte | Higan | MESS |
+| ---------------   | ---------- | ---- | -------- | ----- | ---- |
+| boot div A        |            | :+1: |          |       |      |
+| boot div cgb0     |            |      |          |       |      |
+| boot div cgbABCDE |            | :+1: |          |       | :+1: |
+| boot hwio C       |            | :+1: |          |       | :x:  |
+| boot regs A       |            | :x:  |          |       |      |
+| boot regs cgb     |            | :+1: |          |       | :+1: |
 
 #### Bits
 

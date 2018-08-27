@@ -79,6 +79,10 @@ macro_rules! testcases {
 
 testcases! {
   add_sp_e_timing("acceptance/add_sp_e_timing", all);
+  boot_div_dmg0("acceptance/boot_div-dmg0", #[ignore] dmg0);
+  boot_div_dmg_abc_mgb("acceptance/boot_div-dmgABCmgb", #[ignore] dmg, #[ignore] mgb);
+  boot_div_s("acceptance/boot_div-S", #[ignore] sgb, #[ignore] sgb2);
+  boot_div2_s("acceptance/boot_div2-S", #[ignore] sgb, #[ignore] sgb2);
   boot_hwio_dmg0("acceptance/boot_hwio-dmg0", #[ignore] dmg0);
   boot_hwio_dmg_abc_mgb("acceptance/boot_hwio-dmgABCmgb", #[ignore] dmg, #[ignore] mgb);
   boot_hwio_s("acceptance/boot_hwio-S", sgb, sgb2);

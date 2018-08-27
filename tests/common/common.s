@@ -52,14 +52,17 @@
   .name "mooneye-gb test"
 .endif
 
-.gbheader
-  licenseecodenew "ZZ"
-  cartridgetype CART_TYPE
-  ramsize CART_RAM_SIZE
-  countrycode $01
-  nintendologo
-  version $00
-.endgb
+.licenseecodenew "ZZ"
+.cartridgetype CART_TYPE
+.ramsize CART_RAM_SIZE
+.countrycode $01
+.nintendologo
+.version $00
+
+.ifndef CART_NO_GLOBAL_CHECKSUM
+  .computegbchecksum
+.endif
+.computegbcomplementcheck
 
 ; --- Library functions ---
 
