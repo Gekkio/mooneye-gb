@@ -30,7 +30,7 @@
 
 .define CART_TYPE 3 ; MBC1
 .define CART_ROM_BANKS 4
-.define CART_RAM_SIZE 4
+.define CART_RAM_SIZE 3
 
 .include "common.s"
 
