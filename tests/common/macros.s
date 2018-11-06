@@ -212,6 +212,8 @@ _test_ok_cb_\@:
 
   enable_lcd
   wait_vblank
+  ; Extra vblank to account for initial (invisible) frame
+  wait_vblank
   ld a, d
   and a
   jr nz, _print_results_halt_\@
