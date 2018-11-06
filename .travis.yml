@@ -11,7 +11,7 @@ rust:
 env:
   global:
     - WLA_DX_REPO="gekkio/wla-dx"
-    - WLA_DX_COMMIT="2fd42c8823e701da724be0e78eda8a7a224e12f1"
+    - WLA_DX_COMMIT="83e691c59a238aae671381f819d6ccf225b21349"
 
 matrix:
   allow_failures:
