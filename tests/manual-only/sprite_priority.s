@@ -52,6 +52,8 @@
   set 1, (HL)
 
   enable_lcd
+  wait_vblank
+  wait_vblank
   halt_execution
 
 data:
