@@ -7,8 +7,8 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use frame_times::FrameTimes;
-use perf_counter::PerfCounter;
+use crate::frame_times::FrameTimes;
+use crate::perf_counter::PerfCounter;
 
 #[derive(Debug)]
 pub struct EmuThreadHandle {

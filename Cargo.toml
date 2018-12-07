@@ -6,6 +6,7 @@ name = "mooneye-gb"
 version = "0.2.0-pre"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 license = "GPL-3.0+"
+edition = "2018"
 
 [dependencies]
 arraydeque = "0.4"

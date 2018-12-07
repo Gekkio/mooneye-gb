@@ -41,7 +41,7 @@ use simplelog::{LevelFilter, TermLogger};
 use std::path::Path;
 use std::process;
 
-use frontend::SdlFrontend;
+use crate::frontend::SdlFrontend;
 
 mod fps_counter;
 mod frame_times;

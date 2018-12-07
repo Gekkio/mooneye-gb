@@ -124,7 +124,8 @@ impl Bootrom {
             Model::Mgb => include_bytes!("../../bootroms/mgb_boot.bin"),
             Model::Sgb => include_bytes!("../../bootroms/sgb_boot.bin"),
             Model::Sgb2 => include_bytes!("../../bootroms/sgb2_boot.bin"),
-          }.clone(),
+          }
+          .clone(),
         )),
       }
     })

@@ -26,7 +26,7 @@ use hardware::gpu::Gpu;
 use hardware::irq::{Interrupt, InterruptRequest, Irq};
 use hardware::joypad::Joypad;
 use hardware::serial::Serial;
-use hardware::timer::{Timer, Div, Tima, Tma, Tac};
+use hardware::timer::{Div, Tac, Tima, Timer, Tma};
 use hardware::work_ram::WorkRam;
 use GbKey;
 
@@ -328,7 +328,10 @@ impl Hardware {
     self.timer.tick_cycle(&mut self.irq);
     f(self)
   }
-  fn read_cycle_timer<T>(&mut self, addr: T) -> u8 where Timer: MappedHardware<T> {
+  fn read_cycle_timer<T>(&mut self, addr: T) -> u8
+  where
+    Timer: MappedHardware<T>,
+  {
     self.emulate_internal();
     self.timer.read_cycle(addr, &mut self.irq)
   }
@@ -337,7 +340,10 @@ impl Hardware {
     self.timer.tick_cycle(&mut self.irq);
     f(self)
   }
-  fn write_cycle_timer<T>(&mut self, addr: T, value: u8) where Timer: MappedHardware<T> {
+  fn write_cycle_timer<T>(&mut self, addr: T, value: u8)
+  where
+    Timer: MappedHardware<T>,
+  {
     self.emulate_internal();
     self.timer.write_cycle(addr, value, &mut self.irq)
   }

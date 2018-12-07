@@ -25,13 +25,13 @@ use std::time::Duration;
 
 use self::gui::Screen;
 use self::renderer::Renderer;
-use fps_counter::FpsCounter;
-use frame_times::FrameTimes;
+use crate::fps_counter::FpsCounter;
+use crate::frame_times::FrameTimes;
+use crate::perf_counter::PerfCounter;
 use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig};
 use mooneye_gb::emulation::{EmuEvents, EmuTime};
 use mooneye_gb::machine::Machine;
 use mooneye_gb::*;
-use perf_counter::PerfCounter;
 
 mod emu_thread;
 mod gui;
