@@ -58,8 +58,8 @@ pub struct Tick {
 fn run(
   mut machine: Machine,
   mut perf_counter: PerfCounter,
-  receiver: mpsc::Receiver<Request>,
-  sender: mpsc::Sender<Tick>,
+  receiver: &mpsc::Receiver<Request>,
+  sender: &mpsc::Sender<Tick>,
 ) -> Result<(Machine, PerfCounter), Error> {
   let mut emu_time = machine.emu_time();
   let mut times = FrameTimes::new(Duration::from_secs(1) / 60);
@@ -67,7 +67,7 @@ fn run(
   let mut screen_buffer_updated = false;
   loop {
     let delta = times.update();
-    let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
+    let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
 
     for request in receiver.try_iter() {
       match request {
@@ -116,7 +116,7 @@ fn run(
 pub fn spawn(machine: Machine, perf_counter: PerfCounter) -> EmuThreadHandle {
   let (tx_sender, tx_receiver) = mpsc::channel();
   let (rx_sender, rx_receiver) = mpsc::channel();
-  let join_handle = thread::spawn(move || run(machine, perf_counter, tx_receiver, rx_sender));
+  let join_handle = thread::spawn(move || run(machine, perf_counter, &tx_receiver, &rx_sender));
   EmuThreadHandle {
     join_handle,
     sender: tx_sender,

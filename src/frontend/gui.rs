@@ -88,7 +88,7 @@ impl InGameScreen {
       fps: 0.0,
       perf: 0.0,
       model: ImString::new(format!("{}", config.model)),
-      cartridge_title: ImString::new(format!("{}", config.cartridge.title)),
+      cartridge_title: ImString::new(config.cartridge.title.clone()),
       show_info_overlay: false,
       error_overlay: None,
     }

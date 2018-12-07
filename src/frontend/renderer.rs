@@ -182,8 +182,8 @@ impl Renderer {
     };
 
     let uniforms = uniform! {
-      matrix: matrix.clone(),
-      palette: palette.clone(),
+      matrix: *matrix,
+      palette: *palette,
       tex_front: tex_front.sampled()
         .minify_filter(MinifySamplerFilter::Nearest)
         .magnify_filter(MagnifySamplerFilter::Nearest),

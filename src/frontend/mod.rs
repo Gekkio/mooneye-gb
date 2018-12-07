@@ -186,7 +186,7 @@ impl SdlFrontend {
 
     'main: loop {
       let delta = self.times.update();
-      let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
+      let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
 
       let renderer = &mut self.renderer;
       let display = &self.display;
@@ -257,7 +257,7 @@ impl SdlFrontend {
 
     'main: loop {
       let delta = self.times.update();
-      let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
+      let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
 
       fps_counter.update(delta_s);
       screen.fps = fps_counter.get_fps();
@@ -430,7 +430,7 @@ impl SdlFrontend {
 
     'main: loop {
       let delta = self.times.update();
-      let delta_s = delta.as_secs() as f64 + delta.subsec_nanos() as f64 / 1_000_000_000.0;
+      let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
 
       fps_counter.update(delta_s);
       screen.fps = fps_counter.get_fps();

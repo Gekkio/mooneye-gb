@@ -48,9 +48,9 @@ mod frame_times;
 mod frontend;
 mod perf_counter;
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-const USAGE: &'static str = concat!(
+const USAGE: &str = concat!(
   "Mooneye GB v",
   env!("CARGO_PKG_VERSION"),
   "
