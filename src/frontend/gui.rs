@@ -4,7 +4,7 @@ use std::time::Instant;
 use mooneye_gb::config::HardwareConfig;
 
 pub trait Screen {
-  fn render(&mut self, ui: &Ui);
+  fn render(&mut self, ui: &Ui<'_>);
 }
 
 #[derive(Default)]
@@ -19,7 +19,7 @@ impl WaitBootromScreen {
 }
 
 impl Screen for WaitBootromScreen {
-  fn render(&mut self, ui: &Ui) {
+  fn render(&mut self, ui: &Ui<'_>) {
     ui.window(im_str!("Help overlay"))
       .title_bar(false)
       .resizable(false)
@@ -54,7 +54,7 @@ impl ErrorOverlay {
       appear_timestamp: Instant::now(),
     }
   }
-  fn render(&self, ui: &Ui) -> bool {
+  fn render(&self, ui: &Ui<'_>) -> bool {
     let elapsed = self.appear_timestamp.elapsed();
     ui.with_color_var(ImGuiCol::WindowBg, (1.0, 1.0, 1.0, 0.4), || {
       ui.with_style_var(StyleVar::WindowBorderSize(1.0), || {
@@ -102,7 +102,7 @@ impl InGameScreen {
 }
 
 impl Screen for InGameScreen {
-  fn render(&mut self, ui: &Ui) {
+  fn render(&mut self, ui: &Ui<'_>) {
     if self.show_info_overlay {
       ui.with_color_var(ImGuiCol::WindowBg, (0.0, 0.0, 0.0, 0.4), || {
         ui.window(im_str!("Info overlay"))

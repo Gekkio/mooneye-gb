@@ -15,24 +15,21 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #![windows_subsystem = "windows"]
 
-extern crate arraydeque;
-extern crate docopt;
 #[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate glium;
 #[macro_use]
 extern crate imgui;
-extern crate imgui_glium_renderer;
+use imgui_glium_renderer;
 #[macro_use]
 extern crate log;
-extern crate mooneye_gb;
-extern crate nalgebra;
-extern crate num_traits;
+use mooneye_gb;
+
 #[macro_use]
 extern crate serde_derive;
-extern crate sdl2;
-extern crate simplelog;
+use sdl2;
+use simplelog;
 
 use docopt::Docopt;
 use failure::Error;

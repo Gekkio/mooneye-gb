@@ -613,17 +613,17 @@ fn map_button(button: Button) -> Option<GbKey> {
 fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
   match axis {
     Axis::LeftX => match value {
-      -32768...-16384 => Some((GbKey::Left, true)),
-      -16383...-1 => Some((GbKey::Left, false)),
-      0...16383 => Some((GbKey::Right, false)),
-      16384...32767 => Some((GbKey::Right, true)),
+      -32768..=-16384 => Some((GbKey::Left, true)),
+      -16383..=-1 => Some((GbKey::Left, false)),
+      0..=16383 => Some((GbKey::Right, false)),
+      16384..=32767 => Some((GbKey::Right, true)),
       _ => None,
     },
     Axis::LeftY => match value {
-      -32768...-16384 => Some((GbKey::Up, true)),
-      -16383...-1 => Some((GbKey::Up, false)),
-      0...16383 => Some((GbKey::Down, false)),
-      16384...32767 => Some((GbKey::Down, true)),
+      -32768..=-16384 => Some((GbKey::Up, true)),
+      -16383..=-1 => Some((GbKey::Up, false)),
+      0..=16383 => Some((GbKey::Down, false)),
+      16384..=32767 => Some((GbKey::Down, true)),
       _ => None,
     },
     _ => None,
