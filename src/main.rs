@@ -15,25 +15,14 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #![windows_subsystem = "windows"]
 
-#[macro_use]
-extern crate failure;
-#[macro_use]
-extern crate glium;
-#[macro_use]
-extern crate imgui;
-use imgui_glium_renderer;
-#[macro_use]
-extern crate log;
 use mooneye_gb;
-
-#[macro_use]
-extern crate serde_derive;
-use sdl2;
 use simplelog;
 
 use docopt::Docopt;
 use failure::Error;
+use log::{error, info, warn};
 use mooneye_gb::config::{Bootrom, Cartridge, Model};
+use serde_derive::Deserialize;
 use simplelog::{LevelFilter, TermLogger};
 use std::path::Path;
 use std::process;

@@ -13,7 +13,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use util::int::IntExt;
+use bitflags::bitflags;
+
+use crate::util::int::IntExt;
 
 pub trait InterruptRequest {
   fn request_t12_interrupt(&mut self, interrupt: Interrupt);

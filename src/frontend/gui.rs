@@ -1,4 +1,4 @@
-use imgui::{ImGuiCol, ImGuiCond, ImString, ImVec4, StyleVar, Ui};
+use imgui::{im_str, ImGuiCol, ImGuiCond, ImString, ImVec4, StyleVar, Ui};
 use std::time::Instant;
 
 use mooneye_gb::config::HardwareConfig;

@@ -15,20 +15,20 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-use config::HardwareConfig;
-use emulation::{EmuEvents, EmuTime};
-use gameboy;
-use gameboy::{HiramData, HIRAM_EMPTY};
-use hardware::apu::Apu;
-use hardware::bootrom::Bootrom;
-use hardware::cartridge::Cartridge;
-use hardware::gpu::Gpu;
-use hardware::irq::{Interrupt, InterruptRequest, Irq};
-use hardware::joypad::Joypad;
-use hardware::serial::Serial;
-use hardware::timer::{Div, Tac, Tima, Timer, Tma};
-use hardware::work_ram::WorkRam;
-use GbKey;
+use crate::config::HardwareConfig;
+use crate::emulation::{EmuEvents, EmuTime};
+use crate::gameboy;
+use crate::gameboy::{HiramData, HIRAM_EMPTY};
+use crate::hardware::apu::Apu;
+use crate::hardware::bootrom::Bootrom;
+use crate::hardware::cartridge::Cartridge;
+use crate::hardware::gpu::Gpu;
+use crate::hardware::irq::{Interrupt, InterruptRequest, Irq};
+use crate::hardware::joypad::Joypad;
+use crate::hardware::serial::Serial;
+use crate::hardware::timer::{Div, Tac, Tima, Timer, Tma};
+use crate::hardware::work_ram::WorkRam;
+use crate::GbKey;
 
 mod apu;
 mod bootrom;
@@ -52,13 +52,13 @@ pub struct FetchResult {
 }
 
 pub trait Bus {
-  fn fetch_cycle(&mut self, u16) -> FetchResult;
-  fn read_cycle(&mut self, u16) -> u8;
-  fn write_cycle(&mut self, u16, u8);
+  fn fetch_cycle(&mut self, addr: u16) -> FetchResult;
+  fn read_cycle(&mut self, addr: u16) -> u8;
+  fn write_cycle(&mut self, addr: u16, data: u8);
   fn tick_cycle(&mut self);
   fn ack_interrupt(&mut self) -> Option<Interrupt>;
   fn has_interrupt(&self) -> bool;
-  fn trigger_emu_events(&mut self, EmuEvents);
+  fn trigger_emu_events(&mut self, events: EmuEvents);
 }
 
 pub struct Hardware {

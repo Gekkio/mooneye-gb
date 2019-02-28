@@ -13,15 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use arrayvec::ArrayVec;
+use bitflags::bitflags;
 use std::cmp::Ordering;
 use std::fmt;
 
-use arrayvec::ArrayVec;
-use emulation::EmuEvents;
-use gameboy;
-use gameboy::Color;
-use hardware::irq::{Interrupt, InterruptRequest, Irq};
-use util::int::IntExt;
+use crate::emulation::EmuEvents;
+use crate::gameboy;
+use crate::gameboy::Color;
+use crate::hardware::irq::{Interrupt, InterruptRequest, Irq};
+use crate::util::int::IntExt;
 
 const CHARACTER_RAM_TILES: usize = 384;
 const TILE_MAP_SIZE: usize = 0x400;

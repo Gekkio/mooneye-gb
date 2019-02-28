@@ -13,8 +13,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use hardware::irq::{Interrupt, InterruptRequest};
-use hardware::MappedHardware;
+use bitflags::bitflags;
+
+use crate::hardware::irq::{Interrupt, InterruptRequest};
+use crate::hardware::MappedHardware;
 
 pub struct Timer {
   internal_counter: u16,

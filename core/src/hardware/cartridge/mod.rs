@@ -13,11 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use config;
-use config::CartridgeType;
 use crc::crc32;
-use gameboy::{RAM_BANK_SIZE, ROM_BANK_SIZE};
-use util::int::IntExt;
+
+use crate::config;
+use crate::config::CartridgeType;
+use crate::gameboy::{RAM_BANK_SIZE, ROM_BANK_SIZE};
+use crate::util::int::IntExt;
 
 #[derive(Debug, Clone)]
 struct Mbc1State {
@@ -63,7 +64,7 @@ fn is_mbc1_multicart(rom: &[u8]) -> bool {
 
       crc32::checksum_ieee(&rom[start..end])
     })
-    .filter(|&checksum| checksum == 0x46195417)
+    .filter(|&checksum| checksum == 0x4619_5417)
     .count();
 
   // A multicart should have at least two games + a menu with valid logo data

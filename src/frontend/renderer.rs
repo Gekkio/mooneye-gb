@@ -20,6 +20,7 @@ use glium::texture::pixel_buffer::PixelBuffer;
 use glium::texture::texture2d::Texture2d;
 use glium::texture::{MipmapsOption, UncompressedFloatFormat};
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
+use glium::{implement_vertex, program, uniform};
 use glium::{DrawParameters, IndexBuffer, Program, Surface, VertexBuffer};
 use mooneye_gb;
 use nalgebra::{Matrix4, Vector4};

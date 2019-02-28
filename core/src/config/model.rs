@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-
+use serde_derive::Deserialize;
 use std::fmt;
 
 pub static DEFAULT_MODEL_PRIORITY: [Model; 5] =

@@ -13,11 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use bitflags::bitflags;
 use std::fmt;
 use std::fmt::{Binary, Formatter, LowerHex, UpperHex};
 
-use hardware::irq::{Interrupt, InterruptRequest, Irq};
-use GbKey;
+use crate::hardware::irq::{Interrupt, InterruptRequest, Irq};
+use crate::GbKey;
 
 /// Gameboy joypad.
 ///

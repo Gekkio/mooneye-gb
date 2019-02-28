@@ -13,13 +13,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use failure::Fail;
 use std::fmt;
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
 use std::str;
 
-use gameboy::ROM_BANK_SIZE;
+use crate::gameboy::ROM_BANK_SIZE;
 
 #[derive(Clone, Debug)]
 pub struct Cartridge {
@@ -308,7 +309,7 @@ impl CartridgeRamSize {
       Ram2K => 2048,
       Ram8K => 8192,
       Ram32K => 32768,
-      Ram128K => 131072,
+      Ram128K => 131_072,
       Ram64K => 65536,
     }
   }

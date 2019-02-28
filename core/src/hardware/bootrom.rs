@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::ops::Index;
 
-use gameboy::BootromData;
+use crate::gameboy::BootromData;
 
 pub struct Bootrom {
   data: Box<BootromData>,

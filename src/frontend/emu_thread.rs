@@ -1,4 +1,4 @@
-use failure::Error;
+use failure::{format_err, Error};
 use mooneye_gb::emulation::{EmuEvents, EmuTime};
 use mooneye_gb::machine::Machine;
 use mooneye_gb::{GbKey, ScreenBuffer, CPU_SPEED_HZ, SCREEN_EMPTY};

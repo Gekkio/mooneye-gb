@@ -13,23 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-extern crate app_dirs;
-extern crate arrayvec;
-#[macro_use]
-extern crate bitflags;
-extern crate crc;
-extern crate failure;
-#[macro_use]
-extern crate failure_derive;
-#[macro_use]
-extern crate log;
-extern crate num_traits;
-#[macro_use]
-extern crate serde_derive;
-
-#[cfg(test)]
-extern crate quickcheck;
-
 pub mod config;
 mod cpu;
 pub mod emulation;
@@ -50,4 +33,4 @@ pub enum GbKey {
   Start,
 }
 
-pub use gameboy::*;
+pub use crate::gameboy::*;

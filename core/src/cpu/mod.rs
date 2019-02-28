@@ -15,12 +15,12 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-use cpu::registers::{Flags, Reg16, Reg8, Registers};
-use emulation::EmuEvents;
-use hardware::Bus;
-use util::int::IntExt;
+use self::registers::{Flags, Reg16, Reg8, Registers};
+use crate::emulation::EmuEvents;
+use crate::hardware::Bus;
+use crate::util::int::IntExt;
 
-pub use cpu::ops::CpuOps;
+pub use self::ops::CpuOps;
 
 pub mod disasm;
 mod ops;
@@ -35,10 +35,10 @@ pub struct Cpu {
 }
 
 pub trait In8: disasm::ResolveOp8 {
-  fn read<H: Bus>(&self, &mut Cpu, &mut H) -> u8;
+  fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8;
 }
 pub trait Out8: disasm::ResolveOp8 {
-  fn write<H: Bus>(&self, &mut Cpu, &mut H, u8);
+  fn write<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H, data: u8);
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -94,7 +94,7 @@ impl Out8 for Addr {
 
 impl In8 for Reg8 {
   fn read<H: Bus>(&self, cpu: &mut Cpu, _: &mut H) -> u8 {
-    use cpu::registers::Reg8::*;
+    use self::registers::Reg8::*;
     match *self {
       A => cpu.regs.a,
       B => cpu.regs.b,
@@ -108,7 +108,7 @@ impl In8 for Reg8 {
 }
 impl Out8 for Reg8 {
   fn write<H: Bus>(&self, cpu: &mut Cpu, _: &mut H, value: u8) {
-    use cpu::registers::Reg8::*;
+    use self::registers::Reg8::*;
     match *self {
       A => cpu.regs.a = value,
       B => cpu.regs.b = value,

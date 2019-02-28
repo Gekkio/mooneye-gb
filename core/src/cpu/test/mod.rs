@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::disasm;
-use cpu::disasm::{DisasmStr, ToDisasmStr};
-use cpu::{Cpu, Step};
-use emulation::EmuEvents;
-use hardware::irq::Interrupt;
-use hardware::{Bus, FetchResult};
+use crate::cpu::disasm;
+use crate::cpu::disasm::{DisasmStr, ToDisasmStr};
+use crate::cpu::{Cpu, Step};
+use crate::emulation::EmuEvents;
+use crate::hardware::irq::Interrupt;
+use crate::hardware::{Bus, FetchResult};
 
 mod cb_test;
 mod test_0x;

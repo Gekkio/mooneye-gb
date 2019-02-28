@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use bitflags::bitflags;
+
 use self::ch1::Ch1;
 use self::ch2::Ch2;
 use self::ch3::Ch3;

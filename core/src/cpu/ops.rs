@@ -13,43 +13,43 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use cpu::registers::Reg16;
-use cpu::registers::Reg16::{AF, BC, DE, HL, SP};
-use cpu::registers::Reg8::{A, B, C, D, E, H, L};
-use cpu::{Addr, Cond, Immediate8, In8, Out8};
+use crate::cpu::registers::Reg16;
+use crate::cpu::registers::Reg16::{AF, BC, DE, HL, SP};
+use crate::cpu::registers::Reg8::{A, B, C, D, E, H, L};
+use crate::cpu::{Addr, Cond, Immediate8, In8, Out8};
 
 pub trait CpuOps {
   type R;
   // --- 8-bit operations
   // 8-bit loads
-  fn load<O: Out8, I: In8>(self, O, I) -> Self::R;
+  fn load<O: Out8, I: In8>(self, output: O, input: I) -> Self::R;
   fn ld_b_b(self) -> Self::R; // Magic no-op debug breakpoint
                               // 8-bit arithmetic
-  fn add<I: In8>(self, I) -> Self::R;
-  fn adc<I: In8>(self, I) -> Self::R;
-  fn sub<I: In8>(self, I) -> Self::R;
-  fn sbc<I: In8>(self, I) -> Self::R;
-  fn cp<I: In8>(self, I) -> Self::R;
-  fn and<I: In8>(self, I) -> Self::R;
-  fn or<I: In8>(self, I) -> Self::R;
-  fn xor<I: In8>(self, I) -> Self::R;
-  fn inc<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn dec<IO: In8 + Out8>(self, IO) -> Self::R;
+  fn add<I: In8>(self, input: I) -> Self::R;
+  fn adc<I: In8>(self, input: I) -> Self::R;
+  fn sub<I: In8>(self, input: I) -> Self::R;
+  fn sbc<I: In8>(self, input: I) -> Self::R;
+  fn cp<I: In8>(self, input: I) -> Self::R;
+  fn and<I: In8>(self, input: I) -> Self::R;
+  fn or<I: In8>(self, input: I) -> Self::R;
+  fn xor<I: In8>(self, input: I) -> Self::R;
+  fn inc<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn dec<IO: In8 + Out8>(self, io: IO) -> Self::R;
   fn rlca(self) -> Self::R;
   fn rla(self) -> Self::R;
   fn rrca(self) -> Self::R;
   fn rra(self) -> Self::R;
-  fn rlc<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn rl<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn rrc<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn rr<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn sla<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn sra<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn srl<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn swap<IO: In8 + Out8>(self, IO) -> Self::R;
-  fn bit<I: In8>(self, usize, I) -> Self::R;
-  fn set<IO: In8 + Out8>(self, usize, IO) -> Self::R;
-  fn res<IO: In8 + Out8>(self, usize, IO) -> Self::R;
+  fn rlc<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn rl<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn rrc<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn rr<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn sla<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn sra<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn srl<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn swap<IO: In8 + Out8>(self, io: IO) -> Self::R;
+  fn bit<I: In8>(self, bit: usize, input: I) -> Self::R;
+  fn set<IO: In8 + Out8>(self, bit: usize, io: IO) -> Self::R;
+  fn res<IO: In8 + Out8>(self, bit: usize, io: IO) -> Self::R;
   // --- Control
   fn jp(self) -> Self::R;
   fn jp_hl(self) -> Self::R;
@@ -57,11 +57,11 @@ pub trait CpuOps {
   fn call(self) -> Self::R;
   fn ret(self) -> Self::R;
   fn reti(self) -> Self::R;
-  fn jp_cc(self, Cond) -> Self::R;
-  fn jr_cc(self, Cond) -> Self::R;
-  fn call_cc(self, Cond) -> Self::R;
-  fn ret_cc(self, Cond) -> Self::R;
-  fn rst(self, u8) -> Self::R;
+  fn jp_cc(self, cond: Cond) -> Self::R;
+  fn jr_cc(self, cond: Cond) -> Self::R;
+  fn call_cc(self, cond: Cond) -> Self::R;
+  fn ret_cc(self, cond: Cond) -> Self::R;
+  fn rst(self, addr: u8) -> Self::R;
   // --- Miscellaneous
   fn halt(self) -> Self::R;
   fn stop(self) -> Self::R;
@@ -74,19 +74,19 @@ pub trait CpuOps {
   fn cpl(self) -> Self::R;
   // --- 16-bit operations
   // 16-bit loads
-  fn load16_imm(self, Reg16) -> Self::R;
+  fn load16_imm(self, reg: Reg16) -> Self::R;
   fn load16_nn_sp(self) -> Self::R;
   fn load16_sp_hl(self) -> Self::R;
   fn load16_hl_sp_e(self) -> Self::R;
-  fn push16(self, Reg16) -> Self::R;
-  fn pop16(self, Reg16) -> Self::R;
+  fn push16(self, reg: Reg16) -> Self::R;
+  fn pop16(self, reg: Reg16) -> Self::R;
   // 16-bit arithmetic
-  fn add16(self, Reg16) -> Self::R;
+  fn add16(self, reg: Reg16) -> Self::R;
   fn add16_sp_e(self) -> Self::R;
-  fn inc16(self, Reg16) -> Self::R;
-  fn dec16(self, Reg16) -> Self::R;
+  fn inc16(self, reg: Reg16) -> Self::R;
+  fn dec16(self, reg: Reg16) -> Self::R;
   // --- Other
-  fn undefined(self, u8) -> Self::R;
+  fn undefined(self, byte: u8) -> Self::R;
   fn cb_prefix(self) -> Self::R;
 }
 

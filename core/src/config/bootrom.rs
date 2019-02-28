@@ -15,12 +15,14 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use app_dirs::{app_dir, AppDataType, AppInfo};
 use crc::crc32;
+use failure::Fail;
+use log::{debug, info, warn};
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
 
-use config::{Model, DEFAULT_MODEL_PRIORITY};
-use gameboy::BootromData;
+use crate::config::{Model, DEFAULT_MODEL_PRIORITY};
+use crate::gameboy::BootromData;
 
 const APP_INFO: AppInfo = AppInfo {
   name: "mooneye-gb",
@@ -56,11 +58,11 @@ impl Bootrom {
   pub fn from_data(data: Box<BootromData>) -> Result<Bootrom, BootromError> {
     let checksum = crc32::checksum_ieee(&data.0);
     let model = match checksum {
-      0xc2f5cc97 => Some(Model::Dmg0),
-      0x59c8598e => Some(Model::Dmg),
-      0xe6920754 => Some(Model::Mgb),
-      0xec8a83b9 => Some(Model::Sgb),
-      0x53d0dd63 => Some(Model::Sgb2),
+      0xc2f5_cc97 => Some(Model::Dmg0),
+      0x59c8_598e => Some(Model::Dmg),
+      0xe692_0754 => Some(Model::Mgb),
+      0xec8a_83b9 => Some(Model::Sgb),
+      0x53d0_dd63 => Some(Model::Sgb2),
       _ => None,
     };
     match model {

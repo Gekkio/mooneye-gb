@@ -16,10 +16,10 @@
 use std::borrow::Cow;
 use std::fmt;
 
-use cpu;
-use cpu::ops;
-use cpu::registers::{Reg16, Reg8};
-use cpu::{Cond, CpuOps, In8, Out8};
+use crate::cpu;
+use crate::cpu::ops;
+use crate::cpu::registers::{Reg16, Reg8};
+use crate::cpu::{Cond, CpuOps, In8, Out8};
 
 pub type DisasmStr = Cow<'static, str>;
 

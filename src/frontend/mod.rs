@@ -13,10 +13,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use failure::Error;
+use failure::{format_err, Error};
 use glium::{glutin, Api, Display, Surface, Version};
 use imgui::{FrameSize, ImGui};
 use imgui_glium_renderer;
+use log::info;
 use sdl2;
 use sdl2::controller::{Axis, Button};
 use sdl2::event::Event;
@@ -334,7 +335,7 @@ impl SdlFrontend {
             screen,
             fps_counter,
             perf_counter,
-          }))
+          }));
         }
         Some(InGameEvent::LoadCartridge(cartridge)) => {
           return Ok(FrontendState::InGame(InGameState::from_config(
@@ -342,7 +343,7 @@ impl SdlFrontend {
               cartridge,
               ..config
             },
-          )))
+          )));
         }
         _ => (),
       }
@@ -517,7 +518,7 @@ impl SdlFrontend {
               cartridge,
               ..config
             },
-          )))
+          )));
         }
         _ => (),
       }

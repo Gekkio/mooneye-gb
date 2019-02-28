@@ -15,8 +15,8 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use quickcheck::quickcheck;
 
-use cpu::registers::{Flags, Reg16};
-use cpu::test::run_test;
+use crate::cpu::registers::{Flags, Reg16};
+use crate::cpu::test::run_test;
 
 fn test_load16_hl_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool {
   let machine = run_test(&[0xf8, e as u8], |machine| {

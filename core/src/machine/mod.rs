@@ -13,13 +13,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use config::HardwareConfig;
-use cpu::registers::Registers;
-use cpu::{Cpu, Step};
-use emulation::{EmuEvents, EmuTime};
-use gameboy;
-use hardware::Hardware;
-use GbKey;
+use crate::config::HardwareConfig;
+use crate::cpu::registers::Registers;
+use crate::cpu::{Cpu, Step};
+use crate::emulation::{EmuEvents, EmuTime};
+use crate::gameboy;
+use crate::hardware::Hardware;
+use crate::GbKey;
 
 pub struct Machine {
   cpu: Cpu,
