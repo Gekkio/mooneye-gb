@@ -5,6 +5,6 @@ jobs:
       - image: circleci/rust
     steps:
       - checkout
-      - run
+      - run:
         name: Version information
         command: rustc --version; cargo --version; rustup --version
