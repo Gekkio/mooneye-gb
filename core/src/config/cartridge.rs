@@ -79,7 +79,7 @@ impl Cartridge {
       let utf8 = str::from_utf8(slice)
         .map_err(|_| CartridgeError::Validation("Invalid ROM title".to_string()))?;
 
-      utf8.trim_right_matches('\0').to_string()
+      utf8.trim_end_matches('\0').to_string()
     };
 
     let cartridge_type = CartridgeType::from_u8(data[0x147]).ok_or_else(|| {

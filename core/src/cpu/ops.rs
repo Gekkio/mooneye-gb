@@ -346,7 +346,6 @@ pub fn decode<O: CpuOps>(ops: O, op: u8) -> O::R {
     0x3b => ops.dec16(SP),
     0xcb => ops.cb_prefix(),
     0xd3 | 0xdb | 0xdd | 0xe3 | 0xe4 | 0xeb | 0xec | 0xed | 0xf4 | 0xfc | 0xfd => ops.undefined(op),
-    _ => unreachable!("Unknown opcode 0x{:0x}", op),
   }
 }
 
@@ -610,6 +609,5 @@ pub fn decode_cb<O: CpuOps>(ops: O, op: u8) -> O::R {
     0xae => ops.res(5, Addr::HL),
     0xb6 => ops.res(6, Addr::HL),
     0xbe => ops.res(7, Addr::HL),
-    _ => unreachable!("Unknown opcode 0xcb 0x{:0x}", op),
   }
 }
