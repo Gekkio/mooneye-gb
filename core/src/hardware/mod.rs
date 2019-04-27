@@ -185,7 +185,7 @@ impl Hardware {
       }
       0x98...0x9b => self.write_cycle_generic(|hw| hw.gpu.write_tile_map1(addr - 0x9800, value)),
       0x9c...0x9f => self.write_cycle_generic(|hw| hw.gpu.write_tile_map2(addr - 0x9c00, value)),
-      0xa0...0xbf => self.write_cycle_generic(|hw| hw.cartridge.write_ram(addr, value)),
+      0xa0...0xbf => self.write_cycle_generic(|hw| hw.cartridge.write_a000_bfff(addr, value)),
       0xc0...0xcf => self.write_cycle_generic(|hw| hw.work_ram.write_lower(addr, value)),
       0xd0...0xdf => self.write_cycle_generic(|hw| hw.work_ram.write_upper(addr, value)),
       // Echo RAM
@@ -239,12 +239,12 @@ impl Hardware {
   fn read_internal(&mut self, addr: u16) -> u8 {
     match addr >> 8 {
       0x00 if self.bootrom.is_active() => self.read_cycle_generic(|hw| hw.bootrom[addr]),
-      0x00...0x3f => self.read_cycle_generic(|hw| hw.cartridge.read_rom_bank0(addr)),
-      0x40...0x7f => self.read_cycle_generic(|hw| hw.cartridge.read_rom_bankx(addr)),
+      0x00...0x3f => self.read_cycle_generic(|hw| hw.cartridge.read_0000_3fff(addr)),
+      0x40...0x7f => self.read_cycle_generic(|hw| hw.cartridge.read_4000_7fff(addr)),
       0x80...0x97 => self.read_cycle_generic(|hw| hw.gpu.read_character_ram(addr - 0x8000)),
       0x98...0x9b => self.read_cycle_generic(|hw| hw.gpu.read_tile_map1(addr - 0x9800)),
       0x9c...0x9f => self.read_cycle_generic(|hw| hw.gpu.read_tile_map2(addr - 0x9c00)),
-      0xa0...0xbf => self.read_cycle_generic(|hw| hw.cartridge.read_ram(addr)),
+      0xa0...0xbf => self.read_cycle_generic(|hw| hw.cartridge.read_a000_bfff(addr, 0xff)),
       0xc0...0xcf => self.read_cycle_generic(|hw| hw.work_ram.read_lower(addr)),
       0xd0...0xdf => self.read_cycle_generic(|hw| hw.work_ram.read_upper(addr)),
       // Echo RAM
@@ -296,12 +296,12 @@ impl Hardware {
   fn emulate_oam_dma(&mut self) {
     if let Some(addr) = self.oam_dma.emulate() {
       let value = match addr >> 8 {
-        0x00...0x3f => self.cartridge.read_rom_bank0(addr),
-        0x40...0x7f => self.cartridge.read_rom_bankx(addr),
+        0x00...0x3f => self.cartridge.read_0000_3fff(addr),
+        0x40...0x7f => self.cartridge.read_4000_7fff(addr),
         0x80...0x97 => self.gpu.read_character_ram(addr - 0x8000),
         0x98...0x9b => self.gpu.read_tile_map1(addr - 0x9800),
         0x9c...0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
-        0xa0...0xbf => self.cartridge.read_ram(addr),
+        0xa0...0xbf => self.cartridge.read_a000_bfff(addr, 0xff),
         0xc0...0xcf => self.work_ram.read_lower(addr),
         0xd0...0xdf => self.work_ram.read_upper(addr),
         0xe0...0xef => self.work_ram.read_lower(addr),
