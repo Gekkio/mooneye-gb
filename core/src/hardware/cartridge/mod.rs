@@ -120,12 +120,30 @@ impl Mbc5State {
 }
 
 #[derive(Debug, Clone)]
+struct Huc1State {
+  mode: u8,
+  rom_bank: u8,
+  ram_bank: u8,
+}
+
+impl Default for Huc1State {
+  fn default() -> Huc1State {
+    Huc1State {
+      mode: 0b0000,
+      rom_bank: 0b00_0000,
+      ram_bank: 0b00,
+    }
+  }
+}
+
+#[derive(Debug, Clone)]
 enum Mbc {
   None,
   Mbc1 { state: Mbc1State, multicart: bool },
   Mbc2 { state: Mbc2State },
   Mbc3 { state: Mbc3State, mbc30: bool },
   Mbc5 { state: Mbc5State },
+  Huc1 { state: Huc1State },
 }
 
 impl Mbc {
@@ -146,6 +164,9 @@ impl Mbc {
       },
       Mbc5 { .. } => Mbc::Mbc5 {
         state: Mbc5State::default(),
+      },
+      Huc1 { .. } => Mbc::Huc1 {
+        state: Huc1State::default(),
       },
       _ => panic!("Unsupported cartridge type {:?}", config.cartridge_type),
     }
@@ -267,6 +288,20 @@ impl Cartridge {
         }
         _ => (),
       },
+      Mbc::Huc1 { ref mut state } => match reladdr >> 8 {
+        0x00..=0x1f => {
+          state.mode = value & 0xf;
+        }
+        0x20..=0x3f => {
+          state.rom_bank = value & 0b11_1111;
+          self.rom_offsets = (0x0000, ROM_BANK_SIZE * state.rom_bank as usize);
+        }
+        0x40..=0x5f => {
+          state.ram_bank = value & 0b11;
+          self.ram_offset = RAM_BANK_SIZE * state.ram_bank as usize;
+        }
+        _ => (),
+      },
     }
   }
   pub fn read_a000_bfff(&self, addr: u16, default_value: u8) -> u8 {
@@ -281,6 +316,9 @@ impl Cartridge {
         _ => default_value,
       },
       Mbc::Mbc5 { ref state } if state.ramg => self.read_ram(addr, default_value),
+      Mbc::Huc1 { ref state } if state.mode == 0x00 || state.mode == 0x0a => {
+        self.read_ram(addr, default_value)
+      }
       _ => default_value,
     }
   }
@@ -294,6 +332,7 @@ impl Cartridge {
         _ => (),
       },
       Mbc::Mbc5 { ref state } if state.ramg => self.write_ram(addr, value),
+      Mbc::Huc1 { ref state } if state.mode == 0x0a => self.write_ram(addr, value),
       _ => (),
     }
   }
