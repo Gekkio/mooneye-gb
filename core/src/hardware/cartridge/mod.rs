@@ -92,11 +92,40 @@ impl Default for Mbc3State {
 }
 
 #[derive(Debug, Clone)]
+struct Mbc5State {
+  ramg: bool,
+  romb0: u8,
+  romb1: u8,
+  ramb: u8,
+}
+
+impl Default for Mbc5State {
+  fn default() -> Mbc5State {
+    Mbc5State {
+      ramg: false,
+      romb0: 0b0000_0001,
+      romb1: 0b0,
+      ramb: 0b0000,
+    }
+  }
+}
+
+impl Mbc5State {
+  fn rom_offsets(&self) -> (usize, usize) {
+    let lower_bits = self.romb0 as usize;
+    let upper_bits = (self.romb1 as usize) << 8;
+    let rom_bank = upper_bits | lower_bits;
+    (0x0000, ROM_BANK_SIZE * rom_bank)
+  }
+}
+
+#[derive(Debug, Clone)]
 enum Mbc {
   None,
   Mbc1 { state: Mbc1State, multicart: bool },
   Mbc2 { state: Mbc2State },
   Mbc3 { state: Mbc3State, mbc30: bool },
+  Mbc5 { state: Mbc5State },
 }
 
 impl Mbc {
@@ -114,6 +143,9 @@ impl Mbc {
       Mbc3 { .. } => Mbc::Mbc3 {
         mbc30: config.ram_size.as_usize() > 65536,
         state: Mbc3State::default(),
+      },
+      Mbc5 { .. } => Mbc::Mbc5 {
+        state: Mbc5State::default(),
       },
       _ => panic!("Unsupported cartridge type {:?}", config.cartridge_type),
     }
@@ -217,6 +249,24 @@ impl Cartridge {
         }
         _ => (),
       },
+      Mbc::Mbc5 { ref mut state } => match reladdr >> 8 {
+        0x00..=0x1f => {
+          state.ramg = value == 0x0a;
+        }
+        0x20..=0x2f => {
+          state.romb0 = value;
+          self.rom_offsets = state.rom_offsets();
+        }
+        0x30..=0x3f => {
+          state.romb1 = value & 0b1;
+          self.rom_offsets = state.rom_offsets();
+        }
+        0x40..=0x5f => {
+          state.ramb = value & 0b1111;
+          self.ram_offset = RAM_BANK_SIZE * state.ramb as usize;
+        }
+        _ => (),
+      },
     }
   }
   pub fn read_a000_bfff(&self, addr: u16, default_value: u8) -> u8 {
@@ -230,6 +280,7 @@ impl Cartridge {
         0x04..=0x07 if mbc30 => self.read_ram(addr, default_value),
         _ => default_value,
       },
+      Mbc::Mbc5 { ref state } if state.ramg => self.read_ram(addr, default_value),
       _ => default_value,
     }
   }
@@ -242,6 +293,7 @@ impl Cartridge {
         0x04..=0x07 if mbc30 => self.write_ram(addr, value),
         _ => (),
       },
+      Mbc::Mbc5 { ref state } if state.ramg => self.write_ram(addr, value),
       _ => (),
     }
   }

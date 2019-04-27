@@ -217,6 +217,36 @@ impl CartridgeType {
         battery: true,
         rtc: true,
       }),
+      0x19 => Some(Mbc5 {
+        ram: false,
+        battery: false,
+        rumble: false,
+      }),
+      0x1a => Some(Mbc5 {
+        ram: true,
+        battery: false,
+        rumble: false,
+      }),
+      0x1b => Some(Mbc5 {
+        ram: true,
+        battery: true,
+        rumble: false,
+      }),
+      0x1c => Some(Mbc5 {
+        ram: false,
+        battery: false,
+        rumble: true,
+      }),
+      0x1d => Some(Mbc5 {
+        ram: true,
+        battery: false,
+        rumble: true,
+      }),
+      0x1e => Some(Mbc5 {
+        ram: true,
+        battery: true,
+        rumble: true,
+      }),
       0x20 => Some(Mbc6),
       0x22 => Some(Mbc7),
       0xff => Some(Huc1),
