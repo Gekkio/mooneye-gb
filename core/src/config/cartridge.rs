@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use crc::crc32;
 use failure::Fail;
 use std::fmt;
 use std::fs::File;
@@ -50,7 +51,10 @@ impl Cartridge {
     Cartridge {
       data: vec![0xff; 2],
       title: "-".to_string(),
-      cartridge_type: CartridgeType::Rom,
+      cartridge_type: CartridgeType::NoMbc {
+        ram: false,
+        battery: false,
+      },
       rom_size: CartridgeRomSize::NoRomBanks,
       ram_size: CartridgeRamSize::NoRam,
     }
@@ -82,9 +86,12 @@ impl Cartridge {
       utf8.trim_end_matches('\0').to_string()
     };
 
-    let cartridge_type = CartridgeType::from_u8(data[0x147]).ok_or_else(|| {
+    let mut cartridge_type = CartridgeType::from_u8(data[0x147]).ok_or_else(|| {
       CartridgeError::Validation(format!("Unsupported cartridge type {:02x}", data[0x147]))
     })?;
+    if let CartridgeType::Mbc1 { multicart, .. } = &mut cartridge_type {
+      *multicart = is_mbc1_multicart(&data);
+    }
     let rom_size = CartridgeRomSize::from_u8(data[0x148]).ok_or_else(|| {
       CartridgeError::Validation(format!("Unsupported rom size {:02x}", data[0x148]))
     })?;
@@ -92,13 +99,13 @@ impl Cartridge {
       CartridgeError::Validation(format!("Unsupported ram size {:02x}", data[0x149]))
     })?;
 
-    if cartridge_type.should_have_ram() && ram_size == CartridgeRamSize::NoRam {
+    if cartridge_type.has_ram_chip() && ram_size == CartridgeRamSize::NoRam {
       return Err(CartridgeError::Validation(format!(
         "{:?} cartridge without ram",
         cartridge_type
       )));
     }
-    if !cartridge_type.should_have_ram() && ram_size != CartridgeRamSize::NoRam {
+    if !cartridge_type.has_ram_chip() && ram_size != CartridgeRamSize::NoRam {
       return Err(CartridgeError::Validation(format!(
         "{:?} cartridge with ram size {:02x}",
         cartridge_type, data[0x149]
@@ -122,72 +129,110 @@ impl Cartridge {
   }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum CartridgeType {
-  Rom = 0x00,
-  RomRam = 0x08,
-  RomRamBattery = 0x09,
-  Mbc1 = 0x01,
-  Mbc1Ram = 0x02,
-  Mbc1RamBattery = 0x03,
-  Mbc2 = 0x05,
-  Mbc2RamBattery = 0x06,
-  Mbc3 = 0x11,
-  Mbc3Ram = 0x12,
-  Mbc3RamBattery = 0x13,
-}
-
-impl fmt::Debug for CartridgeType {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    use self::CartridgeType::*;
-    write!(
-      f,
-      "{}",
-      match *self {
-        Rom => "ROM ONLY",
-        RomRam => "ROM+RAM",
-        RomRamBattery => "ROM+RAM+BATTERY",
-        Mbc1 => "MBC1",
-        Mbc1Ram => "MBC1+RAM",
-        Mbc1RamBattery => "MBC1+RAM+BATTERY",
-        Mbc2 => "MBC2",
-        Mbc2RamBattery => "MBC2+RAM+BATTERY",
-        Mbc3 => "MBC3",
-        Mbc3Ram => "MBC3+RAM",
-        Mbc3RamBattery => "MBC3+RAM+BATTERY",
-      }
-    )
-  }
+  NoMbc {
+    ram: bool,
+    battery: bool,
+  },
+  Mbc1 {
+    ram: bool,
+    battery: bool,
+    multicart: bool,
+  },
+  Mbc2 {
+    battery: bool,
+  },
+  Mbc3 {
+    ram: bool,
+    battery: bool,
+    rtc: bool,
+  },
+  Mbc5 {
+    ram: bool,
+    battery: bool,
+    rumble: bool,
+  },
+  Mbc6,
+  Mbc7,
+  Huc1,
+  Huc3,
 }
 
 impl CartridgeType {
   fn from_u8(value: u8) -> Option<CartridgeType> {
     use self::CartridgeType::*;
     match value {
-      0x00 => Some(Rom),
-      0x08 => Some(RomRam),
-      0x09 => Some(RomRamBattery),
-      0x01 => Some(Mbc1),
-      0x02 => Some(Mbc1Ram),
-      0x03 => Some(Mbc1RamBattery),
-      0x05 => Some(Mbc2),
-      0x06 => Some(Mbc2RamBattery),
-      0x11 => Some(Mbc3),
-      0x12 => Some(Mbc3Ram),
-      0x13 => Some(Mbc3RamBattery),
+      0x00 => Some(NoMbc {
+        ram: false,
+        battery: false,
+      }),
+      0x08 => Some(NoMbc {
+        ram: true,
+        battery: false,
+      }),
+      0x09 => Some(NoMbc {
+        ram: true,
+        battery: true,
+      }),
+      0x01 => Some(Mbc1 {
+        ram: false,
+        battery: false,
+        multicart: false,
+      }),
+      0x02 => Some(Mbc1 {
+        ram: true,
+        battery: false,
+        multicart: false,
+      }),
+      0x03 => Some(Mbc1 {
+        ram: true,
+        battery: true,
+        multicart: false,
+      }),
+      0x05 => Some(Mbc2 { battery: false }),
+      0x06 => Some(Mbc2 { battery: true }),
+      0x11 => Some(Mbc3 {
+        ram: false,
+        battery: false,
+        rtc: false,
+      }),
+      0x12 => Some(Mbc3 {
+        ram: true,
+        battery: false,
+        rtc: false,
+      }),
+      0x13 => Some(Mbc3 {
+        ram: true,
+        battery: true,
+        rtc: false,
+      }),
+      0x0f => Some(Mbc3 {
+        ram: false,
+        battery: true,
+        rtc: true,
+      }),
+      0x10 => Some(Mbc3 {
+        ram: true,
+        battery: true,
+        rtc: true,
+      }),
+      0x20 => Some(Mbc6),
+      0x22 => Some(Mbc7),
+      0xff => Some(Huc1),
+      0xfe => Some(Huc3),
       _ => None,
     }
   }
-  fn should_have_ram(&self) -> bool {
+  fn has_ram_chip(&self) -> bool {
     use self::CartridgeType::*;
     match *self {
-      RomRam => true,
-      RomRamBattery => true,
-      Mbc1Ram => true,
-      Mbc1RamBattery => true,
-      Mbc3Ram => true,
-      Mbc3RamBattery => true,
-      _ => false,
+      NoMbc { ram, .. } => ram,
+      Mbc1 { ram, .. } => ram,
+      Mbc2 { .. } => false, // MBC2 has internal RAM and doesn't use a RAM chip
+      Mbc3 { ram, .. } => ram,
+      Mbc5 { ram, .. } => ram,
+      Mbc6 | Mbc7 | Huc1 | Huc3 => true,
     }
   }
 }
@@ -313,4 +358,25 @@ impl CartridgeRamSize {
       Ram64K => 65536,
     }
   }
+}
+
+fn is_mbc1_multicart(rom: &[u8]) -> bool {
+  // Only 8 Mbit MBC1 multicarts exist. Since it's not clear how other ROM sizes would be wired,
+  // it's pointless to try to support them
+  if rom.len() != 1_048_576 {
+    return false;
+  }
+
+  let nintendo_logo_count = (0..4)
+    .map(|page| {
+      let start = page * 0x40000 + 0x0104;
+      let end = start + 0x30;
+
+      crc32::checksum_ieee(&rom[start..end])
+    })
+    .filter(|&checksum| checksum == 0x4619_5417)
+    .count();
+
+  // A multicart should have at least two games + a menu with valid logo data
+  nintendo_logo_count >= 3
 }

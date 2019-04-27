@@ -13,8 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crc::crc32;
-
 use crate::config;
 use crate::config::CartridgeType;
 use crate::gameboy::{RAM_BANK_SIZE, ROM_BANK_SIZE};
@@ -50,27 +48,6 @@ impl Mbc1State {
   }
 }
 
-fn is_mbc1_multicart(rom: &[u8]) -> bool {
-  // Only 8 Mbit MBC1 multicarts exist. Since it's not clear how other ROM sizes would be wired,
-  // it's pointless to try to support them
-  if rom.len() != 1_048_576 {
-    return false;
-  }
-
-  let nintendo_logo_count = (0..4)
-    .map(|page| {
-      let start = page * 0x40000 + 0x0104;
-      let end = start + 0x30;
-
-      crc32::checksum_ieee(&rom[start..end])
-    })
-    .filter(|&checksum| checksum == 0x4619_5417)
-    .count();
-
-  // A multicart should have at least two games + a menu with valid logo data
-  nintendo_logo_count >= 3
-}
-
 #[derive(Debug, Clone)]
 enum Mbc {
   None,
@@ -80,20 +57,21 @@ enum Mbc {
 }
 
 impl Mbc {
-  fn from_cartridge_type(t: CartridgeType, rom: &[u8]) -> Mbc {
+  fn from_cartridge_type(t: CartridgeType) -> Mbc {
     use config::CartridgeType::*;
     match t {
-      Rom | RomRam | RomRamBattery => Mbc::None,
-      Mbc1 | Mbc1Ram | Mbc1RamBattery => Mbc::Mbc1 {
-        multicart: is_mbc1_multicart(rom),
+      NoMbc { .. } => Mbc::None,
+      Mbc1 { multicart, .. } => Mbc::Mbc1 {
+        multicart,
         state: Mbc1State {
           bank1: 0b00001,
           bank2: 0b00,
           mode: false,
         },
       },
-      Mbc2 | Mbc2RamBattery => Mbc::Mbc2,
-      Mbc3 | Mbc3Ram | Mbc3RamBattery => Mbc::Mbc3,
+      Mbc2 { .. } => Mbc::Mbc2,
+      Mbc3 { .. } => Mbc::Mbc3,
+      _ => panic!("Unsupported cartridge type {:?}", t),
     }
   }
 }
@@ -111,7 +89,7 @@ pub struct Cartridge {
 
 impl Cartridge {
   pub fn new(config: config::Cartridge) -> Cartridge {
-    let mbc = Mbc::from_cartridge_type(config.cartridge_type, &config.data);
+    let mbc = Mbc::from_cartridge_type(config.cartridge_type);
     let ram_size = match mbc {
       Mbc::Mbc2 => 512,
       _ => config.ram_size.as_usize(),
