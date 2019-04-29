@@ -113,7 +113,7 @@ round2:
 ; and run tests where comparison bit doesn't change
 round3:
   di
-  ld hl, fail_intr_round2
+  ld hl, fail_intr_round3
   wait_vblank
   xor a
   ldh (<LYC), a
