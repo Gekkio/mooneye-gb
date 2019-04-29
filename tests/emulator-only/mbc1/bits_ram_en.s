@@ -21,7 +21,8 @@
 ; Tests that RAM_EN is mapped to correct addresses, and RAM disable/enable
 ; happens with the right data values.
 
-; Results have been verified with MBC1 research
+; Results have been verified with MBC1 research. See gb-ctr for details:
+; https://github.com/Gekkio/gb-ctr
 
 .define CART_TYPE 3 ; MBC1
 .define CART_ROM_BANKS 4

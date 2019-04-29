@@ -26,7 +26,8 @@
 ;   * In mode 1 access is done based on $4000 bank number
 ;   * If we switch back from mode 1, we once again access bank 0
 
-; Results have been verified with MBC1 research
+; Results have been verified with MBC1 research. See gb-ctr for details:
+; https://github.com/Gekkio/gb-ctr
 
 .define CART_TYPE 3 ; MBC1
 .define CART_ROM_BANKS 4

@@ -11,6 +11,9 @@ this project to document as clearly as possible *why* certain behaviour is
 emulated in a certain way. This also means writing a lot of test ROMs to figure
 out corner cases and precise behaviour on real hardware.
 
+For documentation about known behaviour, see [Game Boy: Complete Technical
+Reference](https://github.com/Gekkio/gb-ctr)
+
 [Binary test ROMs are available here](https://gekkio.fi/files/mooneye-gb/latest/)
 in a zip package and also as individual .gb files. They are automatically
 built and deployed whenever there's new changes in the master branch.

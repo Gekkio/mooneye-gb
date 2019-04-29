@@ -26,7 +26,8 @@
 ; Therefore any emulator that wants to pass this test must have either
 ; heuristics or some configuration to trigger MBC1 multicart mode.
 
-; Results have been verified with MBC1 research
+; Results have been verified with MBC1 research. See gb-ctr for details:
+; https://github.com/Gekkio/gb-ctr
 
 .define CART_ROM_BANKS 64
 
