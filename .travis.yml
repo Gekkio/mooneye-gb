@@ -10,8 +10,8 @@ rust:
 - nightly
 env:
   global:
-    - WLA_DX_REPO="gekkio/wla-dx"
-    - WLA_DX_COMMIT="83e691c59a238aae671381f819d6ccf225b21349"
+    - WLA_DX_REPO="vhelin/wla-dx"
+    - WLA_DX_COMMIT="c515a4ffb7c23a255f81262ede7804d4b995dbf7"
 
 matrix:
   allow_failures:
