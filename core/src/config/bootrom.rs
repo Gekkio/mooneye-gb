@@ -23,7 +23,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use crate::config::{Model, DEFAULT_MODEL_PRIORITY};
-use crate::gameboy::BootromData;
+use crate::hardware::BootromData;
 
 const APP_INFO: AppInfo = AppInfo {
   name: "mooneye-gb",

@@ -22,7 +22,7 @@ mod model;
 pub use self::bootrom::Bootrom;
 pub use self::cartridge::{Cartridge, CartridgeRamSize, CartridgeRomSize, CartridgeType};
 pub use self::model::{Model, DEFAULT_MODEL_PRIORITY};
-use crate::gameboy::BootromData;
+use crate::hardware::BootromData;
 
 #[derive(Clone)]
 pub struct HardwareConfig {

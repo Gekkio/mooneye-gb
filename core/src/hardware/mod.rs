@@ -21,6 +21,7 @@ use crate::gameboy;
 use crate::gameboy::{HiramData, HIRAM_EMPTY};
 use crate::hardware::apu::Apu;
 use crate::hardware::bootrom::Bootrom;
+pub use crate::hardware::bootrom::BootromData;
 use crate::hardware::cartridge::Cartridge;
 use crate::hardware::gpu::Gpu;
 use crate::hardware::irq::{Interrupt, InterruptRequest, Irq};

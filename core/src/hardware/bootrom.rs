@@ -16,7 +16,19 @@
 use std::ops::Index;
 use std::sync::Arc;
 
-use crate::gameboy::BootromData;
+pub struct BootromData(pub [u8; 0x100]);
+
+impl BootromData {
+  pub fn new() -> BootromData {
+    BootromData([0; 0x100])
+  }
+}
+
+impl Clone for BootromData {
+  fn clone(&self) -> BootromData {
+    BootromData((*self).0)
+  }
+}
 
 #[derive(Clone)]
 pub struct Bootrom {
