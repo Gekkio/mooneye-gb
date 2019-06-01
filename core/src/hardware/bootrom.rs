@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::ops::Index;
+use std::sync::Arc;
 
 use crate::gameboy::BootromData;
 
 #[derive(Clone)]
 pub struct Bootrom {
-  data: Box<BootromData>,
+  data: Arc<BootromData>,
   active: bool,
 }
 
 impl Bootrom {
-  pub fn new(config: Option<Box<BootromData>>) -> Bootrom {
+  pub fn new(config: Option<Arc<BootromData>>) -> Bootrom {
     let (active, data) = match config {
       Some(config_data) => (true, config_data),
-      None => (false, Box::new(BootromData::new())),
+      None => (false, Arc::new(BootromData::new())),
     };
 
     Bootrom { data, active }

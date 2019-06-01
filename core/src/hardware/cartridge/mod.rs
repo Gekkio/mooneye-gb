@@ -16,6 +16,7 @@
 use crate::config;
 use crate::gameboy::{RAM_BANK_SIZE, ROM_BANK_SIZE};
 use crate::util::int::IntExt;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 struct Mbc1State {
@@ -176,7 +177,7 @@ impl Mbc {
 #[derive(Clone)]
 pub struct Cartridge {
   mbc: Mbc,
-  rom: Box<[u8]>,
+  rom: Arc<[u8]>,
   rom_offsets: (usize, usize),
   ram: Box<[u8]>,
   ram_offset: usize,
@@ -191,7 +192,7 @@ impl Cartridge {
     };
     Cartridge {
       mbc,
-      rom: config.data.into_boxed_slice(),
+      rom: config.data,
       rom_offsets: (0x0000, 0x4000),
       ram: vec![0; ram_size].into_boxed_slice(),
       ram_offset: 0x0000,

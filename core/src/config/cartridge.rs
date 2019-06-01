@@ -20,12 +20,13 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
 use std::str;
+use std::sync::Arc;
 
 use crate::gameboy::ROM_BANK_SIZE;
 
 #[derive(Clone, Debug)]
 pub struct Cartridge {
-  pub data: Vec<u8>,
+  pub data: Arc<[u8]>,
   pub title: String,
   pub cartridge_type: CartridgeType,
   pub rom_size: CartridgeRomSize,
@@ -49,7 +50,7 @@ impl From<io::Error> for CartridgeError {
 impl Cartridge {
   pub fn no_cartridge() -> Cartridge {
     Cartridge {
-      data: vec![0xff; 2],
+      data: vec![0xff; 2].into_boxed_slice().into(),
       title: "-".to_string(),
       cartridge_type: CartridgeType::NoMbc {
         ram: false,
@@ -63,9 +64,9 @@ impl Cartridge {
     let mut file = File::open(path)?;
     let mut data = vec![];
     file.read_to_end(&mut data)?;
-    Cartridge::from_data(data)
+    Cartridge::from_data(data.into())
   }
-  pub fn from_data(data: Vec<u8>) -> Result<Cartridge, CartridgeError> {
+  pub fn from_data(data: Arc<[u8]>) -> Result<Cartridge, CartridgeError> {
     if data.len() < 0x8000 || data.len() % 0x4000 != 0 {
       return Err(CartridgeError::Validation(format!(
         "Invalid length: {} bytes",

@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use std::sync::Arc;
+
 mod bootrom;
 mod cartridge;
 mod model;
@@ -25,6 +27,6 @@ use crate::gameboy::BootromData;
 #[derive(Clone)]
 pub struct HardwareConfig {
   pub model: Model,
-  pub bootrom: Option<Box<BootromData>>,
+  pub bootrom: Option<Arc<BootromData>>,
   pub cartridge: Cartridge,
 }

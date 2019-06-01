@@ -20,6 +20,7 @@ use log::{debug, info, warn};
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
+use std::sync::Arc;
 
 use crate::config::{Model, DEFAULT_MODEL_PRIORITY};
 use crate::gameboy::BootromData;
@@ -45,7 +46,7 @@ impl From<io::Error> for BootromError {
 
 pub struct Bootrom {
   pub model: Model,
-  pub data: Box<BootromData>,
+  pub data: Arc<BootromData>,
 }
 
 impl Bootrom {
@@ -53,9 +54,9 @@ impl Bootrom {
     let mut file = File::open(path)?;
     let mut data = Box::new(BootromData::new());
     file.read_exact(&mut data.0)?;
-    Bootrom::from_data(data)
+    Bootrom::from_data(data.into())
   }
-  pub fn from_data(data: Box<BootromData>) -> Result<Bootrom, BootromError> {
+  pub fn from_data(data: Arc<BootromData>) -> Result<Bootrom, BootromError> {
     let checksum = crc32::checksum_ieee(&data.0);
     let model = match checksum {
       0xc2f5_cc97 => Some(Model::Dmg0),
