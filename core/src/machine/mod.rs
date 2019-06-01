@@ -36,6 +36,11 @@ impl Machine {
       step: Step::Initial,
     }
   }
+  pub fn emulate_step(&mut self) -> (EmuEvents, EmuTime) {
+    let step = self.cpu.execute_step(&mut self.hardware, self.step);
+    self.step = step;
+    (self.hardware.ack_emu_events(), self.hardware.emu_time())
+  }
   pub fn emulate(&mut self, target_time: EmuTime) -> (EmuEvents, EmuTime) {
     let mut step = self.step;
     loop {
