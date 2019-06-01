@@ -42,6 +42,7 @@ impl Time {
   }
 }
 
+#[derive(Clone)]
 pub struct Sweep {
   time: Time,
   increasing: bool,

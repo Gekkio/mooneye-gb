@@ -18,6 +18,7 @@ use bitflags::bitflags;
 use crate::hardware::irq::{Interrupt, InterruptRequest};
 use crate::hardware::MappedHardware;
 
+#[derive(Clone)]
 pub struct Timer {
   internal_counter: u16,
   tac: TacReg,

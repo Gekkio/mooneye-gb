@@ -61,6 +61,7 @@ pub trait Bus {
   fn trigger_emu_events(&mut self, events: EmuEvents);
 }
 
+#[derive(Clone)]
 pub struct Hardware {
   pub bootrom: Bootrom,
   pub cartridge: Cartridge,
@@ -77,6 +78,7 @@ pub struct Hardware {
   emu_time: EmuTime,
 }
 
+#[derive(Clone)]
 struct OamDma {
   bus: Option<ExternalBus>,
   source: u8,

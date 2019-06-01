@@ -29,6 +29,7 @@ pub mod registers;
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
 
+#[derive(Clone)]
 pub struct Cpu {
   pub regs: Registers,
   ime: bool,

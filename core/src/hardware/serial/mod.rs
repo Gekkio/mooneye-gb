@@ -15,6 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use bitflags::bitflags;
 
+#[derive(Clone)]
 pub struct Serial {
   data: u8,
   control: Control,

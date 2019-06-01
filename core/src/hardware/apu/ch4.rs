@@ -15,6 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use super::envelope::Envelope;
 
+#[derive(Clone)]
 pub struct Ch4 {
   pub envelope: Envelope,
   noise_opt: u8,

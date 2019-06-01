@@ -173,6 +173,7 @@ impl Mbc {
   }
 }
 
+#[derive(Clone)]
 pub struct Cartridge {
   mbc: Mbc,
   rom: Box<[u8]>,

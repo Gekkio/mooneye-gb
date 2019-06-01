@@ -17,6 +17,7 @@ use std::ops::Index;
 
 use crate::gameboy::BootromData;
 
+#[derive(Clone)]
 pub struct Bootrom {
   data: Box<BootromData>,
   active: bool,

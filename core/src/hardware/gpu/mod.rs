@@ -34,6 +34,7 @@ const VBLANK_LINE_CYCLES: isize = 114;
 const UNDEFINED_READ: u8 = 0xff;
 const STAT_UNUSED_MASK: u8 = (1 << 7);
 
+#[derive(Clone)]
 pub struct Gpu {
   control: Control,
   stat: Stat,
@@ -95,6 +96,7 @@ bitflags!(
   }
 );
 
+#[derive(Clone)]
 struct Palette {
   off: Color,
   light: Color,
@@ -153,7 +155,7 @@ bitflags!(
   }
 );
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 enum Mode {
   AccessOam,
   AccessVram,

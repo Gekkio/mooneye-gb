@@ -30,6 +30,7 @@ use crate::GbKey;
 ///
 /// # Joypad interrupt
 /// Whenever a key is pressed, a joypad interrupt is requested.
+#[derive(Clone)]
 pub struct Joypad {
   pressed_directional: P1,
   pressed_button: P1,

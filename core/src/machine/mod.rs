@@ -21,6 +21,7 @@ use crate::gameboy;
 use crate::hardware::Hardware;
 use crate::GbKey;
 
+#[derive(Clone)]
 pub struct Machine {
   cpu: Cpu,
   hardware: Hardware,

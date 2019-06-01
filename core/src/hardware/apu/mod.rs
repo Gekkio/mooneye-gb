@@ -28,6 +28,7 @@ mod envelope;
 mod sweep;
 mod wave_duty;
 
+#[derive(Clone)]
 pub struct Apu {
   enabled: bool,
   term1_volume: Volume,

@@ -22,7 +22,7 @@ pub trait InterruptRequest {
   fn request_t34_interrupt(&mut self, interrupt: Interrupt);
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Irq {
   mid_intr: InterruptType,
   end_intr: InterruptType,

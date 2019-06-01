@@ -34,6 +34,7 @@ impl Volume {
   }
 }
 
+#[derive(Clone)]
 pub struct Ch3 {
   wave_ram: [u8; 16],
   enabled: bool,

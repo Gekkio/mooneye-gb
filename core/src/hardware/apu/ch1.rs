@@ -17,6 +17,7 @@ use super::envelope::Envelope;
 use super::sweep::Sweep;
 use super::wave_duty::WaveDuty;
 
+#[derive(Clone)]
 pub struct Ch1 {
   pub sweep: Sweep,
   wave_duty: WaveDuty,

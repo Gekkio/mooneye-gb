@@ -16,6 +16,7 @@
 use super::envelope::Envelope;
 use super::wave_duty::WaveDuty;
 
+#[derive(Clone)]
 pub struct Ch2 {
   wave_duty: WaveDuty,
   pub envelope: Envelope,
