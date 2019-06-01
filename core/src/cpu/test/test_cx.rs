@@ -22,5 +22,5 @@ fn test_c3() {
     |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 16);
-  assert_eq!(machine.cpu.regs.pc, 0x04);
+  assert_eq!(machine.cpu.regs.pc, 0x05);
 }

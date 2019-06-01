@@ -23,7 +23,7 @@ fn test_20() {
     |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
-  assert_eq!(machine.cpu.regs.pc, 0x03);
+  assert_eq!(machine.cpu.regs.pc, 0x04);
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn test_20_negative() {
     },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
-  assert_eq!(machine.cpu.regs.pc, 0x01);
+  assert_eq!(machine.cpu.regs.pc, 0x02);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn test_20_nojump() {
     },
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
-  assert_eq!(machine.cpu.regs.pc, 0x02);
+  assert_eq!(machine.cpu.regs.pc, 0x03);
 }
 
 #[test]
@@ -163,7 +163,7 @@ fn test_28() {
     },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
-  assert_eq!(machine.cpu.regs.pc, 0x03);
+  assert_eq!(machine.cpu.regs.pc, 0x04);
 }
 
 #[test]
@@ -176,7 +176,7 @@ fn test_28_negative() {
     },
   );
   assert_eq!(machine.hardware.clock_cycles(), 12);
-  assert_eq!(machine.cpu.regs.pc, 0x01);
+  assert_eq!(machine.cpu.regs.pc, 0x02);
 }
 
 #[test]
@@ -186,7 +186,7 @@ fn test_28_nojump() {
     |_| {},
   );
   assert_eq!(machine.hardware.clock_cycles(), 8);
-  assert_eq!(machine.cpu.regs.pc, 0x02);
+  assert_eq!(machine.cpu.regs.pc, 0x03);
 }
 
 #[test]

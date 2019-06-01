@@ -143,11 +143,12 @@ impl Cpu {
     }
   }
 
-  fn prefetch_next<H: Bus>(&mut self, bus: &mut H) -> Step {
-    let result = bus.fetch_cycle(self.regs.pc);
+  fn prefetch_next<H: Bus>(&mut self, bus: &mut H, addr: u16) -> Step {
+    let result = bus.fetch_cycle(addr);
     if self.ime && result.interrupt {
       Step::InterruptDispatch
     } else {
+      self.regs.pc = addr.wrapping_add(1);
       Step::Opcode(result.opcode)
     }
   }
@@ -209,11 +210,8 @@ impl Cpu {
 
   pub fn execute_step<H: Bus>(&mut self, bus: &mut H, step: Step) -> Step {
     match step {
-      Step::Initial => self.prefetch_next(bus),
-      Step::Opcode(opcode) => {
-        self.regs.pc = self.regs.pc.wrapping_add(1);
-        ops::decode((self, bus), opcode)
-      }
+      Step::Initial => self.prefetch_next(bus, self.regs.pc),
+      Step::Opcode(opcode) => ops::decode((self, bus), opcode),
       Step::InterruptDispatch => {
         self.ime = false;
         bus.tick_cycle();
@@ -223,12 +221,12 @@ impl Cpu {
         let interrupt = bus.ack_interrupt();
         self.push_u8(bus, pc as u8);
         self.regs.pc = interrupt.map(|i| i.get_addr()).unwrap_or(0x0000);
-        let result = bus.fetch_cycle(self.regs.pc);
-        Step::Opcode(result.opcode)
+        let opcode = self.next_u8(bus);
+        Step::Opcode(opcode)
       }
       Step::Halt => {
         if bus.has_interrupt() {
-          self.prefetch_next(bus)
+          self.prefetch_next(bus, self.regs.pc)
         } else {
           bus.tick_cycle();
           Step::Halt
@@ -319,13 +317,13 @@ where
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     out8.write(cpu, bus, value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   // Magic breakpoint
   fn ld_b_b(self) -> Step {
     let (cpu, bus) = self;
     bus.trigger_emu_events(EmuEvents::DEBUG_OP);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   // 8-bit arithmetic
   /// ADD s
@@ -340,7 +338,7 @@ where
     cpu.regs.f =
       Flags::ZERO.test(result == 0) | Flags::CARRY.test(carry) | Flags::HALF_CARRY.test(half_carry);
     cpu.regs.a = result;
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// ADC s
   ///
@@ -359,7 +357,7 @@ where
       | Flags::CARRY.test(cpu.regs.a as u16 + value as u16 + cy as u16 > 0xff)
       | Flags::HALF_CARRY.test((cpu.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
     cpu.regs.a = result;
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SUB s
   ///
@@ -369,7 +367,7 @@ where
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a = cpu.alu_sub(value, false);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SBC s
   ///
@@ -379,7 +377,7 @@ where
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.regs.a = cpu.alu_sub(value, true);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// CP s
   ///
@@ -389,7 +387,7 @@ where
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus);
     cpu.alu_sub(value, false);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// AND s
   ///
@@ -400,7 +398,7 @@ where
     let value = in8.read(cpu, bus);
     cpu.regs.a &= value;
     cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0) | Flags::HALF_CARRY;
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// OR s
   ///
@@ -411,7 +409,7 @@ where
     let value = in8.read(cpu, bus);
     cpu.regs.a |= value;
     cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// XOR s
   ///
@@ -422,7 +420,7 @@ where
     let value = in8.read(cpu, bus);
     cpu.regs.a ^= value;
     cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// INC s
   ///
@@ -436,7 +434,7 @@ where
       | Flags::HALF_CARRY.test(value & 0xf == 0xf)
       | (Flags::CARRY & cpu.regs.f);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// DEC s
   ///
@@ -451,7 +449,7 @@ where
       | Flags::HALF_CARRY.test(value & 0xf == 0)
       | (Flags::CARRY & cpu.regs.f);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RLCA
   ///
@@ -461,7 +459,7 @@ where
     let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rlc(value, false);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RLA
   ///
@@ -471,7 +469,7 @@ where
     let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rl(value, false);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RRCA
   ///
@@ -481,7 +479,7 @@ where
     let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rrc(value, false);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RRA
   ///
@@ -491,7 +489,7 @@ where
     let (cpu, bus) = self;
     let value = cpu.regs.a;
     cpu.regs.a = cpu.alu_rr(value, false);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RLC s
   ///
@@ -502,7 +500,7 @@ where
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rlc(value, true);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RL s
   ///
@@ -513,7 +511,7 @@ where
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rl(value, true);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RRC s
   ///
@@ -524,7 +522,7 @@ where
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rrc(value, true);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RR s
   ///
@@ -535,7 +533,7 @@ where
     let value = io.read(cpu, bus);
     let new_value = cpu.alu_rr(value, true);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SLA s
   ///
@@ -548,7 +546,7 @@ where
     let new_value = value << 1;
     cpu.regs.f = Flags::ZERO.test(new_value == 0) | Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SRA s
   ///
@@ -562,7 +560,7 @@ where
     let new_value = (value >> 1) | hi;
     cpu.regs.f = Flags::ZERO.test(new_value == 0) | Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SRL s
   ///
@@ -575,7 +573,7 @@ where
     let new_value = value >> 1;
     cpu.regs.f = Flags::ZERO.test(new_value == 0) | Flags::CARRY.test(co != 0);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SWAP s
   ///
@@ -587,7 +585,7 @@ where
     let new_value = (value >> 4) | (value << 4);
     cpu.regs.f = Flags::ZERO.test(value == 0);
     io.write(cpu, bus, new_value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// BIT b, s
   ///
@@ -597,7 +595,7 @@ where
     let (cpu, bus) = self;
     let value = in8.read(cpu, bus) & (1 << bit);
     cpu.regs.f = Flags::ZERO.test(value == 0) | Flags::HALF_CARRY | (Flags::CARRY & cpu.regs.f);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SET b, s
   ///
@@ -607,7 +605,7 @@ where
     let (cpu, bus) = self;
     let value = io.read(cpu, bus) | (1 << bit);
     io.write(cpu, bus, value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RES b, s
   ///
@@ -617,7 +615,7 @@ where
     let (cpu, bus) = self;
     let value = io.read(cpu, bus) & !(1 << bit);
     io.write(cpu, bus, value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   // --- Control
   /// JP nn
@@ -628,7 +626,7 @@ where
     let (cpu, bus) = self;
     let addr = cpu.next_u16(bus);
     cpu.ctrl_jp(bus, addr);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// JP HL
   ///
@@ -636,8 +634,7 @@ where
   ///        - - - -
   fn jp_hl(self) -> Step {
     let (cpu, bus) = self;
-    cpu.regs.pc = cpu.regs.read16(Reg16::HL);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.read16(Reg16::HL))
   }
   /// JR e
   ///
@@ -647,7 +644,7 @@ where
     let (cpu, bus) = self;
     let offset = cpu.next_u8(bus) as i8;
     cpu.ctrl_jr(bus, offset);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// CALL nn
   ///
@@ -657,7 +654,7 @@ where
     let (cpu, bus) = self;
     let addr = cpu.next_u16(bus);
     cpu.ctrl_call(bus, addr);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RET
   ///
@@ -666,7 +663,7 @@ where
   fn ret(self) -> Step {
     let (cpu, bus) = self;
     cpu.ctrl_ret(bus);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RETI
   ///
@@ -676,7 +673,7 @@ where
     let (cpu, bus) = self;
     cpu.ime = true;
     cpu.ctrl_ret(bus);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// JP cc, nn
   ///
@@ -688,7 +685,7 @@ where
     if cond.check(cpu.regs.f) {
       cpu.ctrl_jp(bus, addr);
     }
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// JR cc, e
   ///
@@ -700,7 +697,7 @@ where
     if cond.check(cpu.regs.f) {
       cpu.ctrl_jr(bus, offset);
     }
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// CALL cc, nn
   ///
@@ -712,7 +709,7 @@ where
     if cond.check(cpu.regs.f) {
       cpu.ctrl_call(bus, addr);
     }
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RET cc
   ///
@@ -724,7 +721,7 @@ where
     if cond.check(cpu.regs.f) {
       cpu.ctrl_ret(bus);
     }
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// RST n
   ///
@@ -735,8 +732,7 @@ where
     let pc = cpu.regs.pc;
     bus.tick_cycle();
     cpu.push_u16(bus, pc);
-    cpu.regs.pc = addr as u16;
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, addr as u16)
   }
   // --- Miscellaneous
   /// HALT
@@ -748,7 +744,6 @@ where
     let result = bus.fetch_cycle(cpu.regs.pc);
     if result.interrupt {
       if cpu.ime {
-        cpu.regs.pc = cpu.regs.pc.wrapping_sub(1);
         Step::InterruptDispatch
       } else {
         ops::decode((cpu, bus), result.opcode)
@@ -758,6 +753,7 @@ where
       Step::Halt
     }
   }
+
   /// STOP
   ///
   /// Flags: Z N H C
@@ -772,8 +768,7 @@ where
   fn di(self) -> Step {
     let (cpu, bus) = self;
     cpu.ime = false;
-    let result = bus.fetch_cycle(cpu.regs.pc);
-    Step::Opcode(result.opcode)
+    Step::Opcode(cpu.next_u8(bus))
   }
   /// EI
   ///
@@ -781,13 +776,9 @@ where
   ///        - - - -
   fn ei(self) -> Step {
     let (cpu, bus) = self;
-    let result = bus.fetch_cycle(cpu.regs.pc);
-    if cpu.ime && result.interrupt {
-      Step::InterruptDispatch
-    } else {
-      cpu.ime = true;
-      Step::Opcode(result.opcode)
-    }
+    let step = cpu.prefetch_next(bus, cpu.regs.pc);
+    cpu.ime = true;
+    step
   }
   /// CCF
   ///
@@ -796,7 +787,7 @@ where
   fn ccf(self) -> Step {
     let (cpu, bus) = self;
     cpu.regs.f = (Flags::ZERO & cpu.regs.f) | Flags::CARRY.test(!cpu.regs.f.contains(Flags::CARRY));
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// SCF
   ///
@@ -805,7 +796,7 @@ where
   fn scf(self) -> Step {
     let (cpu, bus) = self;
     cpu.regs.f = (Flags::ZERO & cpu.regs.f) | Flags::CARRY;
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// NOP
   ///
@@ -813,7 +804,7 @@ where
   ///        - - - -
   fn nop(self) -> Step {
     let (cpu, bus) = self;
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// DAA
   ///
@@ -848,7 +839,7 @@ where
     cpu.regs.f = Flags::ZERO.test(cpu.regs.a == 0)
       | (Flags::ADD_SUBTRACT & cpu.regs.f)
       | Flags::CARRY.test(carry);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// CPL
   ///
@@ -861,7 +852,7 @@ where
       | Flags::ADD_SUBTRACT
       | Flags::HALF_CARRY
       | (Flags::CARRY & cpu.regs.f);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   // --- 16-bit operations
   // 16-bit loads
@@ -873,7 +864,7 @@ where
     let (cpu, bus) = self;
     let value = cpu.next_u16(bus);
     cpu.regs.write16(reg, value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// LD (nn), SP
   ///
@@ -885,7 +876,7 @@ where
     let addr = cpu.next_u16(bus);
     bus.write_cycle(addr, value as u8);
     bus.write_cycle(addr.wrapping_add_one(), (value >> 8) as u8);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// LD SP, HL
   ///
@@ -896,7 +887,7 @@ where
     let value = cpu.regs.read16(Reg16::HL);
     cpu.regs.sp = value;
     bus.tick_cycle();
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// LD HL, SP+e
   ///
@@ -911,7 +902,7 @@ where
     cpu.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset))
       | Flags::CARRY.test(u16::test_add_carry_bit(7, sp, offset));
     bus.tick_cycle();
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// PUSH rr
   ///
@@ -922,7 +913,7 @@ where
     let value = cpu.regs.read16(reg);
     bus.tick_cycle();
     cpu.push_u16(bus, value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// POP rr
   ///
@@ -933,7 +924,7 @@ where
     let (cpu, bus) = self;
     let value = cpu.pop_u16(bus);
     cpu.regs.write16(reg, value);
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   // 16-bit arithmetic
   /// ADD HL, ss
@@ -950,7 +941,7 @@ where
       | Flags::CARRY.test(hl > 0xffff - value);
     cpu.regs.write16(Reg16::HL, result);
     bus.tick_cycle();
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// ADD SP, e
   ///
@@ -965,7 +956,7 @@ where
       | Flags::CARRY.test(u16::test_add_carry_bit(7, sp, val));
     bus.tick_cycle();
     bus.tick_cycle();
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// INC rr
   ///
@@ -976,7 +967,7 @@ where
     let value = cpu.regs.read16(reg).wrapping_add_one();
     cpu.regs.write16(reg, value);
     bus.tick_cycle();
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   /// DEC rr
   ///
@@ -987,7 +978,7 @@ where
     let value = cpu.regs.read16(reg).wrapping_sub_one();
     cpu.regs.write16(reg, value);
     bus.tick_cycle();
-    cpu.prefetch_next(bus)
+    cpu.prefetch_next(bus, cpu.regs.pc)
   }
   // --- Undefined
   fn undefined(self, op: u8) -> Step {
