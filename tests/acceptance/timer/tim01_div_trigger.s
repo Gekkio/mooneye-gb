@@ -72,8 +72,8 @@ test:
   ldh a,(<TIMA)
   ld e,a
 
-  save_results
+  setup_assertions
   assert_d $0A
   assert_e $0B
-  jp process_results
+  end_test_check_asserts
 

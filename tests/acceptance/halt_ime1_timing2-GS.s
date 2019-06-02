@@ -147,27 +147,27 @@ test_round4:
 finish_round4:
   ldh a, (<DIV)
   ld c, a
-  save_results
+  setup_assertions
   assert_b $11
   assert_c $12
   assert_d $11
   assert_e $12
-  jp process_results
+  end_test_check_asserts
 
 fail_halt:
-  test_failure_string "FAIL: HALT"
+  end_test_failure_string "FAIL: HALT"
 
 fail_round1:
-  test_failure_string "FAIL: ROUND 1"
+  end_test_failure_string "FAIL: ROUND 1"
 
 fail_round2:
-  test_failure_string "FAIL: ROUND 2"
+  end_test_failure_string "FAIL: ROUND 2"
 
 fail_round3:
-  test_failure_string "FAIL: ROUND 3"
+  end_test_failure_string "FAIL: ROUND 3"
 
 fail_round4:
-  test_failure_string "FAIL: ROUND 4"
+  end_test_failure_string "FAIL: ROUND 4"
 
 .org INTR_VEC_VBLANK
   jp hl

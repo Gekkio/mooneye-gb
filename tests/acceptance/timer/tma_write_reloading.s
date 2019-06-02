@@ -90,10 +90,10 @@ test:
   ldh a,(<TIMA)
   ld l,a
 
-  save_results
+  setup_assertions
   assert_c $fe
   assert_d $7f
   assert_e $7f
   assert_l $fe
-  jp process_results
+  end_test_check_asserts
 

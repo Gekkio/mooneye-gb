@@ -107,35 +107,69 @@ font:
 .ends
 
 .struct reg_dump
-  f db
-  a db
-  c db
-  b db
-  e db
-  d db
-  l db
-  h db
+  reg_f db
+  reg_a db
+  reg_c db
+  reg_b db
+  reg_e db
+  reg_d db
+  reg_l db
+  reg_h db
 .endst
 
 .ramsection "Runtime-State" slot 5
-  regs_save instanceof reg_dump
-  regs_flags db
-  regs_assert instanceof reg_dump
+  v_regs_save instanceof reg_dump
+  v_regs_flags db
+  v_regs_assert instanceof reg_dump
 .ends
 
 .bank 1 slot 1
 .section "Runtime" FREE
-  process_results:
-    print_results _process_results_cb
-  _process_results_cb:
-    ld de, regs_save
+  ; Inputs:
+  ;   HL: pointer to callback
+  end_test:
+    ld sp, $e000
+    ld bc, @cb_return
+    push bc
+    push hl
+    call disable_lcd_safe
+    call reset_screen
+    call print_load_font
+
+    ld hl, $9820
+    ; this is basically "call cb" since callback pointer is on the stack,
+    ; followed by the return address
+    ret
+
+    @cb_return:
+      enable_lcd
+      wait_vblank
+      ; Extra vblank to account for initial (invisible) frame
+      wait_vblank
+      ld a, d
+      and a
+      jr nz, @halt
+
+      ; Magic numbers signal a successful test
+      ld b, 3
+      ld c, 5
+      ld d, 8
+      ld e, 13
+      ld h, 21
+      ld l, 34
+
+    @halt:
+      halt_execution
+
+  check_asserts_cb:
+    ld de, v_regs_save
     print_string_literal "REGISTERS"
     call print_newline
     call print_newline
     call print_reg_dump
     call print_newline
 
-    ld a, (regs_flags)
+    ldh a, (<v_regs_flags)
     or a
     jr z, +
     print_string_literal "ASSERTIONS"
@@ -154,7 +188,7 @@ font:
     xor a
     ld d, a
 
-    ld a, (regs_flags)
+    ldh a, (<v_regs_flags)
     ld e, a
 
     .macro __check_assert ARGS flag str value expected
@@ -164,9 +198,9 @@ font:
       print_string_literal str
       print_string_literal ": "
 
-      ld a, (value)
+      ldh a, (<value)
       ld c, a
-      ld a, (expected)
+      ldh a, (<expected)
       cp c
       jr z, __check_assert_ok\@
     __check_assert_fail\@:
@@ -183,20 +217,20 @@ font:
     .endm
 
     print_string_literal "  "
-    __check_assert 0 "A" regs_save.a regs_assert.a
-    __check_assert 1 "F" regs_save.f regs_assert.f
+    __check_assert 0 "A" v_regs_save.reg_a v_regs_assert.reg_a
+    __check_assert 1 "F" v_regs_save.reg_f v_regs_assert.reg_f
     call print_newline
     print_string_literal "  "
-    __check_assert 2 "B" regs_save.b regs_assert.b
-    __check_assert 3 "C" regs_save.c regs_assert.c
+    __check_assert 2 "B" v_regs_save.reg_b v_regs_assert.reg_b
+    __check_assert 3 "C" v_regs_save.reg_c v_regs_assert.reg_c
     call print_newline
     print_string_literal "  "
-    __check_assert 4 "D" regs_save.d regs_assert.d
-    __check_assert 5 "E" regs_save.e regs_assert.e
+    __check_assert 4 "D" v_regs_save.reg_d v_regs_assert.reg_d
+    __check_assert 5 "E" v_regs_save.reg_e v_regs_assert.reg_e
     call print_newline
     print_string_literal "  "
-    __check_assert 6 "H" regs_save.h regs_assert.h
-    __check_assert 7 "L" regs_save.l regs_assert.l
+    __check_assert 6 "H" v_regs_save.reg_h v_regs_assert.reg_h
+    __check_assert 7 "L" v_regs_save.reg_l v_regs_assert.reg_l
     call print_newline
 
     ret

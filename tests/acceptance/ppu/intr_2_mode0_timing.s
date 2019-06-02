@@ -59,10 +59,10 @@
   ld d, b
   test_iter 45
   ld e, b
-  save_results
+  setup_assertions
   assert_d $01
   assert_e $02
-  jp process_results
+  end_test_check_asserts
 
 setup_and_wait_mode2:
   wait_ly $42
@@ -78,7 +78,7 @@ setup_and_wait_mode2:
   jp fail_halt
 
 fail_halt:
-  test_failure_string "FAIL: HALT"
+  end_test_failure_string "FAIL: HALT"
 
 .org INTR_VEC_STAT
   add sp,+2

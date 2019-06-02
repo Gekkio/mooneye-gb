@@ -49,12 +49,12 @@
   run_hiram_test
 
 test_finish:
-  save_results
+  setup_assertions
   assert_b $CF
   assert_c $FE
   assert_d $D0
   assert_e $3F
-  jp process_results
+  end_test_check_asserts
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first byte of LD HL, SP+e will be at $FDFF, so

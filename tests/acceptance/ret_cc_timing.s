@@ -62,7 +62,7 @@ finish_round1:
   or a
   jr z, test_round2
 
-  test_failure_string "FAIL: ROUND 1"
+  end_test_failure_string "FAIL: ROUND 1"
 
 test_round2:
   wait_vblank
@@ -85,10 +85,10 @@ finish_round2:
   or a
   jr nz, test_success
 
-  test_failure_string "FAIL: ROUND 2"
+  end_test_failure_string "FAIL: ROUND 2"
 
 test_success:
-  test_ok
+  end_test_ok
 
 hiram_cb:
   xor a

@@ -45,14 +45,14 @@
   run_hiram_test
 
 test_finish:
-  save_results
+  setup_assertions
   ; Round 1 result
   assert_b $FF
   assert_c $FD
   ; Round 2 result
   assert_d $00
   assert_e $40
-  jp process_results
+  end_test_check_asserts
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first byte of ADD SP, e will be at $FDFF, so

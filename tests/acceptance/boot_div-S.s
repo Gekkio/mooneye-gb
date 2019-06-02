@@ -80,14 +80,14 @@
   ld c, a
   pop af
   ld b, a
-  save_results
+  setup_assertions
   assert_b $d9
   assert_c $da
   assert_d $da
   assert_e $db
   assert_h $dc
   assert_l $de
-  jp process_results
+  end_test_check_asserts
 
 .org $014e
   .dw $1234

@@ -44,12 +44,11 @@
 
   jp nc, finish
 
-test_failure:
+fail:
   ld a, l
   ldh (<fail_offset), a
 
-  print_results test_failure_cb
-test_failure_cb:
+  end_test_inline
   print_string_literal "Fail: $FE"
   ldh a, (<fail_offset)
   call print_hex8
@@ -57,7 +56,7 @@ test_failure_cb:
   ret
 
 finish:
-  test_ok
+  end_test_ok
 
 hiram_proc:
   ldh (<DMA), a

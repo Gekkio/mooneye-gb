@@ -152,7 +152,7 @@ test_round6:
 
 test_finish:
   call clear_ram
-  test_ok
+  end_test_ok
 
 ; Inputs:
 ;   A bank number
@@ -233,24 +233,24 @@ clear_ram:
 
 fail_round1:
   call clear_ram
-  test_failure_string "FAIL: Round 1"
+  end_test_failure_string "FAIL: Round 1"
 
 fail_round2:
   call clear_ram
-  test_failure_string "FAIL: Round 2"
+  end_test_failure_string "FAIL: Round 2"
 
 fail_round3:
   call clear_ram
-  test_failure_string "FAIL: Round 3"
+  end_test_failure_string "FAIL: Round 3"
 
 fail_round4:
   call clear_ram
-  test_failure_string "FAIL: Round 4"
+  end_test_failure_string "FAIL: Round 4"
 
 fail_round5:
   call clear_ram
-  test_failure_string "FAIL: Round 5"
+  end_test_failure_string "FAIL: Round 5"
 
 fail_round6:
   call clear_ram
-  test_failure_string "FAIL: Round 6"
+  end_test_failure_string "FAIL: Round 6"

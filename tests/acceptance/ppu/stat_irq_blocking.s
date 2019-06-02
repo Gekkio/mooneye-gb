@@ -43,7 +43,7 @@ test_round1:
   ; We are already in vblank, but an interrupt should occur
 fail_round1:
   di
-  test_failure_string "FAIL: MODE=1 INTR"
+  end_test_failure_string "FAIL: MODE=1 INTR"
 
   ; The STAT mode=1 interrupt should throw us here
 test_round2:
@@ -83,11 +83,11 @@ ly_iteration:
 
 finish_round2:
   di
-  test_ok
+  end_test_ok
 
 fail_round2:
-  save_results
-  test_failure_dump
+  setup_assertions
+  end_test_failure_dump
 
 .org INTR_VEC_STAT
   jp hl

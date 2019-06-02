@@ -50,12 +50,12 @@
   ; This should never get executed
   inc b
 
-  test_failure
+  end_test_failure
 
 test_finish:
-  save_results
+  setup_assertions
   assert_b $00
-  jp process_results
+  end_test_check_asserts
 
 .org INTR_VEC_TIMER
   jp test_finish

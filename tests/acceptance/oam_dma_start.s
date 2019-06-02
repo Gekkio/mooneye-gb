@@ -87,7 +87,7 @@ test_round1:
   jp OAM - 1
 
 fail_round1:
-  test_failure_string "FAIL: ROUND 1 RST $10"
+  end_test_failure_string "FAIL: ROUND 1 RST $10"
 
 finish_round1:
   ld a, (OAM)
@@ -135,7 +135,7 @@ test_round2:
   jp OAM - 2
 
 fail_round2:
-  test_failure_string "FAIL: ROUND 2 RST $10"
+  end_test_failure_string "FAIL: ROUND 2 RST $10"
 
 finish_round2:
   ld a, (OAM)
@@ -147,12 +147,12 @@ test_finish:
   ld b, a
   ld a, (round1_b)  
   ld c, a
-  save_results
+  setup_assertions
   assert_b $D7
   assert_c $01
   assert_d $D7
   assert_e $00
-  jp process_results
+  end_test_check_asserts
 
 .org $10
   wait_dma_finish

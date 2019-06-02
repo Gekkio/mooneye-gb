@@ -47,7 +47,7 @@ test_0000:
 
   jp nc, test_3f00
 
-  test_failure_string "Fail: $0000"
+  end_test_failure_string "Fail: $0000"
 
 test_3f00:
   ld a, $3f
@@ -58,7 +58,7 @@ test_3f00:
 
   jp nc, test_4000
 
-  test_failure_string "Fail: $3F00"
+  end_test_failure_string "Fail: $3F00"
 
 test_4000:
   ld a, $40
@@ -69,7 +69,7 @@ test_4000:
 
   jp nc, test_7f00
 
-  test_failure_string "Fail: $4000"
+  end_test_failure_string "Fail: $4000"
 
 test_7f00:
   ld a, $7f
@@ -80,7 +80,7 @@ test_7f00:
 
   jp nc, prepare_part2
 
-  test_failure_string "Fail: $7F00"
+  end_test_failure_string "Fail: $7F00"
 
 prepare_part2:
   ld hl, $8000
@@ -97,7 +97,7 @@ test_8000:
 
   jp nc, test_9f00
 
-  test_failure_string "Fail: $8000"
+  end_test_failure_string "Fail: $8000"
 
 test_9f00:
   ld a, $9f
@@ -108,7 +108,7 @@ test_9f00:
 
   jp nc, prepare_part3
 
-  test_failure_string "Fail: $9F00"
+  end_test_failure_string "Fail: $9F00"
 
 prepare_part3:
   call clear_vram
@@ -135,7 +135,7 @@ test_a000:
 
   jp nc, test_bf00
 
-  test_failure_string "Fail: $A000"
+  end_test_failure_string "Fail: $A000"
 
 test_bf00:
   ld a, $bf
@@ -146,7 +146,7 @@ test_bf00:
 
   jp nc, prepare_part4
 
-  test_failure_string "Fail: $BF00"
+  end_test_failure_string "Fail: $BF00"
 
 prepare_part4:
   xor a
@@ -168,7 +168,7 @@ test_c000:
 
   jp nc, test_df00
 
-  test_failure_string "Fail: $C000"
+  end_test_failure_string "Fail: $C000"
 
 test_df00:
   ld a, $df
@@ -179,7 +179,7 @@ test_df00:
 
   jp nc, test_e000
 
-  test_failure_string "Fail: $DF00"
+  end_test_failure_string "Fail: $DF00"
 
 test_e000:
   ld a, $e0
@@ -190,7 +190,7 @@ test_e000:
 
   jp nc, test_fe00
 
-  test_failure_string "Fail: $E000"
+  end_test_failure_string "Fail: $E000"
 
 test_fe00:
   call clear_oam
@@ -202,7 +202,7 @@ test_fe00:
 
   jp nc, test_ff00
 
-  test_failure_string "Fail: $FE00"
+  end_test_failure_string "Fail: $FE00"
 
 test_ff00:
   ld a, $ff
@@ -213,10 +213,10 @@ test_ff00:
 
   jp nc, test_finish
 
-  test_failure_string "Fail: $FF00"
+  end_test_failure_string "Fail: $FF00"
 
 test_finish:
-  test_ok
+  end_test_ok
 
 check_oam:
   ld de, OAM

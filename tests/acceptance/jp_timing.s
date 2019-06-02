@@ -48,7 +48,7 @@
   run_hiram_test
 
 test_finish:
-  test_ok
+  end_test_ok
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first two bytes of JP nn will be at $FDFE, so
@@ -57,10 +57,10 @@ wram_test:
   jp $1a00
 
 fail_round1:
-  test_failure_string "FAIL: ROUND 1"
+  end_test_failure_string "FAIL: ROUND 1"
 
 fail_round2:
-  test_failure_string "FAIL: ROUND 2"
+  end_test_failure_string "FAIL: ROUND 2"
 
 ; $1F80 - $1FE0 will be copied to $FF80 - $FFE0
 .org $1f80

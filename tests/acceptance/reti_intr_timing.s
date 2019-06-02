@@ -45,11 +45,11 @@
   inc b
 
 test_finish:
-  save_results
+  setup_assertions
   assert_b $01
   assert_d $01
   assert_e $01
-  jp process_results
+  end_test_check_asserts
 
 .org INTR_VEC_VBLANK
   inc d

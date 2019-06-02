@@ -49,10 +49,10 @@
   di
 
 result_ime0:
-  test_failure_string "IME=0"
+  end_test_failure_string "IME=0"
 
 result_ime1:
-  test_ok
+  end_test_ok
 
 .org INTR_VEC_VBLANK
   jp result_ime1

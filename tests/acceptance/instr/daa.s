@@ -38,7 +38,7 @@
   ld hl, testcases2
   call run_tests
 
-  test_ok
+  end_test_ok
 
 ; Inputs
 ;   HL testcase pointer

@@ -36,10 +36,10 @@
   run_hiram_test
 
 test_finish:
-  save_results
+  setup_assertions
   assert_c $FF
   assert_d $01
-  jp process_results
+  end_test_check_asserts
 
 hiram_test:
   ld hl, OAM

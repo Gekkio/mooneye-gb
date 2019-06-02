@@ -81,16 +81,16 @@ test_round2:
   nop
 
 test_finish:
-  test_ok
+  end_test_ok
 
 fail_halt:
-  test_failure_string "FAIL: HALT"
+  end_test_failure_string "FAIL: HALT"
 
 fail_round1:
-  test_failure_string "FAIL: ROUND 1"
+  end_test_failure_string "FAIL: ROUND 1"
 
 fail_round2:
-  test_failure_string "FAIL: ROUND 2"
+  end_test_failure_string "FAIL: ROUND 2"
 
 .org INTR_VEC_VBLANK
   jp hl

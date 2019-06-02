@@ -71,8 +71,8 @@
   ld d, a
 
 test_finish:
-  save_results
+  setup_assertions
   assert_b $00
   assert_c $00
   assert_d $01
-  jp process_results
+  end_test_check_asserts

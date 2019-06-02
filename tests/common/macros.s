@@ -50,8 +50,9 @@ _delay_long_time_\@:
 
 .macro halt_execution
   ld b, b ; magic breakpoint
-- nop
-  jr -
+@halt_execution_\@:
+  nop
+  jr @halt_execution_\@
 .endm
 
 .macro disable_lcd
@@ -65,10 +66,10 @@ _delay_long_time_\@:
 .endm
 
 .macro wait_ly ARGS value
-_wait_ly_\@:
+@wait_ly_\@:
   ldh a, (<LY)
   cp value
-  jr nz, _wait_ly_\@
+  jr nz, @wait_ly_\@
 .endm
 
 .macro wait_vblank
@@ -78,68 +79,72 @@ _wait_ly_\@:
   wait_ly 144
 .endm
 
-.macro save_results
+.macro setup_assertions
   di
-  ld sp, regs_save + 8
+  ld sp, v_regs_save + 8
   push hl
   push de
   push bc
   push af
   ld sp, $e000
   xor a
-  ld hl, regs_flags
-  ld (hl), a
-  ld hl, regs_assert
-  ld bc, 8
-  call memset
+  ldh (<v_regs_flags), a
+  ldh (<v_regs_assert.reg_a), a
+  ldh (<v_regs_assert.reg_f), a
+  ldh (<v_regs_assert.reg_b), a
+  ldh (<v_regs_assert.reg_c), a
+  ldh (<v_regs_assert.reg_d), a
+  ldh (<v_regs_assert.reg_e), a
+  ldh (<v_regs_assert.reg_h), a
+  ldh (<v_regs_assert.reg_l), a
 .endm
 
 .macro assert_a ARGS value
   ld a, value
-  ld (regs_assert.a), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_a), a
+  ld hl, v_regs_flags
   set 0, (hl)
 .endm
 .macro assert_f ARGS value
   ld a, value
-  ld (regs_assert.f), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_f), a
+  ld hl, v_regs_flags
   set 1, (hl)
 .endm
 .macro assert_b ARGS value
   ld a, value
-  ld (regs_assert.b), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_b), a
+  ld hl, v_regs_flags
   set 2, (hl)
 .endm
 .macro assert_c ARGS value
   ld a, value
-  ld (regs_assert.c), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_c), a
+  ld hl, v_regs_flags
   set 3, (hl)
 .endm
 .macro assert_d ARGS value
   ld a, value
-  ld (regs_assert.d), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_d), a
+  ld hl, v_regs_flags
   set 4, (hl)
 .endm
 .macro assert_e ARGS value
   ld a, value
-  ld (regs_assert.e), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_e), a
+  ld hl, v_regs_flags
   set 5, (hl)
 .endm
 .macro assert_h ARGS value
   ld a, value
-  ld (regs_assert.h), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_h), a
+  ld hl, v_regs_flags
   set 6, (hl)
 .endm
 .macro assert_l ARGS value
   ld a, value
-  ld (regs_assert.l), a
-  ld hl, regs_flags
+  ldh (<v_regs_assert.reg_l), a
+  ld hl, v_regs_flags
   set 7, (hl)
 .endm
 
@@ -162,14 +167,18 @@ _wait_ly_\@:
   ldh (<DMA), a
 .endm
 
-.macro test_failure
-  test_failure_string "TEST FAILED"
+.macro print_string_literal ARGS string
+  call print_inline_string
+  c_string string
 .endm
 
-.macro test_failure_dump ARGS string
-  print_results _test_failure_dump_cb_\@
-_test_failure_dump_cb_\@:
-  ld de, regs_save
+.macro end_test_failure
+  end_test_failure_string "TEST FAILED"
+.endm
+
+.macro end_test_failure_dump ARGS string
+  end_test_inline
+  ld de, v_regs_save
   print_string_literal "REGISTERS"
   call print_newline
   call print_newline
@@ -180,54 +189,35 @@ _test_failure_dump_cb_\@:
   ret
 .endm
 
-.macro test_failure_string ARGS string
-  print_results _test_failure_cb_\@
-_test_failure_cb_\@:
+.macro end_test_failure_string ARGS string
+  end_test_inline
   print_string_literal string
   ld d, $42
   ret
 .endm
 
-.macro test_ok
-  test_ok_string "TEST OK"
+.macro end_test_ok
+  end_test_ok_string "TEST OK"
 .endm
 
-.macro test_ok_string ARGS string
-  print_results _test_ok_cb_\@
-_test_ok_cb_\@:
+.macro end_test_ok_string ARGS string
+  end_test_inline
   print_string_literal string
   ld d, $00
   ret
 .endm
 
-.macro print_results ARGS cb
+.macro end_test_callback ARGS cb
   di
-  call disable_lcd_safe
-  call reset_screen
-  call print_load_font
-
-  ld hl, $9820
-  call cb
-
-  enable_lcd
-  wait_vblank
-  ; Extra vblank to account for initial (invisible) frame
-  wait_vblank
-  ld a, d
-  and a
-  jr nz, _print_results_halt_\@
-  ; Magic numbers signal a successful test
-  ld b, 3
-  ld c, 5
-  ld d, 8
-  ld e, 13
-  ld h, 21
-  ld l, 34
-_print_results_halt_\@:
-  halt_execution
+  ld hl, cb
+  jp end_test
 .endm
 
-.macro print_string_literal ARGS string
-  call print_inline_string
-  c_string string
+.macro end_test_check_asserts
+  end_test_callback check_asserts_cb
+.endm
+
+.macro end_test_inline
+  end_test_callback  @end_test_inline_\@
+@end_test_inline_\@:
 .endm

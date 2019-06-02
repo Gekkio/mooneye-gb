@@ -88,10 +88,10 @@
   pop bc
 
 test_finish:
-  save_results
+  setup_assertions
   assert_a $01
   assert_b $00
   assert_c $01
   assert_d $00
   assert_e $01
-  jp process_results
+  end_test_check_asserts

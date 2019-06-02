@@ -49,7 +49,7 @@ round1:
   ldh a, (<STAT)
   cp $c4
   jr z, +
-  test_failure_string "Fail: r1 step 1"
+  end_test_failure_string "Fail: r1 step 1"
 
 ; Changing LYC should not have an effect, because the comparison
 ; clock is not running
@@ -58,7 +58,7 @@ round1:
   ldh a, (<STAT)
   cp $c4
   jr z, +
-  test_failure_string "Fail: r1 step 2"
+  end_test_failure_string "Fail: r1 step 2"
 
 ; Enabling the PPU starts the comparison clock again.
 ; The bit should go to 0, because LY=0
@@ -67,7 +67,7 @@ round1:
   ldh a, (<STAT)
   cp $c0
   jr z, round2
-  test_failure_string "Fail: r1 step 3"
+  end_test_failure_string "Fail: r1 step 3"
 
 ; In this round we turn off the PPU while the comparison bit is true,
 ; and run tests where comparison bit doesn't change
@@ -87,7 +87,7 @@ round2:
   ldh a, (<STAT)
   cp $c4
   jr z, +
-  test_failure_string "Fail: r2 step 1"
+  end_test_failure_string "Fail: r2 step 1"
 
 ; Changing LYC should not have an effect, but this should supress
 ; the interrupt in the next step since the comparison flag just
@@ -97,7 +97,7 @@ round2:
   ldh a, (<STAT)
   cp $c4
   jr z, +
-  test_failure_string "Fail: r2 step 2"
+  end_test_failure_string "Fail: r2 step 2"
 
 ; Enabling the PPU should have no effect, because we simply
 ; update the comparison from LY=$90 vs LYC=$90 to LY=0 vs LYC=0, and
@@ -107,7 +107,7 @@ round2:
   ldh a, (<STAT)
   cp $c4
   jr z, round3
-  test_failure_string "Fail: r2 step 3"
+  end_test_failure_string "Fail: r2 step 3"
 
 ; In this round we turn off the PPU while the comparison bit is false,
 ; and run tests where comparison bit doesn't change
@@ -126,7 +126,7 @@ round3:
   ldh a, (<STAT)
   cp $c0
   jr z, +
-  test_failure_string "Fail: r3 step 1"
+  end_test_failure_string "Fail: r3 step 1"
 
 ; Changing LYC should not have an effect, but this should also guarantee that
 ; we don't get a true bit from LY=00 comparison in the next step
@@ -135,7 +135,7 @@ round3:
   ldh a, (<STAT)
   cp $c0
   jr z, +
-  test_failure_string "Fail: r3 step 2"
+  end_test_failure_string "Fail: r3 step 2"
 
 ; Enabling the PPU should have no effect, because we are now comparing
 ; LY=00 to LYC=01
@@ -144,7 +144,7 @@ round3:
   ldh a, (<STAT)
   cp $c0
   jr z, round4
-  test_failure_string "Fail: r3 step 3"
+  end_test_failure_string "Fail: r3 step 3"
 
 ; In this round we turn off the PPU while the comparison bit is false,
 ; and run tests where comparison bit changes and we get an interrupt
@@ -162,7 +162,7 @@ round4:
   ldh a, (<STAT)
   cp $c0
   jr z, +
-  test_failure_string "Fail: round 4"
+  end_test_failure_string "Fail: round 4"
 
 ; This time we are expecting an interrupt, because the comparison
 ; clock starts running and the comparison bit gets set
@@ -170,17 +170,17 @@ round4:
   ld hl, finish
   ldh (<LCDC), a
   di
-  test_failure_string "Fail: r4 no intr"
+  end_test_failure_string "Fail: r4 no intr"
 
 finish:
-  test_ok
+  end_test_ok
 
 fail_intr_round1:
-  test_failure_string "Fail: r1 intr"
+  end_test_failure_string "Fail: r1 intr"
 fail_intr_round2:
-  test_failure_string "Fail: r2 intr"
+  end_test_failure_string "Fail: r2 intr"
 fail_intr_round3:
-  test_failure_string "Fail: r3 intr"
+  end_test_failure_string "Fail: r3 intr"
 
 .org INTR_VEC_STAT
   jp hl

@@ -89,16 +89,16 @@ test_round2:
 finish_round2:
   ldh a, (<DIV)
   ld e, a
-  save_results
+  setup_assertions
   assert_d $11
   assert_e $12
-  jp process_results
+  end_test_check_asserts
 
 fail_halt:
-  test_failure_string "FAIL: HALT"
+  end_test_failure_string "FAIL: HALT"
 
 fail_intr:
-  test_failure_string "FAIL: INTERRUPT"
+  end_test_failure_string "FAIL: INTERRUPT"
 
 .org INTR_VEC_VBLANK
   jp hl

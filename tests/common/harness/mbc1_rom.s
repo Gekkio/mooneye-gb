@@ -49,8 +49,7 @@
   jp $C000
 
 fail:
-  print_results _fail_cb
-_fail_cb:
+  end_test_inline
   print_string_literal "TEST FAILED"
   call print_newline
   ldh a, (<g_lower_upper)
@@ -104,7 +103,7 @@ run_test_suite:
   call_c000 run_tests
 
   call_c000 restore_mbc1
-  test_ok
+  end_test_ok
 
 run_tests:
   xor a

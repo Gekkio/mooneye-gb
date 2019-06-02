@@ -53,7 +53,7 @@
   halt_until INTR_VBLANK
 
 fail_halt:
-  test_failure_string "HALT"
+  end_test_failure_string "HALT"
 
 test_round1:
   ld hl, intr_vec_vblank
@@ -176,12 +176,12 @@ test_finish:
   ld a, (round1)
   ld b, a
 
-  save_results
+  setup_assertions
   assert_b $01
   assert_c $00
   assert_d $01
   assert_e $00
-  jp process_results
+  end_test_check_asserts
 
 .org INTR_VEC_VBLANK
   jp intr_vec_vblank

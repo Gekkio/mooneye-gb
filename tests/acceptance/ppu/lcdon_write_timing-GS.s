@@ -45,7 +45,7 @@ test_vram_access:
   call verify_results
 
 test_finish:
-  test_ok
+  end_test_ok
 
 .bank 1 slot 1
 .section "Test_expectations" FREE
@@ -110,8 +110,7 @@ verify_fail:
   ld a, h
   ld (v_fail_str_h), a
 
-  print_results _verify_fail_cb
-_verify_fail_cb:
+  end_test_inline
   print_string_literal "Test failed: "
   call print_newline
   ld a, (v_fail_str_l)

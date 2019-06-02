@@ -68,7 +68,7 @@ test_round1:
   trigger_intr
 
   ; never executed
-  test_failure_string "FAIL: ROUND 1"
+  end_test_failure_string "FAIL: ROUND 1"
 
 finish_round1:
   ld a, (bc)
@@ -83,7 +83,7 @@ test_round2:
   trigger_intr
 
   ; never executed
-  test_failure_string "FAIL: ROUND 2"
+  end_test_failure_string "FAIL: ROUND 2"
 
 finish_round2:
   ld a, (bc)
@@ -92,10 +92,10 @@ finish_round2:
   jp test_finish
 
 test_finish:
-  save_results
+  setup_assertions
   assert_d $00
   assert_e $01
-  jp process_results
+  end_test_check_asserts
 
 .org INTR_VEC_SERIAL
   jp hl

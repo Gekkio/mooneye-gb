@@ -26,7 +26,7 @@
 
 .include "common.s"
 
-; First, let's check SP since it's not part of the normal save_results
+; First, let's check SP since it's not part of the normal setup_assertions
 ; mechanism
 .define EXPECTED_SP $FFFE
 
@@ -47,7 +47,7 @@
 
 ; Now, let's check all the other registers
 
-  save_results
+  setup_assertions
   assert_a $FF
   assert_f $00
   assert_b $00
@@ -56,10 +56,10 @@
   assert_e $00
   assert_h $C0
   assert_l $60
-  jp process_results
+  end_test_check_asserts
 
 invalid_sp:
-  test_failure_string "INVALID SP VALUE"
+  end_test_failure_string "INVALID SP VALUE"
 
 .ramsection "Test-State" slot 5
   sp_save dw

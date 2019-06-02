@@ -75,11 +75,11 @@
   ld c, a
   pop af
   ld b, a
-  save_results
+  setup_assertions
   assert_b $29
   assert_c $2a
   assert_d $2a
   assert_e $2b
   assert_h $2c
   assert_l $2e
-  jp process_results
+  end_test_check_asserts
