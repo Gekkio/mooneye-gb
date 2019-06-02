@@ -191,6 +191,7 @@ _delay_long_time_\@:
 
 .macro quit_failure_string ARGS string
   quit_inline
+  call print_newline
   print_string_literal string
   ld d, $42
   ret
@@ -202,6 +203,7 @@ _delay_long_time_\@:
 
 .macro quit_ok_string ARGS string
   quit_inline
+  call print_newline
   print_string_literal string
   ld d, $00
   ret
