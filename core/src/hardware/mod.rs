@@ -46,19 +46,13 @@ pub trait MappedHardware<A, D: From<u8> + Into<u8> = u8> {
   fn write_cycle<I: InterruptRequest>(&mut self, addr: A, data: D, intr_req: &mut I);
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct FetchResult {
-  pub opcode: u8,
-  pub interrupt: bool,
-}
-
 pub trait Bus {
-  fn fetch_cycle(&mut self, addr: u16) -> FetchResult;
   fn read_cycle(&mut self, addr: u16) -> u8;
   fn write_cycle(&mut self, addr: u16, data: u8);
   fn tick_cycle(&mut self);
-  fn ack_interrupt(&mut self) -> Option<Interrupt>;
-  fn has_interrupt(&self) -> bool;
+  fn get_mid_interrupt(&self) -> Option<Interrupt>;
+  fn get_end_interrupt(&self) -> Option<Interrupt>;
+  fn ack_interrupt(&mut self, interrupt: Interrupt);
   fn trigger_emu_events(&mut self, events: EmuEvents);
 }
 
@@ -353,14 +347,6 @@ impl Hardware {
 }
 
 impl Bus for Hardware {
-  fn fetch_cycle(&mut self, addr: u16) -> FetchResult {
-    self.irq.begin_cycle();
-
-    let opcode = self.read_internal(addr);
-    let interrupt = self.irq.has_mid_interrupt();
-
-    FetchResult { opcode, interrupt }
-  }
   fn read_cycle(&mut self, addr: u16) -> u8 {
     self.irq.begin_cycle();
     self.read_internal(addr)
@@ -374,11 +360,14 @@ impl Bus for Hardware {
     self.emulate_internal();
     self.timer.tick_cycle(&mut self.irq);
   }
-  fn ack_interrupt(&mut self) -> Option<Interrupt> {
-    self.irq.ack_interrupt()
+  fn get_mid_interrupt(&self) -> Option<Interrupt> {
+    self.irq.get_mid_interrupt()
   }
-  fn has_interrupt(&self) -> bool {
-    self.irq.has_end_interrupt()
+  fn get_end_interrupt(&self) -> Option<Interrupt> {
+    self.irq.get_end_interrupt()
+  }
+  fn ack_interrupt(&mut self, interrupt: Interrupt) {
+    self.irq.ack_interrupt(interrupt);
   }
   fn trigger_emu_events(&mut self, events: EmuEvents) {
     self.emu_events.insert(events)

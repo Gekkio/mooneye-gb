@@ -26,7 +26,8 @@ pub trait InterruptRequest {
 pub struct Irq {
   mid_intr: InterruptType,
   end_intr: InterruptType,
-  int_enable: u8,
+  mid_enable: u8,
+  end_enable: u8,
 }
 
 impl Irq {
@@ -34,7 +35,8 @@ impl Irq {
     Irq {
       mid_intr: InterruptType::empty(),
       end_intr: InterruptType::empty(),
-      int_enable: 0x00,
+      mid_enable: 0x00,
+      end_enable: 0x00,
     }
   }
   pub fn get_interrupt_flag(&self) -> u8 {
@@ -43,30 +45,27 @@ impl Irq {
     self.mid_intr.bits | IF_UNUSED_MASK
   }
   pub fn get_interrupt_enable(&self) -> u8 {
-    self.int_enable
+    self.mid_enable
   }
   pub fn set_interrupt_flag(&mut self, value: u8) {
-    self.mid_intr = InterruptType::from_bits_truncate(value);
-    self.end_intr = self.mid_intr;
+    self.end_intr = InterruptType::from_bits_truncate(value);
   }
   pub fn set_interrupt_enable(&mut self, value: u8) {
-    self.int_enable = value;
-  }
-  pub fn ack_interrupt(&mut self) -> Option<Interrupt> {
-    let highest_priority = (InterruptType::from_bits_truncate(self.int_enable) & self.mid_intr)
-      .isolate_highest_priority();
-    self.mid_intr -= highest_priority;
-    self.end_intr -= highest_priority;
-    Interrupt::from_u8(highest_priority.bits)
+    self.end_enable = value;
   }
   pub fn begin_cycle(&mut self) {
     self.mid_intr = self.end_intr;
+    self.mid_enable = self.end_enable;
   }
-  pub fn has_mid_interrupt(&self) -> bool {
-    (InterruptType::from_bits_truncate(self.int_enable) & self.mid_intr) != InterruptType::empty()
+  pub fn get_mid_interrupt(&self) -> Option<Interrupt> {
+    Interrupt::from_u8((InterruptType::from_bits_truncate(self.mid_enable) & self.mid_intr).isolate_highest_priority().bits())
   }
-  pub fn has_end_interrupt(&self) -> bool {
-    (InterruptType::from_bits_truncate(self.int_enable) & self.end_intr) != InterruptType::empty()
+  pub fn get_end_interrupt(&self) -> Option<Interrupt> {
+    Interrupt::from_u8((InterruptType::from_bits_truncate(self.end_enable) & self.end_intr).isolate_highest_priority().bits())
+  }
+  pub fn ack_interrupt(&mut self, interrupt: Interrupt) {
+    self.mid_intr -= InterruptType::from_bits_truncate(interrupt as u8);
+    self.end_intr -= InterruptType::from_bits_truncate(interrupt as u8);
   }
 }
 

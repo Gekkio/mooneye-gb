@@ -144,12 +144,12 @@ impl Cpu {
   }
 
   fn prefetch_next<H: Bus>(&mut self, bus: &mut H, addr: u16) -> Step {
-    let result = bus.fetch_cycle(addr);
-    if self.ime && result.interrupt {
+    let opcode = bus.read_cycle(addr);
+    if self.ime && bus.get_mid_interrupt().is_some() {
       Step::InterruptDispatch
     } else {
       self.regs.pc = addr.wrapping_add(1);
-      Step::Opcode(result.opcode)
+      Step::Opcode(opcode)
     }
   }
 
@@ -218,14 +218,17 @@ impl Cpu {
         bus.tick_cycle();
         let pc = self.regs.pc;
         self.push_u8(bus, (pc >> 8) as u8);
-        let interrupt = bus.ack_interrupt();
         self.push_u8(bus, pc as u8);
+        let interrupt = bus.get_mid_interrupt();
+        if let Some(interrupt) = interrupt {
+          bus.ack_interrupt(interrupt);
+        }
         self.regs.pc = interrupt.map(|i| i.get_addr()).unwrap_or(0x0000);
         let opcode = self.next_u8(bus);
         Step::Opcode(opcode)
       }
       Step::Halt => {
-        if bus.has_interrupt() {
+        if bus.get_end_interrupt().is_some() {
           self.prefetch_next(bus, self.regs.pc)
         } else {
           bus.tick_cycle();
@@ -741,12 +744,12 @@ where
   ///        - - - -
   fn halt(self) -> Step {
     let (cpu, bus) = self;
-    let result = bus.fetch_cycle(cpu.regs.pc);
-    if result.interrupt {
+    let opcode = bus.read_cycle(cpu.regs.pc);
+    if bus.get_mid_interrupt().is_some() {
       if cpu.ime {
         Step::InterruptDispatch
       } else {
-        ops::decode((cpu, bus), result.opcode)
+        ops::decode((cpu, bus), opcode)
       }
     } else {
       bus.tick_cycle();
