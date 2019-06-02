@@ -119,10 +119,17 @@ font:
   reg_h db
 .endst
 
-.ramsection "Runtime-State" slot 5
+.ramsection "Runtime-Assert" slot 5
   v_regs_save instanceof reg_dump
   v_regs_flags db
   v_regs_assert instanceof reg_dump
+.ends
+
+.ramsection "Runtime-Memdump" slot 5
+  v_dump_len db
+  v_dump_addr .dw
+  v_dump_addr_l db
+  v_dump_addr_h db
 .ends
 
 .bank 0 slot 0

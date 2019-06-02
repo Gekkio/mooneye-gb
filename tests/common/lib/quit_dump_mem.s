@@ -25,15 +25,19 @@
 ; Outputs: -
 ; Preserved: -
 quit_dump_mem:
-  push af
-  push hl
-  call disable_lcd_safe
-  call reset_screen
-  call print_load_font
+  ldh (<v_dump_len), a
+  ld a, l
+  ldh (<v_dump_addr_l), a
+  ld a, h
+  ldh (<v_dump_addr_h), a
 
-  ld hl, $9800
-  pop de
-  pop bc
+  quit_inline
+  ldh a, (<v_dump_addr_h)
+  ld d, a
+  ldh a, (<v_dump_addr_l)
+  ld e, a
+  ldh a, (<v_dump_len)
+  ld b, a
 @line:
   ld a, d
   call print_hex8
@@ -44,7 +48,7 @@ quit_dump_mem:
   call print_hex8
   inc de
   dec b
-  jr z, +
+  jr z, ++
 
   ld a, l
   and $1f
@@ -54,7 +58,7 @@ quit_dump_mem:
   call print_newline
   jr @line
 
-+
-  enable_lcd
-  halt_execution
+++
+  ld d, $00
+  ret
 .ends
