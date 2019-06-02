@@ -120,7 +120,7 @@ impl Bootrom {
       info!("Using included {} boot ROM", model);
       Bootrom {
         model,
-        data: Box::new(BootromData(
+        data: Arc::new(BootromData(
           match model {
             Model::Dmg0 => include_bytes!("../../bootroms/dmg0_boot.bin"),
             Model::Dmg => include_bytes!("../../bootroms/dmg_boot.bin"),
