@@ -32,7 +32,7 @@ quit:
   call reset_screen
   call print_load_font
 
-  ld hl, $9820
+  ld hl, $9800
   ; this is basically "call cb" since callback pointer is on the stack,
   ; followed by the return address
   ret
