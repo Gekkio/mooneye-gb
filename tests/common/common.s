@@ -125,66 +125,67 @@ font:
 
 .bank 1 slot 1
 .section "Runtime" FREE
-  ; Inputs:
-  ;   HL: pointer to callback
-  end_test:
-    ld sp, $e000
-    ld bc, @cb_return
-    push bc
-    push hl
-    call disable_lcd_safe
-    call reset_screen
-    call print_load_font
 
-    ld hl, $9820
-    ; this is basically "call cb" since callback pointer is on the stack,
-    ; followed by the return address
-    ret
+; Inputs:
+;   HL: pointer to callback
+end_test:
+  ld sp, $e000
+  ld bc, @cb_return
+  push bc
+  push hl
+  call disable_lcd_safe
+  call reset_screen
+  call print_load_font
 
-    @cb_return:
-      enable_lcd
-      wait_vblank
-      ; Extra vblank to account for initial (invisible) frame
-      wait_vblank
-      ld a, d
-      and a
-      jr nz, @halt
+  ld hl, $9820
+  ; this is basically "call cb" since callback pointer is on the stack,
+  ; followed by the return address
+  ret
 
-      ; Magic numbers signal a successful test
-      ld b, 3
-      ld c, 5
-      ld d, 8
-      ld e, 13
-      ld h, 21
-      ld l, 34
-
-    @halt:
-      halt_execution
-
-  check_asserts_cb:
-    ld de, v_regs_save
-    print_string_literal "REGISTERS"
-    call print_newline
-    call print_newline
-    call print_reg_dump
-    call print_newline
-
-    ldh a, (<v_regs_flags)
-    or a
-    jr z, +
-    print_string_literal "ASSERTIONS"
-    call print_newline
-    call print_newline
-    call _check_asserts
-
+  @cb_return:
+    enable_lcd
+    wait_vblank
+    ; Extra vblank to account for initial (invisible) frame
+    wait_vblank
     ld a, d
-    or a
-    jr z, +
-    call print_newline
-    print_string_literal "TEST FAILED"
-+   ret
+    and a
+    jr nz, @halt
 
-  _check_asserts:
+    ; Magic numbers signal a successful test
+    ld b, 3
+    ld c, 5
+    ld d, 8
+    ld e, 13
+    ld h, 21
+    ld l, 34
+
+  @halt:
+    halt_execution
+
+check_asserts_cb:
+  ld de, v_regs_save
+  print_string_literal "REGISTERS"
+  call print_newline
+  call print_newline
+  call print_reg_dump
+  call print_newline
+
+  ldh a, (<v_regs_flags)
+  or a
+  jr z, +
+  print_string_literal "ASSERTIONS"
+  call print_newline
+  call print_newline
+  call @check_asserts
+
+  ld a, d
+  or a
+  jr z, +
+  call print_newline
+  print_string_literal "TEST FAILED"
++ ret
+
+  @check_asserts:
     xor a
     ld d, a
 
@@ -234,6 +235,7 @@ font:
     call print_newline
 
     ret
+
 .ends
 
 .bank 0 slot 0
