@@ -18,7 +18,7 @@ use crate::cpu::disasm::{DisasmStr, ToDisasmStr};
 use crate::cpu::{Cpu, Step};
 use crate::emulation::EmuEvents;
 use crate::hardware::irq::Interrupt;
-use crate::hardware::{Bus, FetchResult};
+use crate::hardware::Bus;
 
 mod cb_test;
 mod test_0x;
@@ -73,30 +73,24 @@ impl TestHardware {
 }
 
 impl<'a> Bus for TestHardware {
-  fn fetch_cycle(&mut self, addr: u16) -> FetchResult {
+  fn read_cycle(&mut self, addr: u16) -> u8 {
     self.t_cycles += 4;
-    FetchResult {
-      opcode: self.read(addr),
-      interrupt: false,
-    }
+    self.read(addr)
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
     self.t_cycles += 4;
     self.memory[addr as usize] = value;
   }
-  fn read_cycle(&mut self, addr: u16) -> u8 {
-    self.t_cycles += 4;
-    self.read(addr)
-  }
   fn tick_cycle(&mut self) {
     self.t_cycles += 4;
   }
-  fn ack_interrupt(&mut self) -> Option<Interrupt> {
+  fn get_mid_interrupt(&self) -> Option<Interrupt> {
     None
   }
-  fn has_interrupt(&self) -> bool {
-    false
+  fn get_end_interrupt(&self) -> Option<Interrupt> {
+    None
   }
+  fn ack_interrupt(&mut self, _: Interrupt) {}
   fn trigger_emu_events(&mut self, _: EmuEvents) {}
 }
 

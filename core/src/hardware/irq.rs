@@ -58,10 +58,18 @@ impl Irq {
     self.mid_enable = self.end_enable;
   }
   pub fn get_mid_interrupt(&self) -> Option<Interrupt> {
-    Interrupt::from_u8((InterruptType::from_bits_truncate(self.mid_enable) & self.mid_intr).isolate_highest_priority().bits())
+    Interrupt::from_u8(
+      (InterruptType::from_bits_truncate(self.mid_enable) & self.mid_intr)
+        .isolate_highest_priority()
+        .bits(),
+    )
   }
   pub fn get_end_interrupt(&self) -> Option<Interrupt> {
-    Interrupt::from_u8((InterruptType::from_bits_truncate(self.end_enable) & self.end_intr).isolate_highest_priority().bits())
+    Interrupt::from_u8(
+      (InterruptType::from_bits_truncate(self.end_enable) & self.end_intr)
+        .isolate_highest_priority()
+        .bits(),
+    )
   }
   pub fn ack_interrupt(&mut self, interrupt: Interrupt) {
     self.mid_intr -= InterruptType::from_bits_truncate(interrupt as u8);
