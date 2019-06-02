@@ -47,6 +47,10 @@ _delay_long_time_\@:
   ; total: iterations * 7 + 5 cycles
 .endm
 
+.macro magic_breakpoint
+  ld b, b ; magic breakpoint
+.endm
+
 .macro halt_execution
   ld b, b ; magic breakpoint
 @halt_execution_\@:

@@ -55,6 +55,8 @@ quit:
     ld h, 21
     ld l, 34
 
+    magic_breakpoint
+
     ld a, b
     call serial_send_byte
     ld a, c
@@ -71,6 +73,8 @@ quit:
     jr @halt
 
   @failure:
+    magic_breakpoint
+
     ld a, $42
     call serial_send_byte
     call serial_send_byte
