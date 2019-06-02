@@ -67,6 +67,7 @@
 ; --- Library functions ---
 
 .bank 1 slot 1
+.include "lib/check_asserts_cb.s"
 .include "lib/clear_oam.s"
 .include "lib/clear_vram.s"
 .include "lib/clear_wram.s"
@@ -124,84 +125,6 @@ font:
   v_regs_assert instanceof reg_dump
 .ends
 
-.bank 1 slot 1
-.section "Runtime" FREE
-
-check_asserts_cb:
-  ld de, v_regs_save
-  print_string_literal "REGISTERS"
-  call print_newline
-  call print_newline
-  call print_reg_dump
-  call print_newline
-
-  ldh a, (<v_regs_flags)
-  or a
-  jr z, +
-  print_string_literal "ASSERTIONS"
-  call print_newline
-  call print_newline
-  call @check_asserts
-
-  ld a, d
-  or a
-  jr z, +
-  call print_newline
-  print_string_literal "TEST FAILED"
-+ ret
-
-  @check_asserts:
-    xor a
-    ld d, a
-
-    ldh a, (<v_regs_flags)
-    ld e, a
-
-    .macro __check_assert ARGS flag str value expected
-      bit flag, e
-      jr z, __check_assert_skip\@
-
-      print_string_literal str
-      print_string_literal ": "
-
-      ldh a, (<value)
-      ld c, a
-      ldh a, (<expected)
-      cp c
-      jr z, __check_assert_ok\@
-    __check_assert_fail\@:
-      call print_hex8
-      print_string_literal "! "
-      inc d
-      jr __check_assert_out\@
-    __check_assert_ok\@:
-      print_string_literal "OK  "
-      jr __check_assert_out\@
-    __check_assert_skip\@:
-      print_string_literal "       "
-    __check_assert_out\@:
-    .endm
-
-    print_string_literal "  "
-    __check_assert 0 "A" v_regs_save.reg_a v_regs_assert.reg_a
-    __check_assert 1 "F" v_regs_save.reg_f v_regs_assert.reg_f
-    call print_newline
-    print_string_literal "  "
-    __check_assert 2 "B" v_regs_save.reg_b v_regs_assert.reg_b
-    __check_assert 3 "C" v_regs_save.reg_c v_regs_assert.reg_c
-    call print_newline
-    print_string_literal "  "
-    __check_assert 4 "D" v_regs_save.reg_d v_regs_assert.reg_d
-    __check_assert 5 "E" v_regs_save.reg_e v_regs_assert.reg_e
-    call print_newline
-    print_string_literal "  "
-    __check_assert 6 "H" v_regs_save.reg_h v_regs_assert.reg_h
-    __check_assert 7 "L" v_regs_save.reg_l v_regs_assert.reg_l
-    call print_newline
-
-    ret
-
-.ends
-
 .bank 0 slot 0
 .org $150
+main:
