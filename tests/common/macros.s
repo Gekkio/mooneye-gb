@@ -173,7 +173,7 @@ _delay_long_time_\@:
 .endm
 
 .macro quit_failure
-  quit_failure_string "TEST FAILED"
+  quit_failure_string "Test failed"
 .endm
 
 .macro quit_failure_dump ARGS string
@@ -184,7 +184,7 @@ _delay_long_time_\@:
   call print_newline
   call print_reg_dump
   call print_newline
-  print_string_literal "TEST FAILED"
+  print_string_literal "Test failed"
   ld d, $42
   ret
 .endm
@@ -198,7 +198,7 @@ _delay_long_time_\@:
 .endm
 
 .macro quit_ok
-  quit_ok_string "TEST OK"
+  quit_ok_string "Test OK"
 .endm
 
 .macro quit_ok_string ARGS string

@@ -21,7 +21,8 @@
 .section "check_asserts_cb"
 check_asserts_cb:
   ld de, v_regs_save
-  print_string_literal "REGISTERS"
+  call print_newline
+  print_string_literal "Registers"
   call print_newline
   call print_newline
   call print_reg_dump
@@ -30,7 +31,7 @@ check_asserts_cb:
   ldh a, (<v_regs_flags)
   or a
   jr z, +
-  print_string_literal "ASSERTIONS"
+  print_string_literal "Assertions"
   call print_newline
   call print_newline
   call @check_asserts
@@ -39,7 +40,7 @@ check_asserts_cb:
   or a
   jr z, +
   call print_newline
-  print_string_literal "TEST FAILED"
+  print_string_literal "Test failed"
 + ret
 
   @check_asserts:
