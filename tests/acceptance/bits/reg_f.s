@@ -48,4 +48,4 @@ test_finish:
   setup_assertions
   assert_c $F0
   assert_e $00
-  end_test_check_asserts
+  quit_check_asserts

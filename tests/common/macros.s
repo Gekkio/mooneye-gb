@@ -172,12 +172,12 @@ _delay_long_time_\@:
   c_string string
 .endm
 
-.macro end_test_failure
-  end_test_failure_string "TEST FAILED"
+.macro quit_failure
+  quit_failure_string "TEST FAILED"
 .endm
 
-.macro end_test_failure_dump ARGS string
-  end_test_inline
+.macro quit_failure_dump ARGS string
+  quit_inline
   ld de, v_regs_save
   print_string_literal "REGISTERS"
   call print_newline
@@ -189,35 +189,35 @@ _delay_long_time_\@:
   ret
 .endm
 
-.macro end_test_failure_string ARGS string
-  end_test_inline
+.macro quit_failure_string ARGS string
+  quit_inline
   print_string_literal string
   ld d, $42
   ret
 .endm
 
-.macro end_test_ok
-  end_test_ok_string "TEST OK"
+.macro quit_ok
+  quit_ok_string "TEST OK"
 .endm
 
-.macro end_test_ok_string ARGS string
-  end_test_inline
+.macro quit_ok_string ARGS string
+  quit_inline
   print_string_literal string
   ld d, $00
   ret
 .endm
 
-.macro end_test_callback ARGS cb
+.macro quit_callback ARGS cb
   di
   ld hl, cb
-  jp end_test
+  jp quit
 .endm
 
-.macro end_test_check_asserts
-  end_test_callback check_asserts_cb
+.macro quit_check_asserts
+  quit_callback check_asserts_cb
 .endm
 
-.macro end_test_inline
-  end_test_callback  @end_test_inline_\@
-@end_test_inline_\@:
+.macro quit_inline
+  quit_callback  @quit_inline_\@
+@quit_inline_\@:
 .endm

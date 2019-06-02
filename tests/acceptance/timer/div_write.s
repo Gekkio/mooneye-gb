@@ -61,10 +61,10 @@ test:
   jr nz, -
 
   di
-  end_test_ok
+  quit_ok
 
-end_test_failure:
-  end_test_failure_string "FAIL: INTR"
+quit_failure:
+  quit_failure_string "FAIL: INTR"
 
 .org INTR_VEC_TIMER
-  jp end_test_failure
+  jp quit_failure

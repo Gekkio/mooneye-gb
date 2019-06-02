@@ -192,7 +192,7 @@ _testcase_end_\@:
   testcase 25,   73, 65, 57, 49, 41, 33, 25, 17, 9,  1
   ; ==> sprite order does not affect cycles
 
-  end_test_ok
+  quit_ok
 
 run_testcase:
   push de
@@ -303,7 +303,7 @@ setup_and_wait_mode2:
   jp fail_halt
 
 test_fail:
-  end_test_inline
+  quit_inline
   print_string_literal "TEST #"
   ld a, (testcase_id)
   call print_hex8
@@ -312,7 +312,7 @@ test_fail:
   ret
 
 fail_halt:
-  end_test_failure_string "FAIL: HALT"
+  quit_failure_string "FAIL: HALT"
 
 .org INTR_VEC_STAT
   add sp,+2

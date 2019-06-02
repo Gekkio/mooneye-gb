@@ -87,7 +87,7 @@ test_round1:
   jp OAM - 1
 
 fail_round1:
-  end_test_failure_string "FAIL: ROUND 1 RST $10"
+  quit_failure_string "FAIL: ROUND 1 RST $10"
 
 finish_round1:
   ld a, (OAM)
@@ -135,7 +135,7 @@ test_round2:
   jp OAM - 2
 
 fail_round2:
-  end_test_failure_string "FAIL: ROUND 2 RST $10"
+  quit_failure_string "FAIL: ROUND 2 RST $10"
 
 finish_round2:
   ld a, (OAM)
@@ -152,7 +152,7 @@ test_finish:
   assert_c $01
   assert_d $D7
   assert_e $00
-  end_test_check_asserts
+  quit_check_asserts
 
 .org $10
   wait_dma_finish

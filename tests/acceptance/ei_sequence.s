@@ -42,13 +42,13 @@ test:
 .endr
 
 fail:
-  end_test_failure_string "FAIL: NO INTR"
+  quit_failure_string "FAIL: NO INTR"
 
 test_finish:
   setup_assertions
   assert_b $01
   assert_c $A2
-  end_test_check_asserts
+  quit_check_asserts
 
 .org INTR_VEC_SERIAL
   pop bc

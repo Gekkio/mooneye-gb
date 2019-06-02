@@ -82,5 +82,5 @@
   assert_e $1b
   assert_h $1c
   assert_l $1e
-  end_test_check_asserts
+  quit_check_asserts
 

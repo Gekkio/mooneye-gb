@@ -70,7 +70,7 @@ test_finish:
   assert_c $E8
   assert_d $01
   assert_e $E0
-  end_test_check_asserts
+  quit_check_asserts
 
 .org INTR_VEC_SERIAL
   inc e

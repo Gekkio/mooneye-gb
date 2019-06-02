@@ -18,49 +18,42 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-; Tests initial register values
+.section "quit"
+; Inputs:
+;   HL: pointer to callback
+; Outputs: -
+; Preserved: -
+quit:
+  ld sp, $e000
+  ld bc, @cb_return
+  push bc
+  push hl
+  call disable_lcd_safe
+  call reset_screen
+  call print_load_font
 
-; Verified results:
-;   pass: DMG 0
-;   fail: DMG ABC, MGB, SGB, SGB2, CGB, AGB, AGS
+  ld hl, $9820
+  ; this is basically "call cb" since callback pointer is on the stack,
+  ; followed by the return address
+  ret
 
-.include "common.s"
+  @cb_return:
+    enable_lcd
+    wait_vblank
+    ; Extra vblank to account for initial (invisible) frame
+    wait_vblank
+    ld a, d
+    and a
+    jr nz, @halt
 
-; First, let's check SP since it's not part of the normal setup_assertions
-; mechanism
-.define EXPECTED_SP $FFFE
+    ; Magic numbers signal a successful test
+    ld b, 3
+    ld c, 5
+    ld d, 8
+    ld e, 13
+    ld h, 21
+    ld l, 34
 
-  ld (sp_save), sp
-  ld sp, $FFFE
-
-  push af
-
-  ld a, (sp_save)
-  cp <EXPECTED_SP
-  jr nz, invalid_sp
-
-  ld a, (sp_save+1)
-  cp >EXPECTED_SP
-  jr nz, invalid_sp
-
-  pop af
-
-; Now, let's check all the other registers
-
-  setup_assertions
-  assert_a $01
-  assert_f $00
-  assert_b $FF
-  assert_c $13
-  assert_d $00
-  assert_e $C1
-  assert_h $84
-  assert_l $03
-  quit_check_asserts
-
-invalid_sp:
-  quit_failure_string "INVALID SP VALUE"
-
-.ramsection "Test-State" slot 5
-  sp_save dw
+  @halt:
+    halt_execution
 .ends

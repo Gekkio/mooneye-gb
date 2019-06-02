@@ -52,7 +52,7 @@ test_finish:
   ; Round 2 result
   assert_d $00
   assert_e $40
-  end_test_check_asserts
+  quit_check_asserts
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first byte of ADD SP, e will be at $FDFF, so

@@ -116,5 +116,5 @@ test:
   assert_e $00
   assert_h $ff
   assert_l $00
-  end_test_check_asserts
+  quit_check_asserts
 

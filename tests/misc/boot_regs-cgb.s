@@ -56,10 +56,10 @@
   assert_e $08
   assert_h $00
   assert_l $7C
-  end_test_check_asserts
+  quit_check_asserts
 
 invalid_sp:
-  end_test_failure_string "INVALID SP VALUE"
+  quit_failure_string "INVALID SP VALUE"
 
 .ramsection "Test-State" slot 5
   sp_save dw

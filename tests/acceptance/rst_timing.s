@@ -48,7 +48,7 @@ test_finish:
   assert_c $9E
   assert_d $FF
   assert_e $BD
-  end_test_check_asserts
+  quit_check_asserts
 
 hiram_test:
   ld sp, OAM+$10

@@ -45,7 +45,7 @@ test_finish:
   setup_assertions
   assert_b $01
   assert_e $01
-  end_test_check_asserts
+  quit_check_asserts
 
 .org INTR_VEC_SERIAL
   inc e

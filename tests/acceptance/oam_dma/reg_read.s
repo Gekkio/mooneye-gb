@@ -95,25 +95,25 @@ round6:
   jp nz, fail_round6
 
 finish:
-  end_test_ok
+  quit_ok
 
 fail_round1:
-  end_test_failure_string "Fail: r1"
+  quit_failure_string "Fail: r1"
 
 fail_round2:
-  end_test_failure_string "Fail: r2"
+  quit_failure_string "Fail: r2"
 
 fail_round3:
-  end_test_failure_string "Fail: r3"
+  quit_failure_string "Fail: r3"
 
 fail_round4:
-  end_test_failure_string "Fail: r4"
+  quit_failure_string "Fail: r4"
 
 fail_round5:
-  end_test_failure_string "Fail: r5"
+  quit_failure_string "Fail: r5"
 
 fail_round6:
-  end_test_failure_string "Fail: r6"
+  quit_failure_string "Fail: r6"
 
 hiram_proc1:
   ldh (<DMA), a

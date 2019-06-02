@@ -63,13 +63,13 @@ test:
   or b
   jr nz, -
 
-  end_test_failure_string "FAIL: NO INTR"
+  quit_failure_string "FAIL: NO INTR"
 
 test_finish:
   setup_assertions
   assert_b $FF
   assert_c $D9
-  end_test_check_asserts
+  quit_check_asserts
 
 .org INTR_VEC_TIMER
   jp test_finish

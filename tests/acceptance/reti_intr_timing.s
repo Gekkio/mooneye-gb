@@ -49,7 +49,7 @@ test_finish:
   assert_b $01
   assert_d $01
   assert_e $01
-  end_test_check_asserts
+  quit_check_asserts
 
 .org INTR_VEC_VBLANK
   inc d

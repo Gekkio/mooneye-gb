@@ -48,7 +48,7 @@ fail:
   ld a, l
   ldh (<fail_offset), a
 
-  end_test_inline
+  quit_inline
   print_string_literal "Fail: $FE"
   ldh a, (<fail_offset)
   call print_hex8
@@ -56,7 +56,7 @@ fail:
   ret
 
 finish:
-  end_test_ok
+  quit_ok
 
 hiram_proc:
   ldh (<DMA), a

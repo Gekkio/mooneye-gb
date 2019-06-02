@@ -51,7 +51,7 @@
   setup_assertions
   assert_d $14
   assert_e $15
-  end_test_check_asserts
+  quit_check_asserts
 
 setup_and_wait_mode1:
   wait_ly $42
@@ -75,7 +75,7 @@ setup_and_wait_mode2:
   jr -
 
 fail_halt:
-  end_test_failure_string "FAIL: HALT"
+  quit_failure_string "FAIL: HALT"
 
 .org INTR_VEC_STAT
   add sp,+2

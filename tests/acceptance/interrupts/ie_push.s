@@ -119,63 +119,63 @@ finish_round4:
   cp INTR_VBLANK
   jp nz, fail_round4_if
 
-  end_test_ok
+  quit_ok
 
 .org $1000
 ; Round 1: interrupt dispatching didn't happen
 fail_round1_nointr:
   ld sp, $fffe
-  end_test_failure_string "R1: no interrupt"
+  quit_failure_string "R1: no interrupt"
 
 ; Round 1: interrupt was dispatched normally, which is wrong here
 fail_round1_nocancel:
   ld sp, $fffe
-  end_test_failure_string "R1: not cancelled"
+  quit_failure_string "R1: not cancelled"
 
 ; Round 1: cancellation worked, but IF was still modified
 fail_round1_if:
   ld sp, $fffe
-  end_test_failure_string "R1: IF modified"
+  quit_failure_string "R1: IF modified"
 
 ; Round 2: IME should be 0 after round 1, but an interrupt happened
 fail_round2_intr:
   ld sp, $fffe
-  end_test_failure_string "R2: unwanted intr"
+  quit_failure_string "R2: unwanted intr"
 
 ; Round 3: interrupt dispatching didn't happen
 fail_round3_nointr:
   ld sp, $fffe
-  end_test_failure_string "R3: no interrupt"
+  quit_failure_string "R3: no interrupt"
 
 ; Round 3: cancellation happened even though it wasn't supposed to
 fail_round3_cancel:
   ld sp, $fffe
-  end_test_failure_string "R3: unwanted cancel"
+  quit_failure_string "R3: unwanted cancel"
 
 ; Round 3: IF wasn't cleared
 fail_round3_if:
   ld sp, $fffe
-  end_test_failure_string "R3: no IF clear"
+  quit_failure_string "R3: no IF clear"
 
 ; Round 4: interrupt dispatching didn't happen
 fail_round4_nointr:
   ld sp, $fffe
-  end_test_failure_string "R4: no interrupt"
+  quit_failure_string "R4: no interrupt"
 
 ; Round 4: cancellation happened even though it wasn't supposed to
 fail_round4_cancel:
   ld sp, $fffe
-  end_test_failure_string "R4: unwanted cancel"
+  quit_failure_string "R4: unwanted cancel"
 
 ; Round 4: wrong IF value
 fail_round4_if:
   ld sp, $fffe
-  end_test_failure_string "R4: wrong IF"
+  quit_failure_string "R4: wrong IF"
 
 ; Round 4: vblank was dispatched even though IE push disabled it
 fail_round4_vblank:
   ld sp, $fffe
-  end_test_failure_string "R4: wrong intr"
+  quit_failure_string "R4: wrong intr"
 
 .org INTR_VEC_TIMER
   jp fail_round1_nocancel

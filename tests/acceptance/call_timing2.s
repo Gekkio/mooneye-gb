@@ -52,7 +52,7 @@ test_finish:
   assert_e $B9
   assert_h $FF
   assert_l $D6
-  end_test_check_asserts
+  quit_check_asserts
 
 hiram_test:
   ld sp, OAM+$20

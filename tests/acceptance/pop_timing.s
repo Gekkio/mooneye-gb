@@ -94,4 +94,4 @@ test_finish:
   assert_c $01
   assert_d $00
   assert_e $01
-  end_test_check_asserts
+  quit_check_asserts

@@ -92,13 +92,13 @@ finish_round2:
   setup_assertions
   assert_d $11
   assert_e $12
-  end_test_check_asserts
+  quit_check_asserts
 
 fail_halt:
-  end_test_failure_string "FAIL: HALT"
+  quit_failure_string "FAIL: HALT"
 
 fail_intr:
-  end_test_failure_string "FAIL: INTERRUPT"
+  quit_failure_string "FAIL: INTERRUPT"
 
 .org INTR_VEC_VBLANK
   jp hl

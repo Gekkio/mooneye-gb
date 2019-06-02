@@ -54,9 +54,9 @@
   jr nz, -
 
 test_finish:
-  end_test_ok
+  quit_ok
 
 fail_1:
-  end_test_failure_string "FAIL: ALL 1s"
+  quit_failure_string "FAIL: ALL 1s"
 fail_0:
-  end_test_failure_string "FAIL: ALL 0s"
+  quit_failure_string "FAIL: ALL 0s"

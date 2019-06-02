@@ -112,7 +112,7 @@ test_round2:
   ld (ram_en_value), a
   jr nz, -
 
-  end_test_ok
+  quit_ok
 
 ram_data_enabled:
 .db $19 $9d $91 $12 $f6 $12 $64 $4d $e4 $34 $3b $2e $fb $c7 $1f $3f
@@ -129,7 +129,7 @@ compare_ram_data:
   jp memcmp
 
 fail_round1_disable:
-  end_test_inline
+  quit_inline
   print_string_literal "R1: Test failed"
   call print_newline
   call fail_round1_print_test_address
@@ -139,7 +139,7 @@ fail_round1_disable:
   ret
 
 fail_round1_enable:
-  end_test_inline
+  quit_inline
   print_string_literal "R1: Test failed"
   call print_newline
   call fail_round1_print_test_address
@@ -156,10 +156,10 @@ fail_round1_print_test_address:
   ret
 
 fail_round2_disable:
-  end_test_failure_string "R2: RAM not disabled"
+  quit_failure_string "R2: RAM not disabled"
 
 fail_round2_expect:
-  end_test_inline
+  quit_inline
   print_string_literal "R2: Test failed"
   call print_newline
   print_string_literal "RAM_EN="

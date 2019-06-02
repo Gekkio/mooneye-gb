@@ -102,7 +102,7 @@
   perform_test $42 2 3
   perform_test $43 2 3
 
-  end_test_ok
+  quit_ok
 
 test_fail:
   ld b, a
@@ -112,7 +112,7 @@ test_fail:
   ; B = LY value
   ; D = scanline - 1
   ; E = scanline
-  end_test_failure_dump
+  quit_failure_dump
 
 standard_delay:
   nops 23
@@ -131,7 +131,7 @@ setup_and_wait:
   jp fail_halt
 
 fail_halt:
-  end_test_failure_string "FAIL: HALT"
+  quit_failure_string "FAIL: HALT"
 
 .org INTR_VEC_STAT
   add sp,+2

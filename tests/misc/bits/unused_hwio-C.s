@@ -156,7 +156,7 @@ _finish_\@:
   test_unmapped $FF78 + offset
 .endr
 
-  end_test_ok
+  quit_ok
 
 ; Inputs:
 ;   HL: test data address
@@ -192,7 +192,7 @@ run_testcase:
 
   call fetch_test_data
 
-  end_test_inline
+  quit_inline
   print_string_literal "TEST FAILED"
   call print_newline
   call print_newline

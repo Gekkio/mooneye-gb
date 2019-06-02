@@ -54,7 +54,7 @@ test_finish:
   assert_c $FE
   assert_d $D0
   assert_e $3F
-  end_test_check_asserts
+  quit_check_asserts
 
 ; test procedure which will be copied to WRAM/OAM
 ; the first byte of LD HL, SP+e will be at $FDFF, so

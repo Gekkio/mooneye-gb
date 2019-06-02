@@ -92,5 +92,5 @@ test:
   assert_d $80
   assert_e $7f
   assert_l $7f
-  end_test_check_asserts
+  quit_check_asserts
 

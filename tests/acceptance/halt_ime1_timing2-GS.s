@@ -152,22 +152,22 @@ finish_round4:
   assert_c $12
   assert_d $11
   assert_e $12
-  end_test_check_asserts
+  quit_check_asserts
 
 fail_halt:
-  end_test_failure_string "FAIL: HALT"
+  quit_failure_string "FAIL: HALT"
 
 fail_round1:
-  end_test_failure_string "FAIL: ROUND 1"
+  quit_failure_string "FAIL: ROUND 1"
 
 fail_round2:
-  end_test_failure_string "FAIL: ROUND 2"
+  quit_failure_string "FAIL: ROUND 2"
 
 fail_round3:
-  end_test_failure_string "FAIL: ROUND 3"
+  quit_failure_string "FAIL: ROUND 3"
 
 fail_round4:
-  end_test_failure_string "FAIL: ROUND 4"
+  quit_failure_string "FAIL: ROUND 4"
 
 .org INTR_VEC_VBLANK
   jp hl

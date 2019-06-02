@@ -48,7 +48,7 @@ test_finish:
   assert_l $24
   assert_d $81
   assert_e $24
-  end_test_check_asserts
+  quit_check_asserts
 
 hiram_test:
   ld sp, OAM+$10

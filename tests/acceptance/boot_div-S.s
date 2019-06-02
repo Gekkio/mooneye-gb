@@ -87,7 +87,7 @@
   assert_e $db
   assert_h $dc
   assert_l $de
-  end_test_check_asserts
+  quit_check_asserts
 
 .org $014e
   .dw $1234

@@ -55,7 +55,7 @@
   cp $80
   jp nz, --
 
-  end_test_ok
+  quit_ok
 
 mismatch:
   ld (mismatch_data), a
@@ -66,7 +66,7 @@ mismatch:
   ld a, h
   ld (mismatch_addr + 1), a
 
-  end_test_inline
+  quit_inline
   print_string_literal "MISMATCH AT $"
   ld a, (mismatch_addr + 1)
   call print_hex8

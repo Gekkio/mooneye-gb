@@ -84,6 +84,7 @@
 .include "lib/print_newline.s"
 .include "lib/print_reg_dump.s"
 .include "lib/print_string.s"
+.include "lib/quit.s"
 .include "lib/quit_dump_mem.s"
 .include "lib/reset_screen.s"
 
@@ -125,42 +126,6 @@ font:
 
 .bank 1 slot 1
 .section "Runtime" FREE
-
-; Inputs:
-;   HL: pointer to callback
-end_test:
-  ld sp, $e000
-  ld bc, @cb_return
-  push bc
-  push hl
-  call disable_lcd_safe
-  call reset_screen
-  call print_load_font
-
-  ld hl, $9820
-  ; this is basically "call cb" since callback pointer is on the stack,
-  ; followed by the return address
-  ret
-
-  @cb_return:
-    enable_lcd
-    wait_vblank
-    ; Extra vblank to account for initial (invisible) frame
-    wait_vblank
-    ld a, d
-    and a
-    jr nz, @halt
-
-    ; Magic numbers signal a successful test
-    ld b, 3
-    ld c, 5
-    ld d, 8
-    ld e, 13
-    ld h, 21
-    ld l, 34
-
-  @halt:
-    halt_execution
 
 check_asserts_cb:
   ld de, v_regs_save

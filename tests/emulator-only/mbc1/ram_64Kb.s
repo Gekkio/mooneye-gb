@@ -103,7 +103,7 @@ test_round5:
 
 test_finish:
   call clear_ram
-  end_test_ok
+  quit_ok
 
 copy_bank_data:
   ld de, bank_data
@@ -163,20 +163,20 @@ clear_ram:
 
 fail_round1:
   call clear_ram
-  end_test_failure_string "FAIL: Round 1"
+  quit_failure_string "FAIL: Round 1"
 
 fail_round2:
   call clear_ram
-  end_test_failure_string "FAIL: Round 2"
+  quit_failure_string "FAIL: Round 2"
 
 fail_round3:
   call clear_ram
-  end_test_failure_string "FAIL: Round 3"
+  quit_failure_string "FAIL: Round 3"
 
 fail_round4:
   call clear_ram
-  end_test_failure_string "FAIL: Round 4"
+  quit_failure_string "FAIL: Round 4"
 
 fail_round5:
   call clear_ram
-  end_test_failure_string "FAIL: Round 5"
+  quit_failure_string "FAIL: Round 5"

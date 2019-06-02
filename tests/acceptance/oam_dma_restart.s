@@ -39,7 +39,7 @@ test_finish:
   setup_assertions
   assert_c $FF
   assert_d $01
-  end_test_check_asserts
+  quit_check_asserts
 
 hiram_test:
   ld hl, OAM

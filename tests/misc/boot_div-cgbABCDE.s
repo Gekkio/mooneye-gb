@@ -82,4 +82,4 @@
   assert_e $29
   assert_h $2a
   assert_l $2c
-  end_test_check_asserts
+  quit_check_asserts

@@ -62,7 +62,7 @@
 .endr
 
   di
-  end_test_failure_string "No serial intr"
+  quit_failure_string "No serial intr"
 
 test_finish:
   setup_assertions
@@ -73,7 +73,7 @@ test_finish:
   assert_e $90
   assert_h $90
   assert_l $90
-  end_test_check_asserts
+  quit_check_asserts
 
 .org INTR_VEC_SERIAL
   jp test_finish

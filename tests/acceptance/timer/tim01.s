@@ -66,5 +66,5 @@ test:
   setup_assertions
   assert_d $08
   assert_e $09
-  end_test_check_asserts
+  quit_check_asserts
 
