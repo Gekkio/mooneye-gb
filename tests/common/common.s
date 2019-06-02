@@ -88,6 +88,7 @@
 .include "lib/quit.s"
 .include "lib/quit_dump_mem.s"
 .include "lib/reset_screen.s"
+.include "lib/serial_send_byte.s"
 
 ; --- Cartridge header ---
 
