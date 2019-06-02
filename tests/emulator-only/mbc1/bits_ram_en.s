@@ -178,7 +178,7 @@ ram_en_expectations:
 .db $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $FF $00 $00 $00 $00 $00
 .endr
 
-.ramsection "Test-State" slot 2
+.ramsection "Test-State" slot 5
   test_address .dw
   test_address_l db
   test_address_h db

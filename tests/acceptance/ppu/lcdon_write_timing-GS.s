@@ -148,9 +148,12 @@ _verify_fail_cb:
 
 .ends
 
-.ramsection "Test-State" slot 2
+.ramsection "Test-WRAM" slot 2
   v_test_code dsb 300
   v_test_results dsb 19
+.ends
+
+.ramsection "Test-HRAM" slot 5
   v_fail_round db
   v_fail_expect db
   v_fail_actual db

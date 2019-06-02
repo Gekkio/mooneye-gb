@@ -319,8 +319,11 @@ fail_halt:
   add sp,+2
   ret
 
-.ramsection "Test-State" slot 2
-  testcase_id dw
+.ramsection "Test-WRAM" slot 2
   nop_area_a ds 96
   nop_area_b ds 96
+.ends
+
+.ramsection "Test-HRAM" slot 5
+  testcase_id dw
 .ends

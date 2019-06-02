@@ -61,6 +61,6 @@
 invalid_sp:
   test_failure_string "INVALID SP VALUE"
 
-.ramsection "Test-State" slot 2
+.ramsection "Test-State" slot 5
   sp_save dw
 .ends

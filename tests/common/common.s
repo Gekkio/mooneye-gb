@@ -117,7 +117,7 @@ font:
   h db
 .endst
 
-.ramsection "Runtime-State" slot 2
+.ramsection "Runtime-State" slot 5
   regs_save instanceof reg_dump
   regs_flags db
   regs_assert instanceof reg_dump

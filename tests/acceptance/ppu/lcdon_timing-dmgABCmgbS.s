@@ -197,7 +197,7 @@ _verify_fail_cb:
 
 .ends
 
-.ramsection "Test-State" slot 2
+.ramsection "Test-State" slot 5
   v_pass1_results dsb 8
   v_pass2_results dsb 8
   v_pass3_results dsb 8

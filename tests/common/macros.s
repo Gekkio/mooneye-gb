@@ -85,7 +85,7 @@ _wait_ly_\@:
   push de
   push bc
   push af
-  ld sp, $fffe
+  ld sp, $e000
   xor a
   ld hl, regs_flags
   ld (hl), a
@@ -199,7 +199,6 @@ _test_ok_cb_\@:
   ld d, $00
   ret
 .endm
-
 
 .macro print_results ARGS cb
   di

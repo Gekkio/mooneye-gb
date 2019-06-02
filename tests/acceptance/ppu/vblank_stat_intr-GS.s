@@ -189,7 +189,7 @@ test_finish:
 .org INTR_VEC_STAT
   jp intr_vec_stat
 
-.ramsection "Test-State" slot 2
+.ramsection "Test-State" slot 5
   intr_vec_vblank dsb 3
   intr_vec_stat dsb 3
   round1 db

@@ -290,7 +290,7 @@ _next:
 
   ret
 
-.ramsection "Test-State" slot 2
+.ramsection "Test-State" slot 5
   test_addr dw
   test_got db
   test_reg db
