@@ -15,8 +15,8 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use failure::{format_err, Error};
 use glium::{glutin, Api, Display, Surface, Version};
-use imgui::{FrameSize, ImGui};
-use imgui_glium_renderer;
+use imgui_glium_renderer::GliumRenderer;
+use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use log::info;
 use sdl2;
 use sdl2::controller::{Axis, Button};
@@ -43,8 +43,9 @@ pub struct SdlFrontend {
   events_loop: glutin::EventsLoop,
   event_pump: EventPump,
   display: Display,
-  imgui: ImGui,
-  gui_renderer: imgui_glium_renderer::Renderer,
+  imgui: imgui::Context,
+  imgui_renderer: GliumRenderer,
+  imgui_platform: WinitPlatform,
   renderer: Renderer,
   times: FrameTimes,
 }
@@ -145,11 +146,18 @@ impl SdlFrontend {
 
     let renderer = Renderer::new(&display)?;
 
-    let mut imgui = ImGui::init();
+    let mut imgui = imgui::Context::create();
     imgui.set_ini_filename(None);
     imgui.set_log_filename(None);
-    let gui_renderer = imgui_glium_renderer::Renderer::init(&mut imgui, &display)
+    let imgui_renderer = GliumRenderer::init(&mut imgui, &display)
       .map_err(|e| format_err!("Failed to initialize renderer: {}", e))?;
+    let mut imgui_platform = WinitPlatform::init(&mut imgui);
+
+    {
+      let gl_window = display.gl_window();
+      let window = gl_window.window();
+      imgui_platform.attach_window(imgui.io_mut(), &window, HiDpiMode::Default);
+    }
 
     Ok(SdlFrontend {
       sdl_game_controller,
@@ -157,7 +165,8 @@ impl SdlFrontend {
       event_pump,
       display,
       imgui,
-      gui_renderer,
+      imgui_renderer,
+      imgui_platform,
       renderer,
       times: FrameTimes::new(Duration::from_secs(1) / 60),
     })
@@ -191,19 +200,18 @@ impl SdlFrontend {
 
       let renderer = &mut self.renderer;
       let display = &self.display;
+      let gl_window = display.gl_window();
+      let window = gl_window.window();
       let imgui = &mut self.imgui;
+      let imgui_platform = &mut self.imgui_platform;
       let mut exit = false;
       self.events_loop.poll_events(|event| {
+        imgui_platform.handle_event(imgui.io_mut(), &window, &event);
         if let glutin::Event::WindowEvent { event, .. } = event {
           use glium::glutin::WindowEvent;
           match event {
-            WindowEvent::Resized(..) => {
-              renderer.update_dimensions(display);
-            }
+            WindowEvent::Resized(..) => renderer.update_dimensions(display),
             WindowEvent::CloseRequested | WindowEvent::Destroyed => exit = true,
-            WindowEvent::CursorMoved { position, .. } => {
-              imgui.set_mouse_pos(position.x as f32, position.y as f32);
-            }
             WindowEvent::DroppedFile(path) => match Bootrom::from_path(&path) {
               Ok(bootrom) => {
                 if let Err(error) = bootrom.save_to_data_dir() {
@@ -228,16 +236,18 @@ impl SdlFrontend {
       let mut target = self.display.draw();
       target.clear_color(1.0, 1.0, 1.0, 1.0);
 
-      let (width, height) = target.get_dimensions();
-      let frame_size = FrameSize {
-        logical_size: (width.into(), height.into()),
-        hidpi_factor: 1.0,
-      };
-      let ui = imgui.frame(frame_size, delta_s as f32);
-      screen.render(&ui);
       self
-        .gui_renderer
-        .render(&mut target, ui)
+        .imgui_platform
+        .prepare_frame(self.imgui.io_mut(), &window)
+        .map_err(|e| format_err!("Failed to prepare imgui frame: {}", e))?;
+      self.imgui.io_mut().delta_time = delta_s as f32;
+      let ui = self.imgui.frame();
+      screen.render(&ui);
+      self.imgui_platform.prepare_render(&ui, &window);
+      let draw_data = ui.render();
+      self
+        .imgui_renderer
+        .render(&mut target, draw_data)
         .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
       target.finish()?;
 
@@ -266,18 +276,20 @@ impl SdlFrontend {
 
       let renderer = &mut self.renderer;
       let display = &self.display;
+      let gl_window = display.gl_window();
+      let window = gl_window.window();
       let imgui = &mut self.imgui;
+      let imgui_platform = &mut self.imgui_platform;
       let mut ig_event = None;
       self.events_loop.poll_events(|event| {
+        imgui_platform.handle_event(imgui.io_mut(), &window, &event);
         if let glutin::Event::WindowEvent { event, .. } = event {
           use glium::glutin::ElementState;
           use glium::glutin::KeyboardInput;
           use glium::glutin::VirtualKeyCode;
           use glium::glutin::WindowEvent;
           match event {
-            WindowEvent::Resized(..) => {
-              renderer.update_dimensions(display);
-            }
+            WindowEvent::Resized(..) => renderer.update_dimensions(display),
             WindowEvent::CloseRequested | WindowEvent::Destroyed => {
               ig_event = Some(InGameEvent::Exit)
             }
@@ -312,9 +324,6 @@ impl SdlFrontend {
               if let Some(key) = map_keycode(keycode) {
                 machine.key_up(key);
               }
-            }
-            WindowEvent::CursorMoved { position, .. } => {
-              imgui.set_mouse_pos(position.x as f32, position.y as f32);
             }
             WindowEvent::DroppedFile(path) => match Cartridge::from_path(&path) {
               Ok(cartridge) => {
@@ -379,12 +388,12 @@ impl SdlFrontend {
       let mut target = self.display.draw();
       target.clear_color(0.0, 0.0, 0.0, 1.0);
 
-      let (width, height) = target.get_dimensions();
-      let frame_size = FrameSize {
-        logical_size: (width.into(), height.into()),
-        hidpi_factor: 1.0,
-      };
-      let ui = imgui.frame(frame_size, delta_s as f32);
+      self
+        .imgui_platform
+        .prepare_frame(self.imgui.io_mut(), &window)
+        .map_err(|e| format_err!("Failed to prepare imgui frame: {}", e))?;
+      self.imgui.io_mut().delta_time = delta_s as f32;
+      let ui = self.imgui.frame();
 
       let machine_cycles =
         EmuTime::from_machine_cycles(((delta * CPU_SPEED_HZ as u32).as_secs() as u64) / 4);
@@ -406,9 +415,11 @@ impl SdlFrontend {
       renderer.draw(&mut target)?;
 
       screen.render(&ui);
+      self.imgui_platform.prepare_render(&ui, &window);
+      let draw_data = ui.render();
       self
-        .gui_renderer
-        .render(&mut target, ui)
+        .imgui_renderer
+        .render(&mut target, draw_data)
         .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
       target.finish()?;
 
@@ -438,18 +449,20 @@ impl SdlFrontend {
 
       let renderer = &mut self.renderer;
       let display = &self.display;
+      let gl_window = display.gl_window();
+      let window = gl_window.window();
       let imgui = &mut self.imgui;
+      let imgui_platform = &mut self.imgui_platform;
       let mut ig_event = None;
       self.events_loop.poll_events(|event| {
+        imgui_platform.handle_event(imgui.io_mut(), &window, &event);
         if let glutin::Event::WindowEvent { event, .. } = event {
           use glium::glutin::ElementState;
           use glium::glutin::KeyboardInput;
           use glium::glutin::VirtualKeyCode;
           use glium::glutin::WindowEvent;
           match event {
-            WindowEvent::Resized(..) => {
-              renderer.update_dimensions(display);
-            }
+            WindowEvent::Resized(..) => renderer.update_dimensions(display),
             WindowEvent::CloseRequested | WindowEvent::Destroyed => {
               ig_event = Some(InGameEvent::Exit)
             }
@@ -486,9 +499,6 @@ impl SdlFrontend {
               if keycode == VirtualKeyCode::LShift {
                 ig_event = Some(InGameEvent::TurboOff);
               }
-            }
-            WindowEvent::CursorMoved { position, .. } => {
-              imgui.set_mouse_pos(position.x as f32, position.y as f32);
             }
             WindowEvent::DroppedFile(path) => match Cartridge::from_path(&path) {
               Ok(cartridge) => {
@@ -554,12 +564,12 @@ impl SdlFrontend {
       let mut target = self.display.draw();
       target.clear_color(0.0, 0.0, 0.0, 1.0);
 
-      let (width, height) = target.get_dimensions();
-      let frame_size = FrameSize {
-        logical_size: (width.into(), height.into()),
-        hidpi_factor: 1.0,
-      };
-      let ui = imgui.frame(frame_size, delta_s as f32);
+      self
+        .imgui_platform
+        .prepare_frame(self.imgui.io_mut(), &window)
+        .map_err(|e| format_err!("Failed to prepare imgui frame: {}", e))?;
+      self.imgui.io_mut().delta_time = delta_s as f32;
+      let ui = self.imgui.frame();
 
       if let Some(tick) = handle.check_tick() {
         screen.perf = 100.0 * tick.cycles_per_s * 4.0 / CPU_SPEED_HZ as f64;
@@ -572,9 +582,11 @@ impl SdlFrontend {
       renderer.draw(&mut target)?;
 
       screen.render(&ui);
+      self.imgui_platform.prepare_render(&ui, &window);
+      let draw_data = ui.render();
       self
-        .gui_renderer
-        .render(&mut target, ui)
+        .imgui_renderer
+        .render(&mut target, draw_data)
         .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
       target.finish()?;
     }

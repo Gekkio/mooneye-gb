@@ -1,4 +1,4 @@
-use imgui::{im_str, ImGuiCol, ImGuiCond, ImString, ImVec4, StyleVar, Ui};
+use imgui::{im_str, Condition, ImString, StyleColor, StyleVar, Ui};
 use std::time::Instant;
 
 use mooneye_gb::config::HardwareConfig;
@@ -25,18 +25,16 @@ impl Screen for WaitBootromScreen {
       .resizable(false)
       .movable(false)
       .always_auto_resize(true)
-      .position((0.0, 0.0), ImGuiCond::Always)
+      .position([0.0, 0.0], Condition::Always)
       .build(|| {
-        ui.text(im_str!("Mooneye GB requires a boot ROM to run"));
-        ui.text(im_str!(
-          "Drag and drop here a boot rom of one of these types:"
-        ));
+        ui.text("Mooneye GB requires a boot ROM to run");
+        ui.text("Drag and drop here a boot rom of one of these types:");
         ui.bullet_text(im_str!("Game Boy (usually called dmg_boot.bin)"));
         ui.bullet_text(im_str!("Game Boy Pocket (usually called mgb_boot.bin)"));
 
         if let Some(ref error) = self.error {
           ui.separator();
-          ui.text_colored(ImVec4::new(1.0, 0.0, 0.0, 1.0), &error);
+          ui.text_colored([1.0, 0.0, 0.0, 1.0], &error);
         }
       });
   }
@@ -56,19 +54,17 @@ impl ErrorOverlay {
   }
   fn render(&self, ui: &Ui<'_>) -> bool {
     let elapsed = self.appear_timestamp.elapsed();
-    ui.with_color_var(ImGuiCol::WindowBg, (1.0, 1.0, 1.0, 0.4), || {
-      ui.with_style_var(StyleVar::WindowBorderSize(1.0), || {
-        ui.window(im_str!("Error overlay"))
-          .title_bar(false)
-          .resizable(false)
-          .movable(false)
-          .always_auto_resize(true)
-          .position((0.0, 0.0), ImGuiCond::Always)
-          .build(|| {
-            ui.text_colored((1.0, 0.0, 0.0, 1.0), &self.error);
-          });
+    let _bg = ui.push_style_color(StyleColor::WindowBg, [1.0, 1.0, 1.0, 0.4]);
+    let _border = ui.push_style_var(StyleVar::WindowBorderSize(1.0));
+    ui.window(im_str!("Error overlay"))
+      .title_bar(false)
+      .resizable(false)
+      .movable(false)
+      .always_auto_resize(true)
+      .position([0.0, 0.0], Condition::Always)
+      .build(|| {
+        ui.text_colored([1.0, 0.0, 0.0, 1.0], &self.error);
       });
-    });
     elapsed.as_secs() < 5
   }
 }
@@ -104,19 +100,18 @@ impl InGameScreen {
 impl Screen for InGameScreen {
   fn render(&mut self, ui: &Ui<'_>) {
     if self.show_info_overlay {
-      ui.with_color_var(ImGuiCol::WindowBg, (0.0, 0.0, 0.0, 0.4), || {
-        ui.window(im_str!("Info overlay"))
-          .title_bar(false)
-          .resizable(false)
-          .movable(false)
-          .always_auto_resize(true)
-          .position((0.0, 0.0), ImGuiCond::Always)
-          .build(|| {
-            ui.text(&self.model);
-            ui.text(&self.cartridge_title);
-            ui.text(im_str!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
-          });
-      });
+      let _bg = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.4]);
+      ui.window(im_str!("Info overlay"))
+        .title_bar(false)
+        .resizable(false)
+        .movable(false)
+        .always_auto_resize(true)
+        .position([0.0, 0.0], Condition::Always)
+        .build(|| {
+          ui.text(&self.model);
+          ui.text(&self.cartridge_title);
+          ui.text(format!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
+        });
     }
     if let Some(overlay) = self.error_overlay.take() {
       if overlay.render(ui) {

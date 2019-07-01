@@ -23,7 +23,7 @@ use failure::Error;
 use log::{error, info, warn};
 use mooneye_gb::config::{Bootrom, Cartridge, Model};
 use serde_derive::Deserialize;
-use simplelog::{LevelFilter, TermLogger};
+use simplelog::{LevelFilter, TermLogger, TerminalMode};
 use std::path::Path;
 use std::process;
 
@@ -78,7 +78,11 @@ fn run() -> Result<(), Error> {
     .and_then(|d| d.deserialize())
     .unwrap_or_else(|e| e.exit());
 
-  let _ = TermLogger::init(LevelFilter::Debug, simplelog::Config::default());
+  let _ = TermLogger::init(
+    LevelFilter::Debug,
+    simplelog::Config::default(),
+    TerminalMode::Mixed,
+  );
 
   info!("Starting Mooneye GB v{}", VERSION);
 

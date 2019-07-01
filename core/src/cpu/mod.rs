@@ -248,7 +248,13 @@ impl Cpu {
     self.regs.f = Flags::ZERO.test(result == 0)
       | Flags::ADD_SUBTRACT
       | Flags::CARRY.test((self.regs.a as u16) < (value as u16) + (cy as u16))
-      | Flags::HALF_CARRY.test((self.regs.a & 0xf) < (value & 0xf) + cy);
+      | Flags::HALF_CARRY.test(
+        (self.regs.a & 0xf)
+          .wrapping_sub(value & 0xf)
+          .wrapping_sub(cy)
+          & (0xf + 1)
+          != 0,
+      );
     result
   }
   fn alu_rl(&mut self, value: u8, set_zero: bool) -> u8 {
