@@ -15,7 +15,6 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use failure::{format_err, Error};
 use glium::{glutin, Api, Display, Surface, Version};
-use imgui_glium_renderer::GliumRenderer;
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use log::info;
 use sdl2;
@@ -44,7 +43,7 @@ pub struct SdlFrontend {
   event_pump: EventPump,
   display: Display,
   imgui: imgui::Context,
-  imgui_renderer: GliumRenderer,
+  imgui_renderer: imgui_glium_renderer::Renderer,
   imgui_platform: WinitPlatform,
   renderer: Renderer,
   times: FrameTimes,
@@ -149,7 +148,7 @@ impl SdlFrontend {
     let mut imgui = imgui::Context::create();
     imgui.set_ini_filename(None);
     imgui.set_log_filename(None);
-    let imgui_renderer = GliumRenderer::init(&mut imgui, &display)
+    let imgui_renderer = imgui_glium_renderer::Renderer::init(&mut imgui, &display)
       .map_err(|e| format_err!("Failed to initialize renderer: {}", e))?;
     let mut imgui_platform = WinitPlatform::init(&mut imgui);
 
