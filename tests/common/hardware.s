@@ -24,12 +24,28 @@
 
 .ifdef CART_TYPE
   ; MBC1 registers
-  .ifgreq CART_TYPE 1
-    .ifleeq CART_TYPE 3
+  .ifgreq CART_TYPE $01
+    .ifleeq CART_TYPE $03
       .define RAMG $0000
       .define BANK1 $2000
       .define BANK2 $4000
       .define MODE $6000
+    .endif
+  .endif
+  ; MBC2 registers
+  .ifgreq CART_TYPE $05
+    .ifleeq CART_TYPE $06
+      .define RAMG $0000
+      .define ROMB $2100
+    .endif
+  .endif
+  ; MBC5 registers
+  .ifgreq CART_TYPE $19
+    .ifleeq CART_TYPE $1e
+      .define RAMG $0000
+      .define ROMB0 $2000
+      .define ROMB1 $3000
+      .define RAMB $4000
     .endif
   .endif
 .endif
