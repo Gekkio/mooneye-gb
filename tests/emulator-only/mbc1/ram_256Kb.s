@@ -65,17 +65,17 @@ test_round2:
 
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   ld a, bank
   call copy_bank_data
 .endr
 
   ld a, $0A
-  ld ($0000), a
+  ld (RAMG), a
 
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   ld a, bank
   call check_bank_data
   jp nc, fail_round2
@@ -88,7 +88,7 @@ test_round3:
 
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   ld a, bank
   call copy_bank_data
 .endr
@@ -96,7 +96,7 @@ test_round3:
 ; All "banks" should show the last written data because of mode 0
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   ld a, 3
   call check_bank_data
   jp c, fail_round3
@@ -105,11 +105,11 @@ test_round3:
 ; Now, if we enable mode 1, none of the previously inaccessible banks should have the data
 test_round4:
   ld a, $01
-  ld ($6000), a
+  ld (MODE), a
 
 .repeat 3 INDEX bank
   ld a, (bank + 1) | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
 
   ld hl, all_00
   ld de, $A000
@@ -130,7 +130,7 @@ test_round4:
 test_round5:
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   ld a, bank
   call copy_bank_data
 .endr
@@ -138,7 +138,7 @@ test_round5:
 ; All "banks" should show the last written data because of mode 0
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   ld a, bank
   call check_bank_data
   jp c, fail_round5
@@ -147,11 +147,11 @@ test_round5:
 ; And if we set mode 0, we should be back to bank 0
 test_round6:
   xor a
-  ld ($6000), a
+  ld (MODE), a
 
 .repeat 4 INDEX bank
   ld a, bank | %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   xor a
   call check_bank_data
   jp c, fail_round6
@@ -218,14 +218,14 @@ bank_data:
 
 clear_ram:
   ld a, $0A
-  ld ($0000), a
+  ld (RAMG), a
   ld a, $01
-  ld ($6000), a
+  ld (MODE), a
 
   ld e, 4
 
 - ld a, e
-  ld ($4000), a
+  ld (BANK2), a
   ld hl, $A000
   ld bc, $2000
   xor a
@@ -234,7 +234,7 @@ clear_ram:
   jr nz, -
 
   xor a
-  ld ($0000), a
+  ld (RAMG), a
 
   ret
 

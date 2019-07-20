@@ -36,7 +36,7 @@
 
   ; enable ram
   ld a, $0a
-  ld ($0000), a
+  ld (RAMG), a
 
   ; Copy RAM data
   ld hl, $A000
@@ -87,7 +87,7 @@ test_round2:
 
 - ; Disable RAM
   xor a
-  ld ($0000), a
+  ld (RAMG), a
 
   ld de, ram_data_disabled
   call compare_ram_data
@@ -96,7 +96,7 @@ test_round2:
   ld a, (ramg_value)
 
   ; Write RAMG
-  ld ($0000), a
+  ld (RAMG), a
 
   ld hl, ramg_expectations
   add l

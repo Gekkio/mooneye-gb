@@ -87,12 +87,12 @@ wram_functions_start:
 
 run_test_suite:
   xor a
-  ld ($6000), a
+  ld (MODE), a
   ldh (<v_mode), a
   call_wram run_tests
 
   ld a, $01
-  ld ($6000), a
+  ld (MODE), a
   ldh (<v_mode), a
   call_wram run_tests
 
@@ -150,7 +150,7 @@ test_case:
 ; Preserved: BC, DE, HL
 restore_mbc1:
   xor a
-  ld ($6000), a
+  ld (MODE), a
   ld a, 1
   jp_wram switch_bank
 
@@ -160,12 +160,12 @@ restore_mbc1:
 switch_bank:
   push af
   or %11100000 ; set high bits to expose bugs
-  ld ($2000), a
+  ld (BANK1), a
   pop af
   swap a
   sra a
   or %11111100 ; set high bits to expose bugs
-  ld ($4000), a
+  ld (BANK2), a
   ret
 
 ; Inputs:

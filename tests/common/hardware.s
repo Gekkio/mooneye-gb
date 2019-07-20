@@ -22,6 +22,18 @@
   .define ROM_BANK_SIZE $4000
 .endif
 
+.ifdef CART_TYPE
+  ; MBC1 registers
+  .ifgreq CART_TYPE 1
+    .ifleeq CART_TYPE 3
+      .define RAMG $0000
+      .define BANK1 $2000
+      .define BANK2 $4000
+      .define MODE $6000
+    .endif
+  .endif
+.endif
+
 .rombanksize ROM_BANK_SIZE
 .memorymap
   defaultslot 1
