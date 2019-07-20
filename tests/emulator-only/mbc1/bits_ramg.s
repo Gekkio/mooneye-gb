@@ -18,8 +18,9 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-; Tests that RAM_EN is mapped to correct addresses, and RAM disable/enable
+; Tests that RAMG is mapped to correct addresses, and RAM disable/enable
 ; happens with the right data values.
+
 ; See gb-ctr for details: https://github.com/Gekkio/gb-ctr
 
 ; Results have been verified using a flash cartridge with a genuine MBC1B1 chip
@@ -82,7 +83,7 @@ test_round1
 
 test_round2:
   xor a
-  ld (ram_en_value), a
+  ld (ramg_value), a
 
 - ; Disable RAM
   xor a
@@ -92,12 +93,12 @@ test_round2:
   call compare_ram_data
   jp c, fail_round2_disable
 
-  ld a, (ram_en_value)
+  ld a, (ramg_value)
 
-  ; Write RAM_EN
+  ; Write RAMG
   ld ($0000), a
 
-  ld hl, ram_en_expectations
+  ld hl, ramg_expectations
   add l
   ld l, a
   ld a, (hl)
@@ -113,9 +114,9 @@ test_round2:
 + call compare_ram_data
   jp c, fail_round2_expect
 
-  ld a, (ram_en_value)
+  ld a, (ramg_value)
   inc a
-  ld (ram_en_value), a
+  ld (ramg_value), a
   jr nz, -
 
   quit_ok
@@ -168,15 +169,15 @@ fail_round2_expect:
   quit_inline
   print_string_literal "R2: Test failed"
   call print_newline
-  print_string_literal "RAM_EN="
-  ld a, (ram_en_value)
+  print_string_literal "RAMG="
+  ld a, (ramg_value)
   call print_hex8
 
   ld d, $42
   ret
 
 .org $2000
-ram_en_expectations:
+ramg_expectations:
 .repeat 16
 .db $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $FF $00 $00 $00 $00 $00
 .endr
@@ -185,6 +186,6 @@ ram_en_expectations:
   test_address .dw
   test_address_l db
   test_address_h db
-  ram_en_value db
+  ramg_value db
   memcmp_hram dsb 32
 .ends

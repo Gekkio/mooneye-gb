@@ -20,19 +20,19 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 struct Mbc1State {
+  ramg: bool,
   bank1: u8,
   bank2: u8,
   mode: bool,
-  ram_en: bool,
 }
 
 impl Default for Mbc1State {
   fn default() -> Mbc1State {
     Mbc1State {
+      ramg: false,
       bank1: 0b0_0001,
       bank2: 0b00,
       mode: false,
-      ram_en: false,
     }
   }
 }
@@ -62,15 +62,15 @@ impl Mbc1State {
 
 #[derive(Debug, Clone)]
 struct Mbc2State {
+  ramg: bool,
   rom_bank: u8,
-  ram_en: bool,
 }
 
 impl Default for Mbc2State {
   fn default() -> Mbc2State {
     Mbc2State {
+      ramg: false,
       rom_bank: 0b0001,
-      ram_en: false,
     }
   }
 }
@@ -215,7 +215,7 @@ impl Cartridge {
         multicart,
       } => match reladdr >> 8 {
         0x00..=0x1f => {
-          state.ram_en = (value & 0b1111) == 0b1010;
+          state.ramg = (value & 0b1111) == 0b1010;
         }
         0x20..=0x3f => {
           state.bank1 = if value & 0b1_1111 == 0b0_0000 {
@@ -239,7 +239,7 @@ impl Cartridge {
       },
       Mbc::Mbc2 { ref mut state } => match reladdr >> 8 {
         0x00..=0x3f if !reladdr.bit_bool(8) => {
-          state.ram_en = (value & 0x0f) == 0x0a;
+          state.ramg = (value & 0x0f) == 0x0a;
         }
         0x00..=0x3f if reladdr.bit_bool(8) => {
           state.rom_bank = if value & 0b1111 == 0b0000 {
@@ -308,8 +308,8 @@ impl Cartridge {
   }
   pub fn read_a000_bfff(&self, addr: u16, default_value: u8) -> u8 {
     match self.mbc {
-      Mbc::Mbc1 { ref state, .. } if state.ram_en => self.read_ram(addr, default_value),
-      Mbc::Mbc2 { ref state } if state.ram_en => {
+      Mbc::Mbc1 { ref state, .. } if state.ramg => self.read_ram(addr, default_value),
+      Mbc::Mbc2 { ref state } if state.ramg => {
         (default_value & 0xf0) | (self.read_ram(addr, default_value) & 0x0f)
       }
       Mbc::Mbc3 { ref state, mbc30 } if state.map_en => match state.map_select {
@@ -326,8 +326,8 @@ impl Cartridge {
   }
   pub fn write_a000_bfff(&mut self, addr: u16, value: u8) {
     match self.mbc {
-      Mbc::Mbc1 { ref state, .. } if state.ram_en => self.write_ram(addr, value),
-      Mbc::Mbc2 { ref state } if state.ram_en => self.write_ram(addr, value & 0xf),
+      Mbc::Mbc1 { ref state, .. } if state.ramg => self.write_ram(addr, value),
+      Mbc::Mbc2 { ref state } if state.ramg => self.write_ram(addr, value & 0xf),
       Mbc::Mbc3 { ref state, mbc30 } if state.map_en => match state.map_select {
         0x00..=0x03 => self.write_ram(addr, value),
         0x04..=0x07 if mbc30 => self.write_ram(addr, value),
