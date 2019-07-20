@@ -25,7 +25,7 @@
 ;   pass: DMG ABC, MGB, SGB, SGB2
 ;   fail: DMG 0, CGB, AGB, AGS
 
-.define CART_TYPE 3 ; MBC1
+.define CART_TYPE $1B ; MBC5, ram, battery
 .define CART_RAM_SIZE 2
 
 .include "common.s"

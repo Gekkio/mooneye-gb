@@ -31,7 +31,7 @@
 ; Results have been verified using a flash cartridge with a genuine MBC1B1 chip
 ; and support for configuring ROM/RAM sizes.
 
-.define CART_TYPE 3 ; MBC1
+.define CART_TYPE $03 ; MBC1, ram, battery
 .define CART_ROM_BANKS 4
 .define CART_RAM_SIZE 3
 
