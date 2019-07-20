@@ -25,8 +25,10 @@
 ;   * Since we have only one 8 KB bank, we always access it regardless of what
 ;      we do with $4000 and $6000
 
-; Results have been verified with MBC1 research. See gb-ctr for details:
-; https://github.com/Gekkio/gb-ctr
+; See gb-ctr for details: https://github.com/Gekkio/gb-ctr
+
+; Results have been verified using a flash cartridge with a genuine MBC1B1 chip
+; and support for configuring ROM/RAM sizes.
 
 .define CART_TYPE 3 ; MBC1
 .define CART_ROM_BANKS 4

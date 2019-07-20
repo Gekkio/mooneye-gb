@@ -20,8 +20,10 @@
 
 ; Tests banking behaviour of a MBC1 cart with a 2 Mbit ROM
 
-; Results have been verified with MBC1 research. See gb-ctr for details:
-; https://github.com/Gekkio/gb-ctr
+; See gb-ctr for details: https://github.com/Gekkio/gb-ctr
+
+; Results have been verified using a flash cartridge with a genuine MBC1B1 chip
+; and support for configuring ROM/RAM sizes.
 
 .define CART_ROM_BANKS 16
 

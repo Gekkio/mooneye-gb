@@ -20,9 +20,10 @@
 
 ; Tests that RAM_EN is mapped to correct addresses, and RAM disable/enable
 ; happens with the right data values.
+; See gb-ctr for details: https://github.com/Gekkio/gb-ctr
 
-; Results have been verified with MBC1 research. See gb-ctr for details:
-; https://github.com/Gekkio/gb-ctr
+; Results have been verified using a flash cartridge with a genuine MBC1B1 chip
+; and support for configuring ROM/RAM sizes.
 
 .define CART_TYPE 3 ; MBC1
 .define CART_ROM_BANKS 4
