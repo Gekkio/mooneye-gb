@@ -26,13 +26,6 @@
 
 .include "common.s"
 
-.define hram.sp_save_h $ff85
-.define hram.sp_save_l $ff84
-.define hram.testcase_h $ff83
-.define hram.testcase_l $ff82
-.define hram.a $ff81
-.define hram.f $ff80
-
   ld sp, DEFAULT_SP
 
   ld hl, testcases1
@@ -4266,4 +4259,13 @@ testcases2:
 .db $ff, %1101, $9f, %0101
 .db $ff, %1110, $f9, %0100
 .db $ff, %1111, $99, %0101
+.ends
+
+.ramsection "Test-HRAM" slot HRAM_SLOT
+  hram.f db
+  hram.a db
+  hram.testcase_l db
+  hram.testcase_h db
+  hram.sp_save_l db
+  hram.sp_save_h db
 .ends

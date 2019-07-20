@@ -31,13 +31,13 @@
   call disable_lcd_safe
   call clear_oam
 
-  ld hl, $ff80
-  ld de, hiram_proc
-  ld bc, hiram_proc_end - hiram_proc
+  ld hl, hram.dma_proc
+  ld de, dma_proc
+  ld bc, _sizeof_dma_proc
   call memcpy
 
   ld a, >random_data
-  call $ff80
+  call hram.dma_proc
 
   ld hl, random_data
   ld de, OAM
@@ -60,13 +60,14 @@ fail:
 finish:
   quit_ok
 
-hiram_proc:
+dma_proc:
   ldh (<DMA), a
   ld b, 40
 - dec b
   jr nz, -
   ret
-hiram_proc_end:
+
+_end_dma_proc:
 
 .org $1200
 random_data:
@@ -81,6 +82,7 @@ random_data:
 .db $32, $d5, $9c, $c3, $16, $d0, $49, $29, $ad, $78, $7d, $8b, $7a, $03, $31, $34
 .db $19, $77, $3d, $70, $86, $b4, $a2, $96, $90, $1d, $e2, $dd, $6b, $01, $9c, $94
 
-.ramsection "Test-State" slot HRAM_SLOT
+.ramsection "Test-HRAM" slot HRAM_SLOT
+  hram.dma_proc dsb 16
   fail_offset db
 .ends

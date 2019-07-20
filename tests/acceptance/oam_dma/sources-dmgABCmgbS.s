@@ -38,11 +38,14 @@
   call clear_wram
 
 prepare_part1:
-  call copy_dma_proc
+  ld hl, hram.dma_proc
+  ld de, dma_proc
+  ld bc, _sizeof_dma_proc
+  call memcpy
 
 test_0000:
   ld a, $00
-  call $ff80
+  call hram.dma_proc
 
   ld hl, $0000
   call check_oam
@@ -53,7 +56,7 @@ test_0000:
 
 test_3f00:
   ld a, $3f
-  call $ff80
+  call hram.dma_proc
 
   ld hl, $3f00
   call check_oam
@@ -64,7 +67,7 @@ test_3f00:
 
 test_4000:
   ld a, $40
-  call $ff80
+  call hram.dma_proc
 
   ld hl, $4000
   call check_oam
@@ -75,7 +78,7 @@ test_4000:
 
 test_7f00:
   ld a, $7f
-  call $ff80
+  call hram.dma_proc
 
   ld hl, $7f00
   call check_oam
@@ -92,7 +95,7 @@ prepare_part2:
 
 test_8000:
   ld a, $80
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_1
   call check_oam
@@ -103,7 +106,7 @@ test_8000:
 
 test_9f00:
   ld a, $9f
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_2
   call check_oam
@@ -130,7 +133,7 @@ prepare_part3:
 
 test_a000:
   ld a, $a0
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_1
   call check_oam
@@ -141,7 +144,7 @@ test_a000:
 
 test_bf00:
   ld a, $bf
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_2
   call check_oam
@@ -163,7 +166,7 @@ prepare_part4:
 
 test_c000:
   ld a, $c0
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_1
   call check_oam
@@ -174,7 +177,7 @@ test_c000:
 
 test_df00:
   ld a, $df
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_2
   call check_oam
@@ -185,7 +188,7 @@ test_df00:
 
 test_e000:
   ld a, $e0
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_1
   call check_oam
@@ -197,7 +200,7 @@ test_e000:
 test_fe00:
   call clear_oam
   ld a, $fe
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_1
   call check_oam
@@ -208,7 +211,7 @@ test_fe00:
 
 test_ff00:
   ld a, $ff
-  call $ff80
+  call hram.dma_proc
 
   ld hl, ram_pattern_2
   call check_oam
@@ -231,13 +234,6 @@ dma_proc:
 - dec a
   jr nz, -
   ret
-dma_proc_end:
-
-copy_dma_proc:
-  ld hl, $ff80
-  ld de, dma_proc
-  ld bc, dma_proc_end - dma_proc
-  jp memcpy
 
 copy_ram_pattern_1:
   ld de, ram_pattern_1
@@ -322,3 +318,7 @@ ram_pattern_2:
 .db $c3, $f0, $48, $00, $97, $06, $51, $78, $72, $5c, $20, $f1, $4d, $21, $bf, $5b
 .db $81, $f0, $a7, $ba, $cf, $f2, $5c, $c2, $59, $eb, $4e, $7a, $1d, $16, $b9, $b5
 .db $cc, $92, $9e, $60, $8f, $86, $6a, $dc, $e2, $26, $dc, $9f, $05, $00, $a2, $21
+
+.ramsection "Test-HRAM" slot HRAM_SLOT
+  hram.dma_proc dsb 16
+.ends
