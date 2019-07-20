@@ -137,6 +137,7 @@ compare_ram_data:
 
 fail_round1_disable:
   quit_inline
+  call print_newline
   print_string_literal "R1: Test failed"
   call print_newline
   call fail_round1_print_test_address
@@ -147,6 +148,7 @@ fail_round1_disable:
 
 fail_round1_enable:
   quit_inline
+  call print_newline
   print_string_literal "R1: Test failed"
   call print_newline
   call fail_round1_print_test_address
@@ -167,6 +169,7 @@ fail_round2_disable:
 
 fail_round2_expect:
   quit_inline
+  call print_newline
   print_string_literal "R2: Test failed"
   call print_newline
   print_string_literal "RAMG="

@@ -152,6 +152,9 @@ testcases! {
   timer_tima_write_reloading("acceptance/timer/tima_write_reloading", all);
   timer_tma_write_reloading("acceptance/timer/tma_write_reloading", all);
   mbc1_bits_ramg("emulator-only/mbc1/bits_ramg", all);
+  mbc1_bits_bank1("emulator-only/mbc1/bits_bank1", all);
+  mbc1_bits_bank2("emulator-only/mbc1/bits_bank2", all);
+  mbc1_bits_mode("emulator-only/mbc1/bits_mode", all);
   mbc1_rom_512kb("emulator-only/mbc1/rom_512Kb", all);
   mbc1_rom_1mb("emulator-only/mbc1/rom_1Mb", all);
   mbc1_rom_2mb("emulator-only/mbc1/rom_2Mb", all);
