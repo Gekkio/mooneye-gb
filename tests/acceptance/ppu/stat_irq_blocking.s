@@ -27,7 +27,7 @@
 
 .include "common.s"
 
-  di
+  ld sp, DEFAULT_SP
 
 test_round1:
   ld b, $00

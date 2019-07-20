@@ -33,6 +33,8 @@
 .define hram.a $ff81
 .define hram.f $ff80
 
+  ld sp, DEFAULT_SP
+
   ld hl, testcases1
   call run_tests
   ld hl, testcases2

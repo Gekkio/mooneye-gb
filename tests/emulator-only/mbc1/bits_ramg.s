@@ -32,7 +32,7 @@
 
 .include "common.s"
 
-  ld sp, $fffe
+  ld sp, DEFAULT_SP
 
   ; enable ram
   ld a, $0a

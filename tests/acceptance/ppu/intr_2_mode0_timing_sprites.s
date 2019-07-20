@@ -39,7 +39,8 @@
   jr nz, -
 .endm
 
-  di
+  ld sp, DEFAULT_SP
+
   call disable_lcd_safe
   call reset_screen
   call print_load_font

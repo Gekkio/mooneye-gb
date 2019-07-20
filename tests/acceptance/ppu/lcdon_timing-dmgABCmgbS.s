@@ -36,7 +36,8 @@
 
 .include "common.s"
 
-  di
+  ld sp, DEFAULT_SP
+
   call disable_lcd_safe
   call clear_vram
   call clear_oam

@@ -37,6 +37,7 @@
 
 .emptyfill $ff
 
+.define DEFAULT_SP $e000
 .ifdef CART_CGB
   .romgbc
 .else

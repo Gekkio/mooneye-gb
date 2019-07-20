@@ -25,7 +25,7 @@
   push de
   push bc
   push af
-  ld sp, $e000
+  ld sp, DEFAULT_SP
   xor a
   ldh (<v_regs_flags), a
   ldh (<v_regs_assert.reg_a), a

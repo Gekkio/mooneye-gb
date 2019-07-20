@@ -30,6 +30,8 @@
 
 .include "common.s"
 
+  ld sp, $ffff
+
   call disable_lcd_safe
   call clear_oam
   call clear_vram

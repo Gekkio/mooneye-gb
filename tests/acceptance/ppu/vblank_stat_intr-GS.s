@@ -42,6 +42,8 @@
   jp fail_halt
 .endm
 
+  ld sp, DEFAULT_SP
+
   ld hl, intr_vec_vblank
   ld a, $C3
   ld (hl+), a ; JP nnnn

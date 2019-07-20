@@ -42,7 +42,8 @@
   ldh (<SCX), a
 .endm
 
-  di
+  ld sp, DEFAULT_SP
+
   wait_vblank
   ld hl, LY
   ld a, $08

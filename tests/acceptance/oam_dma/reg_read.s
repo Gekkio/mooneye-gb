@@ -28,6 +28,8 @@
 
 .include "common.s"
 
+  ld sp, DEFAULT_SP
+
   call disable_lcd_safe
 
 ; First, a simple case where we let the transfer finish and then do the read

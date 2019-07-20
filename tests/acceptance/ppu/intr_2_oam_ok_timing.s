@@ -39,7 +39,8 @@
   jr nz, -
 .endm
 
-  di
+  ld sp, DEFAULT_SP
+
   wait_vblank
   call clear_oam
 

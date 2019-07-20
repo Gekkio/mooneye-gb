@@ -27,7 +27,8 @@
 
 .include "common.s"
 
-  di
+  ld sp, DEFAULT_SP
+
   call disable_lcd_safe
 
   jp round1

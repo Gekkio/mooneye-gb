@@ -42,6 +42,8 @@
   ld a, h
   ld (test_addr + 1), a
 
+  ld sp, DEFAULT_SP
+
   call run_testcase
   jr _finish_\@
 

@@ -30,6 +30,8 @@
   jp target - wram_functions_start + v_wram_functions
 .endm
 
+  ld sp, DEFAULT_SP
+
   ld hl, v_wram_functions
   ld de, wram_functions_start
   ld bc, wram_functions_end - wram_functions_start

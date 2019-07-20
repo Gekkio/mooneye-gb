@@ -24,7 +24,7 @@
 ; Outputs: -
 ; Preserved: -
 quit:
-  ld sp, $e000
+  ld sp, DEFAULT_SP
   ld bc, @cb_return
   push bc
   push hl

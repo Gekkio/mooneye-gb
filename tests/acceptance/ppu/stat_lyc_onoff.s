@@ -27,6 +27,8 @@
 
 .include "common.s"
 
+  ld sp, DEFAULT_SP
+
   ld a, %01000000
   ldh (<STAT), a
   ld a, INTR_STAT

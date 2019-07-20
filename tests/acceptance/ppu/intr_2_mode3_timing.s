@@ -39,7 +39,8 @@
   jr nz, -
 .endm
 
-  di
+  ld sp, DEFAULT_SP
+
   wait_vblank
   ld hl, STAT
   ld a, INTR_STAT

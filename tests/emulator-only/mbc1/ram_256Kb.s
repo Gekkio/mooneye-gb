@@ -37,6 +37,8 @@
 
 .include "common.s"
 
+  ld sp, DEFAULT_SP
+
   ld hl, memcmp_hram
   ld de, memcmp
   ld bc, _sizeof_memcmp

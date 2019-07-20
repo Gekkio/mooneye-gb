@@ -26,6 +26,8 @@
 
 .include "common.s"
 
+  ld sp, DEFAULT_SP
+
   call disable_lcd_safe
   call clear_oam
 

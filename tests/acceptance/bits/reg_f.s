@@ -26,8 +26,7 @@
 
 .include "common.s"
 
-  di
-  ld sp, $FFFE
+  ld sp, DEFAULT_SP
 
 ; Write all 1s (= $FF)
   ld e, $FF
