@@ -27,9 +27,9 @@
   defaultslot 1
   slot 0 start $0000 size ROM_BANK_SIZE
   slot 1 start $4000 size ROM_BANK_SIZE
-  slot 2 start $C000 size $2000
-  slot 3 start $A000 size $2000
-  slot 4 start $FF80 size $007F
+  slot 2 start $c000 size $2000
+  slot 3 start $a000 size $2000
+  slot 4 start $ff80 size $007f
 .endme
 .define WRAM0_SLOT 2
 .define WRAMX_SLOT 2
@@ -50,67 +50,67 @@
 
 .define VRAM  $8000
 .define WRAM  $C000
-.define OAM   $FE00
-.define HIRAM $FF80
+.define OAM   $fe00
+.define HIRAM $ff80
 
 .define VRAM_LEN  $2000
 .define WRAM_LEN  $2000
-.define OAM_LEN   $A0
-.define HIRAM_LEN $7F
+.define OAM_LEN   $a0
+.define HIRAM_LEN $7f
 
-.define P1    $FF00
-.define SB    $FF01
-.define SC    $FF02
-.define DIV   $FF04
-.define TIMA  $FF05
-.define TMA   $FF06
-.define TAC   $FF07
-.define IF    $FF0F
-.define NR10  $FF10
-.define NR11  $FF11
-.define NR12  $FF12
-.define NR13  $FF13
-.define NR14  $FF14
-.define NR21  $FF16
-.define NR22  $FF17
-.define NR23  $FF18
-.define NR24  $FF19
-.define NR30  $FF1A
-.define NR31  $FF1B
-.define NR32  $FF1C
-.define NR33  $FF1D
-.define NR34  $FF1E
-.define NR41  $FF20
-.define NR42  $FF21
-.define NR43  $FF22
-.define NR44  $FF23
-.define NR50  $FF24
-.define NR51  $FF25
-.define NR52  $FF26
-.define LCDC  $FF40
-.define STAT  $FF41
-.define SCY   $FF42
-.define SCX   $FF43
-.define LY    $FF44
-.define LYC   $FF45
-.define DMA   $FF46
-.define BGP   $FF47
-.define OBP0  $FF48
-.define OBP1  $FF49
-.define WY    $FF4A
-.define WX    $FF4B
-.define KEY1  $FF4D
-.define VBK   $FF4F
-.define BOOT  $FF50
-.define HDMA1 $FF51
-.define HDMA2 $FF52
-.define HDMA3 $FF53
-.define HDMA4 $FF54
-.define HDMA5 $FF55
-.define RP    $FF56
-.define BCPS  $FF68
-.define BCPD  $FF69
-.define OCPS  $FF6A
-.define OCPD  $FF6B
-.define SVBK  $FF70
-.define IE    $FFFF
+.define P1    $ff00
+.define SB    $ff01
+.define SC    $ff02
+.define DIV   $ff04
+.define TIMA  $ff05
+.define TMA   $ff06
+.define TAC   $ff07
+.define IF    $ff0f
+.define NR10  $ff10
+.define NR11  $ff11
+.define NR12  $ff12
+.define NR13  $ff13
+.define NR14  $ff14
+.define NR21  $ff16
+.define NR22  $ff17
+.define NR23  $ff18
+.define NR24  $ff19
+.define NR30  $ff1a
+.define NR31  $ff1b
+.define NR32  $ff1c
+.define NR33  $ff1d
+.define NR34  $ff1e
+.define NR41  $ff20
+.define NR42  $ff21
+.define NR43  $ff22
+.define NR44  $ff23
+.define NR50  $ff24
+.define NR51  $ff25
+.define NR52  $ff26
+.define LCDC  $ff40
+.define STAT  $ff41
+.define SCY   $ff42
+.define SCX   $ff43
+.define LY    $ff44
+.define LYC   $ff45
+.define DMA   $ff46
+.define BGP   $ff47
+.define OBP0  $ff48
+.define OBP1  $ff49
+.define WY    $ff4a
+.define WX    $ff4b
+.define KEY1  $ff4d
+.define VBK   $ff4f
+.define BOOT  $ff50
+.define HDMA1 $ff51
+.define HDMA2 $ff52
+.define HDMA3 $ff53
+.define HDMA4 $ff54
+.define HDMA5 $ff55
+.define RP    $ff56
+.define BCPS  $ff68
+.define BCPD  $ff69
+.define OCPS  $ff6a
+.define OCPD  $ff6b
+.define SVBK  $ff70
+.define IE    $ffff

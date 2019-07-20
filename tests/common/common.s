@@ -35,7 +35,7 @@
 
 .rombanks CART_ROM_BANKS
 
-.emptyfill $FF
+.emptyfill $ff
 
 .ifdef CART_CGB
   .romgbc

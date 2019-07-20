@@ -38,7 +38,7 @@ reset_screen:
   ldh (<BCPD), a
 .endr
 .else
-  ld a, $FC
+  ld a, $fc
   ldh (<BGP), a
 .endif
 

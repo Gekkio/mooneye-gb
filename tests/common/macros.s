@@ -52,7 +52,7 @@ _delay_long_time_\@:
 .endm
 
 .macro halt_execution
-  ld b, b ; magic breakpoint
+  magic_breakpoint
 @halt_execution_\@:
   nop
   jr @halt_execution_\@
@@ -60,12 +60,12 @@ _delay_long_time_\@:
 
 .macro disable_lcd
   ld hl, LCDC
-  res 7, (HL)
+  res 7, (hl)
 .endm
 
 .macro enable_lcd
   ld hl, LCDC
-  set 7, (HL)
+  set 7, (hl)
 .endm
 
 .macro wait_ly ARGS value

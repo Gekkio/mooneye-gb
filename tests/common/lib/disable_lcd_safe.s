@@ -24,9 +24,9 @@
 ; Preserved: BC, DE
 disable_lcd_safe:
   ld hl, LCDC
-  bit 7, (HL)
+  bit 7, (hl)
   ret z
   wait_ly 144
-  res 7, (HL)
+  res 7, (hl)
   ret
 .ends
