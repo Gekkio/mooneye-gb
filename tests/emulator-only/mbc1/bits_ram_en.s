@@ -42,6 +42,11 @@
   ld de, ram_data_enabled
   call memcpy
 
+  ld hl, memcmp_hram
+  ld de, memcmp
+  ld bc, _sizeof_memcmp
+  call memcpy
+
 test_round1
   ld hl, $1fff
 
@@ -126,7 +131,7 @@ ram_data_disabled:
 compare_ram_data:
   ld hl, $a000
   ld bc, _sizeof_ram_data_enabled
-  jp memcmp
+  jp memcmp_hram
 
 fail_round1_disable:
   quit_inline
@@ -180,4 +185,5 @@ ram_en_expectations:
   test_address_l db
   test_address_h db
   ram_en_value db
+  memcmp_hram dsb 32
 .ends

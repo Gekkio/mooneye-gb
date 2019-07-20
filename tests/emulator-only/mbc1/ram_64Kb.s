@@ -34,19 +34,24 @@
 
 .include "common.s"
 
+  ld hl, memcmp_hram
+  ld de, memcmp
+  ld bc, _sizeof_memcmp
+  call memcpy
+
 ; Initially the RAM should be disabled
 test_round1:
   ld hl, all_ff
   ld de, $A000
   ld bc, 16
-  call memcmp
+  call memcmp_hram
 
   jp c, fail_round1
 
   ld hl, all_ff
   ld de, $B000
   ld bc, 16
-  call memcmp
+  call memcmp_hram
 
   jp c, fail_round1
 
@@ -120,14 +125,14 @@ check_bank_data:
   ld de, bank_data
   ld hl, $A000
   ld bc, 16
-  call memcmp
+  call memcmp_hram
 
   ret c
 
   ld de, bank_data
   ld hl, $B000
   ld bc, 16
-  jp memcmp
+  jp memcmp_hram
 
 all_ff:
 .dsb 16 $FF
@@ -180,3 +185,7 @@ fail_round4:
 fail_round5:
   call clear_ram
   quit_failure_string "FAIL: Round 5"
+
+.ramsection "Test-State" slot 5
+  memcmp_hram dsb 32
+.ends
