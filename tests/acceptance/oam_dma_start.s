@@ -174,7 +174,7 @@ test_finish:
   ld l, e
   jp hl
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   vector_10 dw
   vector_38 dw
   round1_oam db

@@ -126,7 +126,7 @@ finish_round2:
 
   jp test_finish
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   result_tmp dw
   result_round1 dw
 .ends

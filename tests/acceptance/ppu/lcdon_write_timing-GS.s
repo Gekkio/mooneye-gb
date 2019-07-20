@@ -147,12 +147,12 @@ verify_fail:
 
 .ends
 
-.ramsection "Test-WRAM" slot 2
+.ramsection "Test-WRAM" slot WRAM0_SLOT
   v_test_code dsb 300
   v_test_results dsb 19
 .ends
 
-.ramsection "Test-HRAM" slot 5
+.ramsection "Test-HRAM" slot HRAM_SLOT
   v_fail_round db
   v_fail_expect db
   v_fail_actual db

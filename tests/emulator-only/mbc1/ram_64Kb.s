@@ -188,6 +188,6 @@ fail_round5:
   call clear_ram
   quit_failure_string "FAIL: Round 5"
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   memcmp_hram dsb 32
 .ends

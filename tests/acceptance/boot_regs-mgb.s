@@ -61,6 +61,6 @@
 invalid_sp:
   quit_failure_string "INVALID SP VALUE"
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   sp_save dw
 .ends

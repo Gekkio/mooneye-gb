@@ -18,15 +18,23 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
+.ifndef ROM_BANK_SIZE
+  .define ROM_BANK_SIZE $4000
+.endif
+
+.rombanksize ROM_BANK_SIZE
 .memorymap
   defaultslot 1
-  slot 0 start $0000 size $4000
-  slot 1 start $4000 size $4000
-  slot 2 start $C000 size $1000
-  slot 3 start $D000 size $1000
-  slot 4 start $A000 size $2000
-  slot 5 start $FF80 size $007F
+  slot 0 start $0000 size ROM_BANK_SIZE
+  slot 1 start $4000 size ROM_BANK_SIZE
+  slot 2 start $C000 size $2000
+  slot 3 start $A000 size $2000
+  slot 4 start $FF80 size $007F
 .endme
+.define WRAM0_SLOT 2
+.define WRAMX_SLOT 2
+.define XRAM_SLOT 3
+.define HRAM_SLOT 4
 
 .define INTR_VBLANK (1 << 0)
 .define INTR_STAT   (1 << 1)

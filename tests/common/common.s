@@ -33,7 +33,6 @@
   .define CART_RAM_SIZE 0
 .endif
 
-.rombanksize $4000
 .rombanks CART_ROM_BANKS
 
 .emptyfill $FF
@@ -120,13 +119,13 @@ font:
   reg_h db
 .endst
 
-.ramsection "Runtime-Assert" slot 5
+.ramsection "Runtime-Assert" slot HRAM_SLOT
   v_regs_save instanceof reg_dump
   v_regs_flags db
   v_regs_assert instanceof reg_dump
 .ends
 
-.ramsection "Runtime-Memdump" slot 5
+.ramsection "Runtime-Memdump" slot HRAM_SLOT
   v_dump_len db
   v_dump_addr .dw
   v_dump_addr_l db

@@ -258,7 +258,7 @@ _next:
 
   ret
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   test_addr dw
   test_got db
   test_reg db

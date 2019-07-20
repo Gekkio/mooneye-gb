@@ -114,7 +114,7 @@ hwio_data:
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF70
 .db %11111111, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF ; $FF78
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   mismatch_addr dw
   mismatch_data db
   mismatch_mem db

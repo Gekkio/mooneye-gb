@@ -79,6 +79,6 @@ random_data:
 .db $32, $d5, $9c, $c3, $16, $d0, $49, $29, $ad, $78, $7d, $8b, $7a, $03, $31, $34
 .db $19, $77, $3d, $70, $86, $b4, $a2, $96, $90, $1d, $e2, $dd, $6b, $01, $9c, $94
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   fail_offset db
 .ends

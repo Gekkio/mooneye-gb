@@ -196,7 +196,7 @@ verify_fail:
 
 .ends
 
-.ramsection "Test-State" slot 5
+.ramsection "Test-State" slot HRAM_SLOT
   v_pass1_results dsb 8
   v_pass2_results dsb 8
   v_pass3_results dsb 8
