@@ -328,6 +328,18 @@ Notes:
 | ram 256Kb         | :+1:       |
 | multicart rom 8Mb | :+1:       |
 
+#### MBC2
+
+| Test              | mooneye-gb |
+| ----------------- | ---------- |
+| bits ramg         | :+1:       |
+| bits romb         | :+1:       |
+| bits unused       | :+1:       |
+| rom 512Kb         | :+1:       |
+| rom 1Mb           | :+1:       |
+| rom 2Mb           | :+1:       |
+| ram               | :+1:       |
+
 ### Mooneye GB manual tests
 
 | Test            | mooneye-gb |
