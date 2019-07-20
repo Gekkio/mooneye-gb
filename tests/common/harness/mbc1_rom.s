@@ -22,37 +22,31 @@
 
 .include "common.s"
 
-.define g_bank_number    $FF80
-.define g_actual_value   $FF81
-.define g_expected_value $FF82
-.define g_lower_upper    $FF83
-.define g_mode           $FF84
-
-.macro call_c000 ARGS target
-  call target - c000_functions_start + $C000
+.macro call_wram ARGS target
+  call target - wram_functions_start + v_wram_functions
 .endm
 
-.macro jp_c000 ARGS target
-  jp target - c000_functions_start + $C000
+.macro jp_wram ARGS target
+  jp target - wram_functions_start + v_wram_functions
 .endm
 
-  ld hl, $C000
-  ld de, c000_functions_start
-  ld bc, c000_functions_end - c000_functions_start
+  ld hl, v_wram_functions
+  ld de, wram_functions_start
+  ld bc, wram_functions_end - wram_functions_start
   call memcpy
 
-  ld hl, $D000
+  ld hl, v_expected_banks
   ld de, expected_banks
-  ld bc, 128 + 128 + 128
+  ld bc, _sizeof_v_expected_banks
   call memcpy
 
-  jp $C000
+  jp_wram run_test_suite
 
 fail:
   quit_inline
   print_string_literal "TEST FAILED"
   call print_newline
-  ldh a, (<g_lower_upper)
+  ldh a, (<v_lower_upper)
   and a
   jr nz, +
 
@@ -65,64 +59,64 @@ fail:
   call print_newline
 
   print_string_literal "MODE "
-  ldh a, (<g_mode)
+  ldh a, (<v_mode)
   call print_hex8
 
   call print_newline
   call print_newline
 
   print_string_literal "BANK NUMBER "
-  ldh a, (<g_bank_number)
+  ldh a, (<v_bank_number)
   call print_hex8
   call print_newline
 
   print_string_literal "EXPECTED    "
-  ldh a, (<g_expected_value)
+  ldh a, (<v_expected_value)
   call print_hex8
   call print_newline
 
   print_string_literal "ACTUAL      "
-  ldh a, (<g_actual_value)
+  ldh a, (<v_actual_value)
   call print_hex8
   call print_newline
   ld d, $42
   ret
 
 
-c000_functions_start:
+wram_functions_start:
 
 run_test_suite:
   xor a
   ld ($6000), a
-  ldh (<g_mode), a
-  call_c000 run_tests
+  ldh (<v_mode), a
+  call_wram run_tests
 
   ld a, $01
   ld ($6000), a
-  ldh (<g_mode), a
-  call_c000 run_tests
+  ldh (<v_mode), a
+  call_wram run_tests
 
-  call_c000 restore_mbc1
+  call_wram restore_mbc1
   quit_ok
 
 run_tests:
   xor a
-  ldh (<g_lower_upper), a
-  call_c000 run_test_cases
+  ldh (<v_lower_upper), a
+  call_wram run_test_cases
 
   ld a, $40
-  ldh (<g_lower_upper), a
-  call_c000 run_test_cases
+  ldh (<v_lower_upper), a
+  call_wram run_test_cases
 
   ret
 
 run_test_cases:
   xor a
 --
-  ldh (<g_bank_number), a
+  ldh (<v_bank_number), a
 
-  call_c000 test_case
-  ldh a, (<g_bank_number)
+  call_wram test_case
+  ldh a, (<v_bank_number)
   inc a
   cp 128
   jr nz, --
@@ -132,24 +126,24 @@ run_test_cases:
 ; Inputs:
 ;   DE: address to check ($0000 or $4000)
 test_case:
-  ldh a, (<g_bank_number)
-  call_c000 switch_bank
+  ldh a, (<v_bank_number)
+  call_wram switch_bank
 
-  ldh a, (<g_bank_number)
-  call_c000 fetch_expected_value
-  ldh (<g_expected_value), a
+  ldh a, (<v_bank_number)
+  call_wram fetch_expected_value
+  ldh (<v_expected_value), a
   ld b, a
 
-  ldh a, (<g_lower_upper)
+  ldh a, (<v_lower_upper)
   ld d, a
   ld e, $00
   ld a, (de)
   cp b
   ret z
 
-  ldh (<g_actual_value), a
+  ldh (<v_actual_value), a
 
-  call_c000 restore_mbc1
+  call_wram restore_mbc1
   jp fail
 
 ; Inputs: -
@@ -158,7 +152,7 @@ restore_mbc1:
   xor a
   ld ($6000), a
   ld a, 1
-  jp_c000 switch_bank
+  jp_wram switch_bank
 
 ; Inputs:
 ;   A: bank number
@@ -180,10 +174,10 @@ switch_bank:
 fetch_expected_value:
   ld b, $00
   ld c, a
-  ld hl, $D000
+  ld hl, v_expected_banks
   add hl, bc
 
-  ldh a, (<g_lower_upper)
+  ldh a, (<v_lower_upper)
   and a
   jr z, +
 
@@ -191,7 +185,7 @@ fetch_expected_value:
   add hl, bc
   jr ++
 
-+ ldh a, (<g_mode)
++ ldh a, (<v_mode)
   and a
   jr z, ++
 
@@ -203,8 +197,20 @@ fetch_expected_value:
   ld a, (hl)
   ret
 
-c000_functions_end:
+wram_functions_end:
 
+.ramsection "Harness-WRAM" slot WRAM0_SLOT
+  v_wram_functions dsb $200
+  v_expected_banks dsb $180
+.ends
+
+.ramsection "Harness-HRAM" slot HRAM_SLOT
+  v_bank_number db
+  v_actual_value db
+  v_expected_value db
+  v_lower_upper db
+  v_mode db
+.ends
 
 .repeat CART_ROM_BANKS INDEX bank
 
