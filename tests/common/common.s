@@ -65,6 +65,17 @@
 
 ; --- Library functions ---
 
+.struct reg_dump
+  reg_f db
+  reg_a db
+  reg_c db
+  reg_b db
+  reg_e db
+  reg_d db
+  reg_l db
+  reg_h db
+.endst
+
 .bank 1 slot 1
 .include "lib/check_asserts_cb.s"
 .include "lib/clear_oam.s"
@@ -106,30 +117,6 @@ font:
   ; 8x8 ASCII bitmap font by Darkrose
   ; http://opengameart.org/content/8x8-ascii-bitmap-font-with-c-source
   .incbin "font.bin" fsize FONT_SIZE
-.ends
-
-.struct reg_dump
-  reg_f db
-  reg_a db
-  reg_c db
-  reg_b db
-  reg_e db
-  reg_d db
-  reg_l db
-  reg_h db
-.endst
-
-.ramsection "Runtime-Assert" slot HRAM_SLOT
-  v_regs_save instanceof reg_dump
-  v_regs_flags db
-  v_regs_assert instanceof reg_dump
-.ends
-
-.ramsection "Runtime-Memdump" slot HRAM_SLOT
-  v_dump_len db
-  v_dump_addr .dw
-  v_dump_addr_l db
-  v_dump_addr_h db
 .ends
 
 .bank 0 slot 0

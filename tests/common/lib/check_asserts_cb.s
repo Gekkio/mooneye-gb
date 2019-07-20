@@ -18,6 +18,75 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
+.macro setup_assertions
+  di
+  ld sp, v_regs_save + 8
+  push hl
+  push de
+  push bc
+  push af
+  ld sp, $e000
+  xor a
+  ldh (<v_regs_flags), a
+  ldh (<v_regs_assert.reg_a), a
+  ldh (<v_regs_assert.reg_f), a
+  ldh (<v_regs_assert.reg_b), a
+  ldh (<v_regs_assert.reg_c), a
+  ldh (<v_regs_assert.reg_d), a
+  ldh (<v_regs_assert.reg_e), a
+  ldh (<v_regs_assert.reg_h), a
+  ldh (<v_regs_assert.reg_l), a
+.endm
+
+.macro assert_a ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_a), a
+  ld hl, v_regs_flags
+  set 0, (hl)
+.endm
+.macro assert_f ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_f), a
+  ld hl, v_regs_flags
+  set 1, (hl)
+.endm
+.macro assert_b ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_b), a
+  ld hl, v_regs_flags
+  set 2, (hl)
+.endm
+.macro assert_c ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_c), a
+  ld hl, v_regs_flags
+  set 3, (hl)
+.endm
+.macro assert_d ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_d), a
+  ld hl, v_regs_flags
+  set 4, (hl)
+.endm
+.macro assert_e ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_e), a
+  ld hl, v_regs_flags
+  set 5, (hl)
+.endm
+.macro assert_h ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_h), a
+  ld hl, v_regs_flags
+  set 6, (hl)
+.endm
+.macro assert_l ARGS value
+  ld a, value
+  ldh (<v_regs_assert.reg_l), a
+  ld hl, v_regs_flags
+  set 7, (hl)
+.endm
+
 .section "check_asserts_cb"
 check_asserts_cb:
   ld de, v_regs_save
@@ -91,4 +160,10 @@ check_asserts_cb:
     __check_assert 6 "H" v_regs_save.reg_h v_regs_assert.reg_h
     __check_assert 7 "L" v_regs_save.reg_l v_regs_assert.reg_l
     jp print_newline
+.ends
+
+.ramsection "Runtime-Assert" slot HRAM_SLOT
+  v_regs_save instanceof reg_dump
+  v_regs_flags db
+  v_regs_assert instanceof reg_dump
 .ends

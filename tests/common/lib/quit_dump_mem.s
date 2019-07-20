@@ -62,3 +62,10 @@ quit_dump_mem:
   ld d, $00
   ret
 .ends
+
+.ramsection "Runtime-Memdump" slot HRAM_SLOT
+  v_dump_len db
+  v_dump_addr .dw
+  v_dump_addr_l db
+  v_dump_addr_h db
+.ends
