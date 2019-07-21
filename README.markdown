@@ -340,6 +340,19 @@ Notes:
 | rom 2Mb           | :+1:       |
 | ram               | :+1:       |
 
+#### MBC5
+
+| Test              | mooneye-gb |
+| ----------------- | ---------- |
+| rom 512kb         | :+1:       |
+| rom 1Mb           | :+1:       |
+| rom 2Mb           | :+1:       |
+| rom 4Mb           | :+1:       |
+| rom 8Mb           | :+1:       |
+| rom 16Mb          | :+1:       |
+| rom 32Mb          | :+1:       |
+| rom 64Mb          | :+1:       |
+
 ### Mooneye GB manual tests
 
 | Test            | mooneye-gb |

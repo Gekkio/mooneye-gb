@@ -171,6 +171,14 @@ testcases! {
   mbc2_rom_1mb("emulator-only/mbc2/rom_1Mb", all);
   mbc2_rom_2mb("emulator-only/mbc2/rom_2Mb", all);
   mbc2_ram("emulator-only/mbc2/ram", all);
+  mbc5_rom_512kb("emulator-only/mbc5/rom_512kb", all);
+  mbc5_rom_1mb("emulator-only/mbc5/rom_1Mb", all);
+  mbc5_rom_2mb("emulator-only/mbc5/rom_2Mb", all);
+  mbc5_rom_4mb("emulator-only/mbc5/rom_4Mb", all);
+  mbc5_rom_8mb("emulator-only/mbc5/rom_8Mb", all);
+  mbc5_rom_16mb("emulator-only/mbc5/rom_16Mb", all);
+  mbc5_rom_32mb("emulator-only/mbc5/rom_32Mb", all);
+  mbc5_rom_64mb("emulator-only/mbc5/rom_64Mb", all);
 }
 
 fn run_test_with_model(name: &str, model: Model) {
