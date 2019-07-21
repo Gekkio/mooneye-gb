@@ -115,7 +115,9 @@ test_case:
   call_wram restore_mbc2
   jp fail
 
-+ ldh a, (<hram.bank_number)
++ ld a, $40
+  ldh (<hram.lower_upper), a
+  ldh a, (<hram.bank_number)
   call_wram fetch_expected_value
   ldh (<hram.expected_value), a
   ld b, a

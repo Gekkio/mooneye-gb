@@ -139,7 +139,7 @@ test_case:
   call_wram restore_mbc5
   jp fail
 
-+ ld a, 1
++ ld a, $40
   ldh (<hram.lower_upper), a
   ldh a, (<hram.bank_number_l)
   ld c, a
