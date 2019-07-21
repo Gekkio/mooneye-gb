@@ -288,8 +288,8 @@ impl fmt::Debug for CartridgeRomSize {
       f,
       "{}",
       match *self {
-        NoRomBanks => "256 Kbit",
-        RomBanks4 => "512 Kbit",
+        NoRomBanks => "256 kbit",
+        RomBanks4 => "512 kbit",
         RomBanks8 => "1 Mbit",
         RomBanks16 => "2 Mbit",
         RomBanks32 => "4 Mbit",
@@ -355,11 +355,11 @@ impl fmt::Debug for CartridgeRamSize {
       "{}",
       match *self {
         NoRam => "-",
-        Ram2K => "16 Kbit",
-        Ram8K => "64 Kbit",
-        Ram32K => "256 Kbit",
+        Ram2K => "16 kbit",
+        Ram8K => "64 kbit",
+        Ram32K => "256 kbit",
         Ram128K => "1 Mbit",
-        Ram64K => "512 Kbit",
+        Ram64K => "512 kbit",
       }
     )
   }

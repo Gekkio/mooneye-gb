@@ -318,14 +318,14 @@ Notes:
 | bits bank2        | :+1:       |
 | bits mode         | :+1:       |
 | bits ramg         | :+1:       |
-| rom 512Kb         | :+1:       |
+| rom 512kb         | :+1:       |
 | rom 1Mb           | :+1:       |
 | rom 2Mb           | :+1:       |
 | rom 4Mb           | :+1:       |
 | rom 8Mb           | :+1:       |
 | rom 16Mb          | :+1:       |
-| ram 64Kb          | :+1:       |
-| ram 256Kb         | :+1:       |
+| ram 64kb          | :+1:       |
+| ram 256kb         | :+1:       |
 | multicart rom 8Mb | :+1:       |
 
 #### MBC2
@@ -335,7 +335,7 @@ Notes:
 | bits ramg         | :+1:       |
 | bits romb         | :+1:       |
 | bits unused       | :+1:       |
-| rom 512Kb         | :+1:       |
+| rom 512kb         | :+1:       |
 | rom 1Mb           | :+1:       |
 | rom 2Mb           | :+1:       |
 | ram               | :+1:       |

@@ -18,7 +18,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-; Tests banking behaviour of a MBC1 cart with a 512 Kbit ROM
+; Tests banking behaviour of a MBC1 cart with a 512 kbit ROM
 
 ; See gb-ctr for details: https://github.com/Gekkio/gb-ctr
 
