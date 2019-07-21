@@ -11,7 +11,7 @@ rust:
 env:
   global:
     - WLA_DX_REPO="vhelin/wla-dx"
-    - WLA_DX_COMMIT="4a50601d5e2d4e88703d510e5a361f84cf1f513b"
+    - WLA_DX_COMMIT="6ada10b1cd6035e8b58ce5246bf623b73e2704de"
 
 matrix:
   allow_failures:
