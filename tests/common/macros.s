@@ -112,7 +112,7 @@ _delay_long_time_\@:
 
 .macro quit_failure_dump ARGS string
   quit_inline
-  ld de, v_regs_save
+  ld de, hram.regs_save
   print_string_literal "REGISTERS"
   call print_newline
   call print_newline

@@ -23,23 +23,23 @@
 .include "common.s"
 
 .macro call_wram ARGS target
-  call target - wram_functions_start + v_wram_functions
+  call target - wram_functions_start + wram.functions
 .endm
 
 .macro jp_wram ARGS target
-  jp target - wram_functions_start + v_wram_functions
+  jp target - wram_functions_start + wram.functions
 .endm
 
   ld sp, DEFAULT_SP
 
-  ld hl, v_wram_functions
+  ld hl, wram.functions
   ld de, wram_functions_start
   ld bc, wram_functions_end - wram_functions_start
   call memcpy
 
-  ld hl, v_expected_banks
+  ld hl, wram.expected_banks
   ld de, expected_banks
-  ld bc, _sizeof_v_expected_banks
+  ld bc, _sizeof_wram.expected_banks
   call memcpy
 
   jp_wram run_test_suite
@@ -190,7 +190,7 @@ switch_bank:
 ;   BC: bank number
 ; Preserved: DE
 fetch_expected_value:
-  ld hl, v_expected_banks
+  ld hl, wram.expected_banks
   add hl, bc
   add hl, bc
 
@@ -203,8 +203,8 @@ fetch_expected_value:
 wram_functions_end:
 
 .ramsection "Harness-WRAM" slot WRAM0_SLOT
-  v_wram_functions dsb $200
-  v_expected_banks dsb 512
+  wram.functions dsb $200
+  wram.expected_banks dsb 512
 .ends
 
 .ramsection "Harness-HRAM" slot HRAM_SLOT

@@ -78,7 +78,7 @@ verify_results:
   push de
 
   ld c, $00
-  ld hl, v_test_results
+  ld hl, wram.test_results
 
 - ld a, (hl)
   ld b, a
@@ -97,26 +97,26 @@ verify_results:
 
 verify_fail:
   ld a, (hl)
-  ld (v_fail_actual), a
+  ld (hram.fail_actual), a
   ld a, (de)
-  ld (v_fail_expect), a
+  ld (hram.fail_expect), a
   ld a, c
-  ld (v_fail_round), a
+  ld (hram.fail_round), a
   pop de
   ld h, $00
   ld l, 19
   add hl, de
   ld a, l
-  ld (v_fail_str_l), a
+  ld (hram.fail_str_l), a
   ld a, h
-  ld (v_fail_str_h), a
+  ld (hram.fail_str_h), a
 
   quit_inline
   print_string_literal "Test failed: "
   call print_newline
-  ld a, (v_fail_str_l)
+  ld a, (hram.fail_str_l)
   ld c, a
-  ld a, (v_fail_str_h)
+  ld a, (hram.fail_str_h)
   ld b, a
   call print_string
   call print_newline
@@ -126,7 +126,7 @@ verify_fail:
   push hl
   ld hl, nop_counts
   ld b, $00
-  ld a, (v_fail_round)
+  ld a, (hram.fail_round)
   ld c, a
   add hl, bc
   ld a, (hl)
@@ -135,12 +135,12 @@ verify_fail:
   call print_newline
 
   print_string_literal "Expected: $"
-  ld a, (v_fail_expect)
+  ld a, (hram.fail_expect)
   call print_hex8
   call print_newline
 
   print_string_literal "Actual:   $"
-  ld a, (v_fail_actual)
+  ld a, (hram.fail_actual)
   call print_hex8
 
   ld d, $42
@@ -149,17 +149,17 @@ verify_fail:
 .ends
 
 .ramsection "Test-WRAM" slot WRAM0_SLOT
-  v_test_code dsb 300
-  v_test_results dsb 19
+  wram.test_code dsb 300
+  wram.test_results dsb 19
 .ends
 
 .ramsection "Test-HRAM" slot HRAM_SLOT
-  v_fail_round db
-  v_fail_expect db
-  v_fail_actual db
-  v_fail_str .dw
-  v_fail_str_l db
-  v_fail_str_h db
+  hram.fail_round db
+  hram.fail_expect db
+  hram.fail_actual db
+  hram.fail_str .dw
+  hram.fail_str_l db
+  hram.fail_str_h db
 .ends
 
 .bank 1 slot 1
@@ -170,7 +170,7 @@ verify_fail:
 ; Preserved: -
 run_tests:
   ld hl, nop_counts
-  ld bc, v_test_results
+  ld bc, wram.test_results
   xor a
 
 - cp 19
@@ -208,7 +208,7 @@ test_case:
   ld (VRAM), a
 
   ; Copy test case prologue code
-  ld hl, v_test_code
+  ld hl, wram.test_code
   ld de, test_case_prologue
   ld bc, test_case_epilogue - test_case_prologue
   call memcpy
@@ -229,7 +229,7 @@ test_case:
   call memcpy
 
   pop de
-  call v_test_code
+  call wram.test_code
   call disable_lcd_safe
 
   pop hl

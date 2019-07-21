@@ -23,23 +23,23 @@
 .include "common.s"
 
 .macro call_wram ARGS target
-  call target - wram_functions_start + v_wram_functions
+  call target - wram_functions_start + wram.functions
 .endm
 
 .macro jp_wram ARGS target
-  jp target - wram_functions_start + v_wram_functions
+  jp target - wram_functions_start + wram.functions
 .endm
 
   ld sp, DEFAULT_SP
 
-  ld hl, v_wram_functions
+  ld hl, wram.functions
   ld de, wram_functions_start
   ld bc, wram_functions_end - wram_functions_start
   call memcpy
 
-  ld hl, v_expected_banks
+  ld hl, wram.expected_banks
   ld de, expected_banks
-  ld bc, _sizeof_v_expected_banks
+  ld bc, _sizeof_wram.expected_banks
   call memcpy
 
   jp_wram run_test_suite
@@ -48,7 +48,7 @@ fail:
   quit_inline
   print_string_literal "TEST FAILED"
   call print_newline
-  ldh a, (<v_lower_upper)
+  ldh a, (<hram.lower_upper)
   and a
   jr nz, +
 
@@ -61,17 +61,17 @@ fail:
   call print_newline
 
   print_string_literal "BANK NUMBER "
-  ldh a, (<v_bank_number)
+  ldh a, (<hram.bank_number)
   call print_hex8
   call print_newline
 
   print_string_literal "EXPECTED    "
-  ldh a, (<v_expected_value)
+  ldh a, (<hram.expected_value)
   call print_hex8
   call print_newline
 
   print_string_literal "ACTUAL      "
-  ldh a, (<v_actual_value)
+  ldh a, (<hram.actual_value)
   call print_hex8
   call print_newline
   ld d, $42
@@ -89,10 +89,10 @@ run_test_suite:
 run_tests:
   xor a
 --
-  ldh (<v_bank_number), a
+  ldh (<hram.bank_number), a
 
   call_wram test_case
-  ldh a, (<v_bank_number)
+  ldh a, (<hram.bank_number)
   inc a
   cp 16
   jr nz, --
@@ -100,31 +100,31 @@ run_tests:
   ret
 
 test_case:
-  ldh a, (<v_bank_number)
+  ldh a, (<hram.bank_number)
   call_wram switch_bank
 
   xor a
-  ldh (<v_lower_upper), a
-  ldh (<v_expected_value), a
+  ldh (<hram.lower_upper), a
+  ldh (<hram.expected_value), a
 
   ld a, ($0000)
-  ldh (<v_actual_value), a
+  ldh (<hram.actual_value), a
   and a
   jr z, +
 
   call_wram restore_mbc2
   jp fail
 
-+ ldh a, (<v_bank_number)
++ ldh a, (<hram.bank_number)
   call_wram fetch_expected_value
-  ldh (<v_expected_value), a
+  ldh (<hram.expected_value), a
   ld b, a
 
   ld a, ($4000)
   cp b
   ret z
 
-  ldh (<v_actual_value), a
+  ldh (<hram.actual_value), a
 
   call_wram restore_mbc2
   jp fail
@@ -149,7 +149,7 @@ switch_bank:
 fetch_expected_value:
   ld b, $00
   ld c, a
-  ld hl, v_expected_banks
+  ld hl, wram.expected_banks
   add hl, bc
 
   ld a, (hl)
@@ -158,15 +158,15 @@ fetch_expected_value:
 wram_functions_end:
 
 .ramsection "Harness-WRAM" slot WRAM0_SLOT
-  v_wram_functions dsb $200
-  v_expected_banks dsb $10
+  wram.functions dsb $200
+  wram.expected_banks dsb $10
 .ends
 
 .ramsection "Harness-HRAM" slot HRAM_SLOT
-  v_bank_number db
-  v_actual_value db
-  v_expected_value db
-  v_lower_upper db
+  hram.bank_number db
+  hram.actual_value db
+  hram.expected_value db
+  hram.lower_upper db
 .ends
 
 .repeat CART_ROM_BANKS INDEX bank

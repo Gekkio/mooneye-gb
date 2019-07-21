@@ -25,18 +25,18 @@
 ; Outputs: -
 ; Preserved: -
 quit_dump_mem:
-  ldh (<v_dump_len), a
+  ldh (<hram.memdump_len), a
   ld a, l
-  ldh (<v_dump_addr_l), a
+  ldh (<hram.memdump_l), a
   ld a, h
-  ldh (<v_dump_addr_h), a
+  ldh (<hram.memdump_h), a
 
   quit_inline
-  ldh a, (<v_dump_addr_h)
+  ldh a, (<hram.memdump_h)
   ld d, a
-  ldh a, (<v_dump_addr_l)
+  ldh a, (<hram.memdump_l)
   ld e, a
-  ldh a, (<v_dump_len)
+  ldh a, (<hram.memdump_len)
   ld b, a
 @line:
   ld a, d
@@ -64,8 +64,8 @@ quit_dump_mem:
 .ends
 
 .ramsection "Runtime-Memdump" slot HRAM_SLOT
-  v_dump_len db
-  v_dump_addr .dw
-  v_dump_addr_l db
-  v_dump_addr_h db
+  hram.memdump_len db
+  hram.memdump .dw
+  hram.memdump_l db
+  hram.memdump_h db
 .ends

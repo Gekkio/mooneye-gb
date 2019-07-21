@@ -127,7 +127,7 @@ verify_results:
   push de
 
   ld c, $00
-  ld hl, v_pass1_results
+  ld hl, hram.pass1_results
 
 - ld a, (hl)
   ld b, a
@@ -146,26 +146,26 @@ verify_results:
 
 verify_fail:
   ld a, (hl)
-  ld (v_fail_actual), a
+  ld (hram.fail_actual), a
   ld a, (de)
-  ld (v_fail_expect), a
+  ld (hram.fail_expect), a
   ld a, c
-  ld (v_fail_round), a
+  ld (hram.fail_round), a
   pop de
   ld h, $00
   ld l, 24
   add hl, de
   ld a, l
-  ld (v_fail_str_l), a
+  ld (hram.fail_str_l), a
   ld a, h
-  ld (v_fail_str_h), a
+  ld (hram.fail_str_h), a
 
   quit_inline
   print_string_literal "Test failed: "
   call print_newline
-  ld a, (v_fail_str_l)
+  ld a, (hram.fail_str_l)
   ld c, a
-  ld a, (v_fail_str_h)
+  ld a, (hram.fail_str_h)
   ld b, a
   call print_string
   call print_newline
@@ -175,7 +175,7 @@ verify_fail:
   push hl
   ld hl, cycle_counts
   ld b, $00
-  ld a, (v_fail_round)
+  ld a, (hram.fail_round)
   ld c, a
   add hl, bc
   ld a, (hl)
@@ -184,12 +184,12 @@ verify_fail:
   call print_newline
 
   print_string_literal "Expected: $"
-  ld a, (v_fail_expect)
+  ld a, (hram.fail_expect)
   call print_hex8
   call print_newline
 
   print_string_literal "Actual:   $"
-  ld a, (v_fail_actual)
+  ld a, (hram.fail_actual)
   call print_hex8
 
   ld d, $42
@@ -198,15 +198,15 @@ verify_fail:
 .ends
 
 .ramsection "Test-State" slot HRAM_SLOT
-  v_pass1_results dsb 8
-  v_pass2_results dsb 8
-  v_pass3_results dsb 8
-  v_fail_round db
-  v_fail_expect db
-  v_fail_actual db
-  v_fail_str .dw
-  v_fail_str_l db
-  v_fail_str_h db
+  hram.pass1_results dsb 8
+  hram.pass2_results dsb 8
+  hram.pass3_results dsb 8
+  hram.fail_round db
+  hram.fail_expect db
+  hram.fail_actual db
+  hram.fail_str .dw
+  hram.fail_str_l db
+  hram.fail_str_h db
 .ends
 
 .bank 1 slot 1
@@ -244,14 +244,14 @@ test_passes:
 .endm
 
 test_pass1:
-  ld hl, v_pass1_results
+  ld hl, hram.pass1_results
   ld a, $81
   ldh (<LCDC), a
   test_reads
   call disable_lcd_safe
 
 test_pass2:
-  ld hl, v_pass2_results
+  ld hl, hram.pass2_results
   ld a, $81
   ldh (<LCDC), a
   nops 1
@@ -259,7 +259,7 @@ test_pass2:
   call disable_lcd_safe
 
 test_pass3:
-  ld hl, v_pass3_results
+  ld hl, hram.pass3_results
   ld a, $81
   ldh (<LCDC), a
   nops 2
