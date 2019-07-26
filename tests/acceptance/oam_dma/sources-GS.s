@@ -22,8 +22,8 @@
 ; including the area past $DFFF.
 
 ; Verified results:
-;   pass: DMG ABC, MGB, SGB, SGB2
-;   fail: DMG 0, CGB, AGB, AGS
+;   pass: DMG, MGB, SGB, SGB2
+;   fail: CGB, AGB, AGS
 
 .define CART_TYPE $1B ; MBC5, ram, battery
 .define CART_RAM_SIZE 2
