@@ -265,7 +265,7 @@ Notes:
 | --------------------------- | ---------- |
 | basic                       | :+1:       |
 | reg_read                    | :+1:       |
-| sources dmgABCmgbS          | :+1:       |
+| sources GS                  | :+1:       |
 
 #### PPU
 
@@ -278,7 +278,7 @@ Notes:
 | intr 2 mode3 timing         | :+1:       |
 | intr 2 oam ok timing        | :+1:       |
 | intr 2 mode0 timing sprites | :x:        |
-| lcdon timing dmgABCmgbS     | :x:        |
+| lcdon timing GS             | :x:        |
 | lcdon write timing GS       | :x:        |
 | stat irq blocking           | :x:        |
 | stat lyc onoff              | :x:        |

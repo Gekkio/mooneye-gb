@@ -124,7 +124,7 @@ testcases! {
   interrupts_ie_push("acceptance/interrupts/ie_push", all);
   oam_dma_basic("acceptance/oam_dma/basic", all);
   oam_dma_reg_read("acceptance/oam_dma/reg_read", all);
-  oam_dma_sources_dmg_abc_mgb_s("acceptance/oam_dma/sources-dmgABCmgbS", dmg, mgb, sgb, sgb2);
+  oam_dma_sources_gs("acceptance/oam_dma/sources-GS", dmg, mgb, sgb, sgb2);
   ppu_hblank_ly_scx_timing_gs("acceptance/ppu/hblank_ly_scx_timing-GS", all);
   ppu_intr_1_2_timing_gs("acceptance/ppu/intr_1_2_timing-GS", all);
   ppu_intr_2_0_timing("acceptance/ppu/intr_2_0_timing", all);
@@ -133,7 +133,7 @@ testcases! {
   ppu_intr_2_mode0_timing_sprites("acceptance/ppu/intr_2_mode0_timing_sprites", #[ignore] all);
   ppu_intr_2_mode3_timing("acceptance/ppu/intr_2_mode3_timing", all);
   ppu_intr_2_oam_ok_timing("acceptance/ppu/intr_2_oam_ok_timing", all);
-  ppu_lcdon_timing_dmg_abc_mgb_s("acceptance/ppu/lcdon_timing-dmgABCmgbS", #[ignore] dmg, #[ignore] mgb, #[ignore] sgb, #[ignore] sgb2);
+  ppu_lcdon_timing_gs("acceptance/ppu/lcdon_timing-GS", #[ignore] dmg, #[ignore] mgb, #[ignore] sgb, #[ignore] sgb2);
   ppu_lcdon_write_timing_gs("acceptance/ppu/lcdon_write_timing-GS", #[ignore] all);
   ppu_stat_irq_blocking("acceptance/ppu/stat_irq_blocking", #[ignore] all);
   ppu_vblank_stat_intr_gs("acceptance/ppu/vblank_stat_intr-GS", all);
