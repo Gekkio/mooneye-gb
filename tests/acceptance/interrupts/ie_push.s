@@ -36,7 +36,7 @@
 .org $0200
 ; Round 1: IE is written during upper byte push
 ; 
-; The written value is $02, which clears the INTR_TIMER bit and cancels the
+; The written value is $04, which clears the INTR_TIMER bit and cancels the
 ; interrupt dispatch. PC is set to $0000 instead of the normal jump address.
 round1:
   ld hl, finish_round1
