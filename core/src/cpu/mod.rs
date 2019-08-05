@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt;
 
-use self::registers::{Flags, Reg16, Reg8, Registers};
+use self::register_file::{Flags, Reg16, Reg8, RegisterFile};
 use crate::emulation::EmuEvents;
 use crate::hardware::Bus;
 use crate::util::int::IntExt;
@@ -23,14 +23,14 @@ use crate::util::int::IntExt;
 pub use self::ops::CpuOps;
 
 mod ops;
-pub mod registers;
+pub mod register_file;
 
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
 
 #[derive(Clone)]
 pub struct Cpu {
-  pub regs: Registers,
+  pub regs: RegisterFile,
   ime: bool,
 }
 
@@ -94,7 +94,7 @@ impl Out8 for Addr {
 
 impl In8 for Reg8 {
   fn read<H: Bus>(&self, cpu: &mut Cpu, _: &mut H) -> u8 {
-    use self::registers::Reg8::*;
+    use self::register_file::Reg8::*;
     match *self {
       A => cpu.regs.a,
       B => cpu.regs.b,
@@ -108,7 +108,7 @@ impl In8 for Reg8 {
 }
 impl Out8 for Reg8 {
   fn write<H: Bus>(&self, cpu: &mut Cpu, _: &mut H, value: u8) {
-    use self::registers::Reg8::*;
+    use self::register_file::Reg8::*;
     match *self {
       A => cpu.regs.a = value,
       B => cpu.regs.b = value,
@@ -137,7 +137,7 @@ impl fmt::Display for Cpu {
 impl Cpu {
   pub fn new() -> Cpu {
     Cpu {
-      regs: Registers::new(),
+      regs: RegisterFile::new(),
       ime: false,
     }
   }

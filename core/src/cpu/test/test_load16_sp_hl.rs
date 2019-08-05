@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use quickcheck::quickcheck;
 
-use crate::cpu::registers::Reg16;
+use crate::cpu::register_file::Reg16;
 use crate::cpu::test::run_test;
 
 #[test]

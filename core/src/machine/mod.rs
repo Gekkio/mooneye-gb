@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use crate::config::HardwareConfig;
-use crate::cpu::registers::Registers;
+use crate::cpu::register_file::RegisterFile;
 use crate::cpu::{Cpu, Step};
 use crate::emulation::{EmuEvents, EmuTime};
 use crate::gameboy;
@@ -61,7 +61,7 @@ impl Machine {
   pub fn key_up(&mut self, key: GbKey) {
     self.hardware.key_up(key);
   }
-  pub fn regs(&self) -> Registers {
+  pub fn regs(&self) -> RegisterFile {
     self.cpu.regs
   }
   pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer {

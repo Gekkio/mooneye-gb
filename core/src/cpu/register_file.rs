@@ -57,7 +57,7 @@ pub enum Reg16 {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Registers {
+pub struct RegisterFile {
   pub pc: u16,
   pub sp: u16,
   pub a: u8,
@@ -70,9 +70,9 @@ pub struct Registers {
   pub l: u8,
 }
 
-impl Registers {
-  pub fn new() -> Registers {
-    Registers {
+impl RegisterFile {
+  pub fn new() -> RegisterFile {
+    RegisterFile {
       pc: 0,
       sp: 0,
       a: 0,
@@ -121,7 +121,7 @@ impl Registers {
   }
 }
 
-impl fmt::Display for Registers {
+impl fmt::Display for RegisterFile {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
       f,

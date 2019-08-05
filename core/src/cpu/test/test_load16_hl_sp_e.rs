@@ -15,7 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use quickcheck::quickcheck;
 
-use crate::cpu::registers::{Flags, Reg16};
+use crate::cpu::register_file::{Flags, Reg16};
 use crate::cpu::test::run_test;
 
 fn test_load16_hl_sp_e<F: Fn(Flags) -> bool>(sp: u16, e: i8, check_flags: F) -> bool {

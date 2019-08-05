@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crate::cpu::registers::Flags;
+use crate::cpu::register_file::Flags;
 use crate::cpu::test::run_test;
 
 #[test]

@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crate::cpu::registers::Reg16;
-use crate::cpu::registers::Reg16::{AF, BC, DE, HL, SP};
-use crate::cpu::registers::Reg8::{A, B, C, D, E, H, L};
+use crate::cpu::register_file::Reg16;
+use crate::cpu::register_file::Reg16::{AF, BC, DE, HL, SP};
+use crate::cpu::register_file::Reg8::{A, B, C, D, E, H, L};
 use crate::cpu::{Addr, Cond, Immediate8, In8, Out8};
 
 pub trait CpuOps {
