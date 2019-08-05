@@ -40,7 +40,8 @@ bitflags!(
 #[derive(Clone)]
 pub struct Cpu {
   pub regs: RegisterFile,
-  ime: bool,
+  pub ime: bool,
+  pub opcode: u8,
 }
 
 pub trait In8 {
@@ -132,8 +133,7 @@ impl Out8 for Reg8 {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Step {
-  Initial,
-  Opcode(u8),
+  Running,
   Halt,
   InterruptDispatch,
 }
@@ -148,16 +148,17 @@ impl Cpu {
     Cpu {
       regs: RegisterFile::new(),
       ime: false,
+      opcode: 0x00,
     }
   }
 
   fn prefetch_next<H: Bus>(&mut self, bus: &mut H, addr: u16) -> Step {
-    let opcode = bus.read_cycle(addr);
+    self.opcode = bus.read_cycle(addr);
     if self.ime && !bus.get_mid_interrupt().is_empty() {
       Step::InterruptDispatch
     } else {
       self.regs.pc = addr.wrapping_add(1);
-      Step::Opcode(opcode)
+      Step::Running
     }
   }
 
@@ -218,8 +219,7 @@ impl Cpu {
 
   pub fn execute_step<H: Bus>(&mut self, bus: &mut H, step: Step) -> Step {
     match step {
-      Step::Initial => self.prefetch_next(bus, self.regs.pc),
-      Step::Opcode(opcode) => self.decode_exec_fetch(bus, opcode),
+      Step::Running => self.decode_exec_fetch(bus),
       Step::InterruptDispatch => {
         self.ime = false;
         bus.tick_cycle();
@@ -238,8 +238,8 @@ impl Cpu {
           InterruptLine::JOYPAD => 0x0060,
           _ => 0x0000,
         };
-        let opcode = self.next_u8(bus);
-        Step::Opcode(opcode)
+        self.opcode = self.next_u8(bus);
+        Step::Running
       }
       Step::Halt => {
         if !bus.get_end_interrupt().is_empty() {

@@ -400,12 +400,12 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn halt<B: Bus>(&mut self, bus: &mut B) -> Step {
-    let opcode = bus.read_cycle(self.regs.pc);
+    self.opcode = bus.read_cycle(self.regs.pc);
     if !bus.get_mid_interrupt().is_empty() {
       if self.ime {
         Step::InterruptDispatch
       } else {
-        self.decode_exec_fetch(bus, opcode)
+        self.decode_exec_fetch(bus)
       }
     } else {
       bus.tick_cycle();
@@ -426,7 +426,8 @@ impl Cpu {
   ///        - - - -
   pub fn di<B: Bus>(&mut self, bus: &mut B) -> Step {
     self.ime = false;
-    Step::Opcode(self.next_u8(bus))
+    self.opcode = self.next_u8(bus);
+    Step::Running
   }
   /// EI
   ///
@@ -624,11 +625,11 @@ impl Cpu {
     self.prefetch_next(bus, self.regs.pc)
   }
   // --- Undefined
-  pub fn undefined<B: Bus>(&mut self, _: &mut B, op: u8) -> Step {
-    panic!("Undefined opcode {}", op)
+  pub fn undefined<B: Bus>(&mut self, _: &mut B) -> Step {
+    panic!("Undefined opcode {}", self.opcode)
   }
   pub fn cb_prefix<B: Bus>(&mut self, bus: &mut B) -> Step {
-    let op = self.next_u8(bus);
-    self.cb_decode_exec_fetch(bus, op)
+    self.opcode = self.next_u8(bus);
+    self.cb_decode_exec_fetch(bus)
   }
 }

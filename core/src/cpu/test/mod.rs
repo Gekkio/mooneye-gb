@@ -94,7 +94,7 @@ pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> 
   let mut machine = TestMachine {
     cpu: Cpu::new(),
     hardware: TestHardware::from_memory(&memory),
-    step: Step::Initial,
+    step: Step::Running,
   };
   init(&mut machine);
 
@@ -103,7 +103,7 @@ pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> 
     .execute_step(&mut machine.hardware, machine.step);
   machine.hardware.t_cycles = 0;
 
-  while machine.step != Step::Opcode(0xed) && machine.step != Step::Halt {
+  while machine.cpu.opcode != 0xed && machine.step != Step::Halt {
     machine.step = machine
       .cpu
       .execute_step(&mut machine.hardware, machine.step);

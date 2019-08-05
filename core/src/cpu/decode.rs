@@ -4,8 +4,8 @@ use crate::cpu::{Addr, Cond, Cpu, Immediate8, Step};
 use crate::hardware::Bus;
 
 impl Cpu {
-  pub fn decode_exec_fetch<B: Bus>(&mut self, bus: &mut B, op: u8) -> Step {
-    match op {
+  pub fn decode_exec_fetch<B: Bus>(&mut self, bus: &mut B) -> Step {
+    match self.opcode {
       // --- 8-bit operations
       // 8-bit loads
       0x7f => self.load(bus, A, A),
@@ -260,13 +260,13 @@ impl Cpu {
       0x3b => self.dec16(bus, SP),
       0xcb => self.cb_prefix(bus),
       0xd3 | 0xdb | 0xdd | 0xe3 | 0xe4 | 0xeb | 0xec | 0xed | 0xf4 | 0xfc | 0xfd => {
-        self.undefined(bus, op)
+        self.undefined(bus)
       }
     }
   }
 
-  pub fn cb_decode_exec_fetch<B: Bus>(&mut self, bus: &mut B, op: u8) -> Step {
-    match op {
+  pub fn cb_decode_exec_fetch<B: Bus>(&mut self, bus: &mut B) -> Step {
+    match self.opcode {
       // --- 8-bit operations
       // 8-bit arithmetic
       0x07 => self.rlc(bus, A),

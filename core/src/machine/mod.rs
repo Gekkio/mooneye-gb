@@ -33,7 +33,7 @@ impl Machine {
     Machine {
       cpu: Cpu::new(),
       hardware: Hardware::new(config),
-      step: Step::Initial,
+      step: Step::Running,
     }
   }
   pub fn emulate_step(&mut self) -> (EmuEvents, EmuTime) {
