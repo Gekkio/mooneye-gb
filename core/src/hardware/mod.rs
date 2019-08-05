@@ -16,7 +16,7 @@
 use std::fmt;
 
 use crate::config::HardwareConfig;
-use crate::cpu::InterruptLine;
+use crate::cpu::{CpuContext, InterruptLine};
 use crate::emulation::{EmuEvents, EmuTime};
 use crate::gameboy;
 use crate::gameboy::{HiramData, HIRAM_EMPTY};
@@ -47,13 +47,7 @@ pub trait MappedHardware<A, D: From<u8> + Into<u8> = u8> {
   fn write_cycle<I: InterruptRequest>(&mut self, addr: A, data: D, intr_req: &mut I);
 }
 
-pub trait Bus {
-  fn read_cycle(&mut self, addr: u16) -> u8;
-  fn write_cycle(&mut self, addr: u16, data: u8);
-  fn tick_cycle(&mut self);
-  fn get_mid_interrupt(&self) -> InterruptLine;
-  fn get_end_interrupt(&self) -> InterruptLine;
-  fn ack_interrupt(&mut self, mask: InterruptLine);
+pub trait Bus: CpuContext {
   fn trigger_emu_events(&mut self, events: EmuEvents);
 }
 
@@ -347,7 +341,7 @@ impl Hardware {
   }
 }
 
-impl Bus for Hardware {
+impl CpuContext for Hardware {
   fn read_cycle(&mut self, addr: u16) -> u8 {
     self.irq.begin_cycle();
     self.read_internal(addr)
@@ -370,6 +364,12 @@ impl Bus for Hardware {
   fn ack_interrupt(&mut self, mask: InterruptLine) {
     self.irq.ack_interrupt(mask);
   }
+  fn debug_opcode_callback(&mut self) {
+    self.emu_events.insert(EmuEvents::DEBUG_OP);
+  }
+}
+
+impl Bus for Hardware {
   fn trigger_emu_events(&mut self, events: EmuEvents) {
     self.emu_events.insert(events)
   }

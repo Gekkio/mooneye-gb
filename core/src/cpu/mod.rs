@@ -17,7 +17,6 @@ use bitflags::bitflags;
 use std::fmt;
 
 use self::register_file::{Flags, Reg16, Reg8, RegisterFile};
-use crate::hardware::Bus;
 use crate::util::int::IntExt;
 
 mod decode;
@@ -37,6 +36,16 @@ bitflags!(
   }
 );
 
+pub trait CpuContext {
+  fn read_cycle(&mut self, addr: u16) -> u8;
+  fn write_cycle(&mut self, addr: u16, data: u8);
+  fn tick_cycle(&mut self);
+  fn get_mid_interrupt(&self) -> InterruptLine;
+  fn get_end_interrupt(&self) -> InterruptLine;
+  fn ack_interrupt(&mut self, mask: InterruptLine);
+  fn debug_opcode_callback(&mut self);
+}
+
 #[derive(Clone)]
 pub struct Cpu {
   pub regs: RegisterFile,
@@ -45,10 +54,10 @@ pub struct Cpu {
 }
 
 pub trait In8 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8;
+  fn read<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H) -> u8;
 }
 pub trait Out8 {
-  fn write<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H, data: u8);
+  fn write<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H, data: u8);
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -73,8 +82,8 @@ impl Cond {
 
 pub struct Immediate8;
 impl In8 for Immediate8 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8 {
-    cpu.next_u8(bus)
+  fn read<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H) -> u8 {
+    cpu.next_u8(ctx)
   }
 }
 
@@ -90,20 +99,20 @@ pub enum Addr {
   ZeroPageC,
 }
 impl In8 for Addr {
-  fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8 {
-    let addr = cpu.indirect_addr(bus, *self);
-    bus.read_cycle(addr)
+  fn read<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H) -> u8 {
+    let addr = cpu.indirect_addr(ctx, *self);
+    ctx.read_cycle(addr)
   }
 }
 impl Out8 for Addr {
-  fn write<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H, value: u8) {
-    let addr = cpu.indirect_addr(bus, *self);
-    bus.write_cycle(addr, value)
+  fn write<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H, value: u8) {
+    let addr = cpu.indirect_addr(ctx, *self);
+    ctx.write_cycle(addr, value)
   }
 }
 
 impl In8 for Reg8 {
-  fn read<H: Bus>(&self, cpu: &mut Cpu, _: &mut H) -> u8 {
+  fn read<H: CpuContext>(&self, cpu: &mut Cpu, _: &mut H) -> u8 {
     use self::register_file::Reg8::*;
     match *self {
       A => cpu.regs.a,
@@ -117,7 +126,7 @@ impl In8 for Reg8 {
   }
 }
 impl Out8 for Reg8 {
-  fn write<H: Bus>(&self, cpu: &mut Cpu, _: &mut H, value: u8) {
+  fn write<H: CpuContext>(&self, cpu: &mut Cpu, _: &mut H, value: u8) {
     use self::register_file::Reg8::*;
     match *self {
       A => cpu.regs.a = value,
@@ -152,9 +161,9 @@ impl Cpu {
     }
   }
 
-  fn prefetch_next<H: Bus>(&mut self, bus: &mut H, addr: u16) -> Step {
-    self.opcode = bus.read_cycle(addr);
-    if self.ime && !bus.get_mid_interrupt().is_empty() {
+  fn prefetch_next<H: CpuContext>(&mut self, ctx: &mut H, addr: u16) -> Step {
+    self.opcode = ctx.read_cycle(addr);
+    if self.ime && !ctx.get_mid_interrupt().is_empty() {
       Step::InterruptDispatch
     } else {
       self.regs.pc = addr.wrapping_add(1);
@@ -162,40 +171,40 @@ impl Cpu {
     }
   }
 
-  fn next_u8<H: Bus>(&mut self, bus: &mut H) -> u8 {
+  fn next_u8<H: CpuContext>(&mut self, ctx: &mut H) -> u8 {
     let addr = self.regs.pc;
     self.regs.pc = self.regs.pc.wrapping_add(1);
-    bus.read_cycle(addr)
+    ctx.read_cycle(addr)
   }
-  fn next_u16<H: Bus>(&mut self, bus: &mut H) -> u16 {
-    let l = self.next_u8(bus);
-    let h = self.next_u8(bus);
+  fn next_u16<H: CpuContext>(&mut self, ctx: &mut H) -> u16 {
+    let l = self.next_u8(ctx);
+    let h = self.next_u8(ctx);
     ((h as u16) << 8) | (l as u16)
   }
 
-  fn pop_u8<H: Bus>(&mut self, bus: &mut H) -> u8 {
+  fn pop_u8<H: CpuContext>(&mut self, ctx: &mut H) -> u8 {
     let sp = self.regs.sp;
-    let value = bus.read_cycle(sp);
+    let value = ctx.read_cycle(sp);
     self.regs.sp = self.regs.sp.wrapping_add(1);
     value
   }
-  fn push_u8<H: Bus>(&mut self, bus: &mut H, value: u8) {
+  fn push_u8<H: CpuContext>(&mut self, ctx: &mut H, value: u8) {
     self.regs.sp = self.regs.sp.wrapping_sub(1);
     let sp = self.regs.sp;
-    bus.write_cycle(sp, value);
+    ctx.write_cycle(sp, value);
   }
 
-  fn pop_u16<H: Bus>(&mut self, bus: &mut H) -> u16 {
-    let l = self.pop_u8(bus);
-    let h = self.pop_u8(bus);
+  fn pop_u16<H: CpuContext>(&mut self, ctx: &mut H) -> u16 {
+    let l = self.pop_u8(ctx);
+    let h = self.pop_u8(ctx);
     ((h as u16) << 8) | (l as u16)
   }
-  fn push_u16<H: Bus>(&mut self, bus: &mut H, value: u16) {
-    self.push_u8(bus, (value >> 8) as u8);
-    self.push_u8(bus, value as u8);
+  fn push_u16<H: CpuContext>(&mut self, ctx: &mut H, value: u16) {
+    self.push_u8(ctx, (value >> 8) as u8);
+    self.push_u8(ctx, value as u8);
   }
 
-  fn indirect_addr<H: Bus>(&mut self, bus: &mut H, addr: Addr) -> u16 {
+  fn indirect_addr<H: CpuContext>(&mut self, ctx: &mut H, addr: Addr) -> u16 {
     use self::Addr::*;
     match addr {
       BC => self.regs.read16(Reg16::BC),
@@ -211,25 +220,25 @@ impl Cpu {
         self.regs.write16(Reg16::HL, addr.wrapping_add(1));
         addr
       }
-      Direct => self.next_u16(bus),
-      ZeroPage => 0xff00u16 | self.next_u8(bus) as u16,
+      Direct => self.next_u16(ctx),
+      ZeroPage => 0xff00u16 | self.next_u8(ctx) as u16,
       ZeroPageC => 0xff00u16 | self.regs.c as u16,
     }
   }
 
-  pub fn execute_step<H: Bus>(&mut self, bus: &mut H, step: Step) -> Step {
+  pub fn execute_step<H: CpuContext>(&mut self, ctx: &mut H, step: Step) -> Step {
     match step {
-      Step::Running => self.decode_exec_fetch(bus),
+      Step::Running => self.decode_exec_fetch(ctx),
       Step::InterruptDispatch => {
         self.ime = false;
-        bus.tick_cycle();
-        bus.tick_cycle();
+        ctx.tick_cycle();
+        ctx.tick_cycle();
         let pc = self.regs.pc;
-        self.push_u8(bus, (pc >> 8) as u8);
-        self.push_u8(bus, pc as u8);
+        self.push_u8(ctx, (pc >> 8) as u8);
+        self.push_u8(ctx, pc as u8);
         let interrupt =
-          InterruptLine::from_bits_truncate(bus.get_mid_interrupt().bits().isolate_rightmost_one());
-        bus.ack_interrupt(interrupt);
+          InterruptLine::from_bits_truncate(ctx.get_mid_interrupt().bits().isolate_rightmost_one());
+        ctx.ack_interrupt(interrupt);
         self.regs.pc = match interrupt {
           InterruptLine::VBLANK => 0x0040,
           InterruptLine::STAT => 0x0048,
@@ -238,14 +247,14 @@ impl Cpu {
           InterruptLine::JOYPAD => 0x0060,
           _ => 0x0000,
         };
-        self.opcode = self.next_u8(bus);
+        self.opcode = self.next_u8(ctx);
         Step::Running
       }
       Step::Halt => {
-        if !bus.get_end_interrupt().is_empty() {
-          self.prefetch_next(bus, self.regs.pc)
+        if !ctx.get_end_interrupt().is_empty() {
+          self.prefetch_next(ctx, self.regs.pc)
         } else {
-          bus.tick_cycle();
+          ctx.tick_cycle();
           Step::Halt
         }
       }
@@ -305,22 +314,22 @@ impl Cpu {
     self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) | Flags::CARRY.test(co != 0);
     new_value
   }
-  fn ctrl_jp<H: Bus>(&mut self, bus: &mut H, addr: u16) {
+  fn ctrl_jp<H: CpuContext>(&mut self, ctx: &mut H, addr: u16) {
     self.regs.pc = addr;
-    bus.tick_cycle();
+    ctx.tick_cycle();
   }
-  fn ctrl_jr<H: Bus>(&mut self, bus: &mut H, offset: i8) {
+  fn ctrl_jr<H: CpuContext>(&mut self, ctx: &mut H, offset: i8) {
     self.regs.pc = self.regs.pc.wrapping_add(offset as u16);
-    bus.tick_cycle();
+    ctx.tick_cycle();
   }
-  fn ctrl_call<H: Bus>(&mut self, bus: &mut H, addr: u16) {
+  fn ctrl_call<H: CpuContext>(&mut self, ctx: &mut H, addr: u16) {
     let pc = self.regs.pc;
-    bus.tick_cycle();
-    self.push_u16(bus, pc);
+    ctx.tick_cycle();
+    self.push_u16(ctx, pc);
     self.regs.pc = addr;
   }
-  fn ctrl_ret<H: Bus>(&mut self, bus: &mut H) {
-    self.regs.pc = self.pop_u16(bus);
-    bus.tick_cycle();
+  fn ctrl_ret<H: CpuContext>(&mut self, ctx: &mut H) {
+    self.regs.pc = self.pop_u16(ctx);
+    ctx.tick_cycle();
   }
 }
