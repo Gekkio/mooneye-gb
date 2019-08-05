@@ -401,7 +401,7 @@ impl Cpu {
   ///        - - - -
   pub fn halt<B: Bus>(&mut self, bus: &mut B) -> Step {
     let opcode = bus.read_cycle(self.regs.pc);
-    if bus.get_mid_interrupt().is_some() {
+    if !bus.get_mid_interrupt().is_empty() {
       if self.ime {
         Step::InterruptDispatch
       } else {

@@ -13,9 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crate::cpu::{Cpu, Step};
+use crate::cpu::{Cpu, Step, InterruptLine};
 use crate::emulation::EmuEvents;
-use crate::hardware::irq::Interrupt;
 use crate::hardware::Bus;
 
 mod cb_test;
@@ -82,13 +81,9 @@ impl<'a> Bus for TestHardware {
   fn tick_cycle(&mut self) {
     self.t_cycles += 4;
   }
-  fn get_mid_interrupt(&self) -> Option<Interrupt> {
-    None
-  }
-  fn get_end_interrupt(&self) -> Option<Interrupt> {
-    None
-  }
-  fn ack_interrupt(&mut self, _: Interrupt) {}
+  fn get_mid_interrupt(&self) -> InterruptLine { InterruptLine::empty() }
+  fn get_end_interrupt(&self) -> InterruptLine { InterruptLine::empty() }
+  fn ack_interrupt(&mut self, _: InterruptLine) {}
   fn trigger_emu_events(&mut self, _: EmuEvents) {}
 }
 

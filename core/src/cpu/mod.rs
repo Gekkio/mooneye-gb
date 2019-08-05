@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use bitflags::bitflags;
 use std::fmt;
 
 use self::register_file::{Flags, Reg16, Reg8, RegisterFile};
 use crate::hardware::Bus;
+use crate::util::int::IntExt;
 
 mod decode;
 mod execute;
@@ -24,6 +26,16 @@ pub mod register_file;
 
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
+
+bitflags!(
+  pub struct InterruptLine: u8 {
+    const VBLANK = 1 << 0;
+    const STAT = 1 << 1;
+    const TIMER = 1 << 2;
+    const SERIAL = 1 << 3;
+    const JOYPAD = 1 << 4;
+  }
+);
 
 #[derive(Clone)]
 pub struct Cpu {
@@ -141,7 +153,7 @@ impl Cpu {
 
   fn prefetch_next<H: Bus>(&mut self, bus: &mut H, addr: u16) -> Step {
     let opcode = bus.read_cycle(addr);
-    if self.ime && bus.get_mid_interrupt().is_some() {
+    if self.ime && !bus.get_mid_interrupt().is_empty() {
       Step::InterruptDispatch
     } else {
       self.regs.pc = addr.wrapping_add(1);
@@ -215,16 +227,22 @@ impl Cpu {
         let pc = self.regs.pc;
         self.push_u8(bus, (pc >> 8) as u8);
         self.push_u8(bus, pc as u8);
-        let interrupt = bus.get_mid_interrupt();
-        if let Some(interrupt) = interrupt {
-          bus.ack_interrupt(interrupt);
-        }
-        self.regs.pc = interrupt.map(|i| i.get_addr()).unwrap_or(0x0000);
+        let interrupt =
+          InterruptLine::from_bits_truncate(bus.get_mid_interrupt().bits().isolate_rightmost_one());
+        bus.ack_interrupt(interrupt);
+        self.regs.pc = match interrupt {
+          InterruptLine::VBLANK => 0x0040,
+          InterruptLine::STAT => 0x0048,
+          InterruptLine::TIMER => 0x0050,
+          InterruptLine::SERIAL => 0x0058,
+          InterruptLine::JOYPAD => 0x0060,
+          _ => 0x0000,
+        };
         let opcode = self.next_u8(bus);
         Step::Opcode(opcode)
       }
       Step::Halt => {
-        if bus.get_end_interrupt().is_some() {
+        if !bus.get_end_interrupt().is_empty() {
           self.prefetch_next(bus, self.regs.pc)
         } else {
           bus.tick_cycle();

@@ -16,6 +16,7 @@
 use std::fmt;
 
 use crate::config::HardwareConfig;
+use crate::cpu::InterruptLine;
 use crate::emulation::{EmuEvents, EmuTime};
 use crate::gameboy;
 use crate::gameboy::{HiramData, HIRAM_EMPTY};
@@ -24,7 +25,7 @@ use crate::hardware::bootrom::Bootrom;
 pub use crate::hardware::bootrom::BootromData;
 use crate::hardware::cartridge::Cartridge;
 use crate::hardware::gpu::Gpu;
-use crate::hardware::irq::{Interrupt, InterruptRequest, Irq};
+use crate::hardware::irq::{InterruptRequest, Irq};
 use crate::hardware::joypad::Joypad;
 use crate::hardware::serial::Serial;
 use crate::hardware::timer::{Div, Tac, Tima, Timer, Tma};
@@ -50,9 +51,9 @@ pub trait Bus {
   fn read_cycle(&mut self, addr: u16) -> u8;
   fn write_cycle(&mut self, addr: u16, data: u8);
   fn tick_cycle(&mut self);
-  fn get_mid_interrupt(&self) -> Option<Interrupt>;
-  fn get_end_interrupt(&self) -> Option<Interrupt>;
-  fn ack_interrupt(&mut self, interrupt: Interrupt);
+  fn get_mid_interrupt(&self) -> InterruptLine;
+  fn get_end_interrupt(&self) -> InterruptLine;
+  fn ack_interrupt(&mut self, mask: InterruptLine);
   fn trigger_emu_events(&mut self, events: EmuEvents);
 }
 
@@ -360,14 +361,14 @@ impl Bus for Hardware {
     self.emulate_internal();
     self.timer.tick_cycle(&mut self.irq);
   }
-  fn get_mid_interrupt(&self) -> Option<Interrupt> {
+  fn get_mid_interrupt(&self) -> InterruptLine {
     self.irq.get_mid_interrupt()
   }
-  fn get_end_interrupt(&self) -> Option<Interrupt> {
+  fn get_end_interrupt(&self) -> InterruptLine {
     self.irq.get_end_interrupt()
   }
-  fn ack_interrupt(&mut self, interrupt: Interrupt) {
-    self.irq.ack_interrupt(interrupt);
+  fn ack_interrupt(&mut self, mask: InterruptLine) {
+    self.irq.ack_interrupt(mask);
   }
   fn trigger_emu_events(&mut self, events: EmuEvents) {
     self.emu_events.insert(events)

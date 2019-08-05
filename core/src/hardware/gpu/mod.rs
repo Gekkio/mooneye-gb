@@ -18,10 +18,11 @@ use bitflags::bitflags;
 use std::cmp::Ordering;
 use std::fmt;
 
+use crate::cpu::InterruptLine;
 use crate::emulation::EmuEvents;
 use crate::gameboy;
 use crate::gameboy::Color;
-use crate::hardware::irq::{Interrupt, InterruptRequest, Irq};
+use crate::hardware::irq::{InterruptRequest, Irq};
 use crate::util::int::IntExt;
 
 const CHARACTER_RAM_TILES: usize = 384;
@@ -369,17 +370,17 @@ impl Gpu {
     match self.mode {
       Mode::AccessOam => {
         if self.stat.contains(Stat::ACCESS_OAM_INT) {
-          irq.request_t34_interrupt(Interrupt::LcdStat);
+          irq.request_t34_interrupt(InterruptLine::STAT);
         }
       }
       Mode::HBlank => {}
       Mode::VBlank => {
-        irq.request_t34_interrupt(Interrupt::VBlank);
+        irq.request_t34_interrupt(InterruptLine::VBLANK);
         if self.stat.contains(Stat::VBLANK_INT) {
-          irq.request_t34_interrupt(Interrupt::LcdStat);
+          irq.request_t34_interrupt(InterruptLine::STAT);
         }
         if self.stat.contains(Stat::ACCESS_OAM_INT) {
-          irq.request_t34_interrupt(Interrupt::LcdStat);
+          irq.request_t34_interrupt(InterruptLine::STAT);
         }
       }
       _ => (),
@@ -394,7 +395,7 @@ impl Gpu {
     if self.cycles == 1 && self.mode == Mode::AccessVram {
       // STAT mode=0 interrupt happens one cycle before the actual mode switch!
       if self.stat.contains(Stat::HBLANK_INT) {
-        irq.request_t34_interrupt(Interrupt::LcdStat);
+        irq.request_t34_interrupt(InterruptLine::STAT);
       }
     }
     if self.cycles > 0 {
@@ -435,7 +436,7 @@ impl Gpu {
     } else {
       self.stat.insert(Stat::COMPARE);
       if self.stat.contains(Stat::COMPARE_INT) {
-        irq.request_t34_interrupt(Interrupt::LcdStat);
+        irq.request_t34_interrupt(InterruptLine::STAT);
       }
     }
   }

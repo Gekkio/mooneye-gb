@@ -13,19 +13,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use bitflags::bitflags;
-
-use crate::util::int::IntExt;
+use crate::cpu::InterruptLine;
 
 pub trait InterruptRequest {
-  fn request_t12_interrupt(&mut self, interrupt: Interrupt);
-  fn request_t34_interrupt(&mut self, interrupt: Interrupt);
+  fn request_t12_interrupt(&mut self, interrupt: InterruptLine);
+  fn request_t34_interrupt(&mut self, interrupt: InterruptLine);
 }
 
 #[derive(Clone, Debug)]
 pub struct Irq {
-  mid_intr: InterruptType,
-  end_intr: InterruptType,
+  mid_intr: InterruptLine,
+  end_intr: InterruptLine,
   mid_enable: u8,
   end_enable: u8,
 }
@@ -33,8 +31,8 @@ pub struct Irq {
 impl Irq {
   pub fn new() -> Irq {
     Irq {
-      mid_intr: InterruptType::empty(),
-      end_intr: InterruptType::empty(),
+      mid_intr: InterruptLine::empty(),
+      end_intr: InterruptLine::empty(),
       mid_enable: 0x00,
       end_enable: 0x00,
     }
@@ -42,13 +40,13 @@ impl Irq {
   pub fn get_interrupt_flag(&self) -> u8 {
     const IF_UNUSED_MASK: u8 = (1 << 5) | (1 << 6) | (1 << 7);
 
-    self.mid_intr.bits | IF_UNUSED_MASK
+    self.mid_intr.bits() | IF_UNUSED_MASK
   }
   pub fn get_interrupt_enable(&self) -> u8 {
     self.mid_enable
   }
   pub fn set_interrupt_flag(&mut self, value: u8) {
-    self.end_intr = InterruptType::from_bits_truncate(value);
+    self.end_intr = InterruptLine::from_bits_truncate(value);
   }
   pub fn set_interrupt_enable(&mut self, value: u8) {
     self.end_enable = value;
@@ -57,85 +55,24 @@ impl Irq {
     self.mid_intr = self.end_intr;
     self.mid_enable = self.end_enable;
   }
-  pub fn get_mid_interrupt(&self) -> Option<Interrupt> {
-    Interrupt::from_u8(
-      (InterruptType::from_bits_truncate(self.mid_enable) & self.mid_intr)
-        .isolate_highest_priority()
-        .bits(),
-    )
+  pub fn get_mid_interrupt(&self) -> InterruptLine {
+    self.mid_intr & InterruptLine::from_bits_truncate(self.mid_enable)
   }
-  pub fn get_end_interrupt(&self) -> Option<Interrupt> {
-    Interrupt::from_u8(
-      (InterruptType::from_bits_truncate(self.end_enable) & self.end_intr)
-        .isolate_highest_priority()
-        .bits(),
-    )
+  pub fn get_end_interrupt(&self) -> InterruptLine {
+    self.end_intr & InterruptLine::from_bits_truncate(self.end_enable)
   }
-  pub fn ack_interrupt(&mut self, interrupt: Interrupt) {
-    self.mid_intr -= InterruptType::from_bits_truncate(interrupt as u8);
-    self.end_intr -= InterruptType::from_bits_truncate(interrupt as u8);
+  pub fn ack_interrupt(&mut self, mask: InterruptLine) {
+    self.mid_intr -= mask;
+    self.end_intr -= mask;
   }
 }
 
 impl InterruptRequest for Irq {
-  fn request_t12_interrupt(&mut self, interrupt: Interrupt) {
-    let flags = InterruptType::from_bits_truncate(interrupt as u8);
-    self.mid_intr |= flags;
-    self.end_intr |= flags;
+  fn request_t12_interrupt(&mut self, interrupt: InterruptLine) {
+    self.mid_intr |= interrupt;
+    self.end_intr |= interrupt;
   }
-  fn request_t34_interrupt(&mut self, interrupt: Interrupt) {
-    let flags = InterruptType::from_bits_truncate(interrupt as u8);
-    self.end_intr |= flags;
-  }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum Interrupt {
-  VBlank = 1 << 0,
-  LcdStat = 1 << 1,
-  TimerOverflow = 1 << 2,
-  SerialIoDone = 1 << 3,
-  Joypad = 1 << 4,
-}
-
-impl Interrupt {
-  pub fn from_u8(value: u8) -> Option<Interrupt> {
-    use self::Interrupt::*;
-    match value {
-      1 => Some(VBlank),
-      2 => Some(LcdStat),
-      4 => Some(TimerOverflow),
-      8 => Some(SerialIoDone),
-      16 => Some(Joypad),
-      _ => None,
-    }
-  }
-  pub fn get_addr(&self) -> u16 {
-    match *self {
-      Interrupt::VBlank => 0x40,
-      Interrupt::LcdStat => 0x48,
-      Interrupt::TimerOverflow => 0x50,
-      Interrupt::SerialIoDone => 0x58,
-      Interrupt::Joypad => 0x60,
-    }
-  }
-}
-
-bitflags!(
-  pub struct InterruptType: u8 {
-    const VBLANK = 1 << 0;
-    const LCDSTAT = 1 << 1;
-    const TIMER_OVERFLOW = 1 << 2;
-    const SERIAL_IO_DONE = 1 << 3;
-    const JOYPAD = 1 << 4;
-  }
-);
-
-impl InterruptType {
-  #[inline(always)]
-  fn isolate_highest_priority(&self) -> InterruptType {
-    InterruptType {
-      bits: self.bits.isolate_rightmost_one(),
-    }
+  fn request_t34_interrupt(&mut self, interrupt: InterruptLine) {
+    self.end_intr |= interrupt;
   }
 }

@@ -15,7 +15,8 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use bitflags::bitflags;
 
-use crate::hardware::irq::{Interrupt, InterruptRequest};
+use crate::cpu::InterruptLine;
+use crate::hardware::irq::InterruptRequest;
 use crate::hardware::MappedHardware;
 
 #[derive(Clone)]
@@ -137,7 +138,7 @@ impl Timer {
     if self.overflow {
       self.internal_counter = self.internal_counter.wrapping_add(1);
       self.counter = self.modulo;
-      intr_req.request_t12_interrupt(Interrupt::TimerOverflow);
+      intr_req.request_t12_interrupt(InterruptLine::TIMER);
       self.overflow = false;
     } else if self.enabled && self.counter_bit() {
       self.internal_counter = self.internal_counter.wrapping_add(1);
