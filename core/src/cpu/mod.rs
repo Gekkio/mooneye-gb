@@ -22,7 +22,6 @@ use crate::util::int::IntExt;
 
 pub use self::ops::CpuOps;
 
-pub mod disasm;
 mod ops;
 pub mod registers;
 
@@ -35,10 +34,10 @@ pub struct Cpu {
   ime: bool,
 }
 
-pub trait In8: disasm::ResolveOp8 {
+pub trait In8 {
   fn read<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H) -> u8;
 }
-pub trait Out8: disasm::ResolveOp8 {
+pub trait Out8 {
   fn write<H: Bus>(&self, cpu: &mut Cpu, bus: &mut H, data: u8);
 }
 

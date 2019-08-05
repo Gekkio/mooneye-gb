@@ -13,8 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crate::cpu::disasm;
-use crate::cpu::disasm::{DisasmStr, ToDisasmStr};
 use crate::cpu::{Cpu, Step};
 use crate::emulation::EmuEvents;
 use crate::hardware::irq::Interrupt;
@@ -116,30 +114,4 @@ pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> 
       .execute_step(&mut machine.hardware, machine.step);
   }
   machine
-}
-
-fn disasm_op(cpu: &Cpu, bus: &TestHardware) -> DisasmStr {
-  let pc = cpu.regs.pc;
-
-  disasm::disasm(pc, &mut |addr| bus.read(addr)).to_disasm_str()
-}
-
-#[test]
-fn test_disasm_all_opcodes() {
-  let mut bus = TestHardware::from_memory(&vec![0x00, 0x00, 0x00]);
-  let mut cpu = Cpu::new();
-
-  for op in 0..0xff {
-    bus.memory[0] = op as u8;
-    if op != 0xcb {
-      cpu.regs.pc = 0x00;
-      disasm_op(&cpu, &bus);
-    } else {
-      for cb_op in 0..0xff {
-        bus.memory[1] = cb_op as u8;
-        cpu.regs.pc = 0x00;
-        disasm_op(&cpu, &bus);
-      }
-    }
-  }
 }
