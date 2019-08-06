@@ -38,7 +38,13 @@ bitflags!(
 
 pub trait CpuContext {
   fn read_cycle(&mut self, addr: u16) -> u8;
+  fn read_cycle_high(&mut self, addr: u8) -> u8 {
+    self.read_cycle(0xff00 | (addr as u16))
+  }
   fn write_cycle(&mut self, addr: u16, data: u8);
+  fn write_cycle_high(&mut self, addr: u8, data: u8) {
+    self.write_cycle(0xff00 | (addr as u16), data);
+  }
   fn tick_cycle(&mut self);
   fn get_mid_interrupt(&self) -> InterruptLine;
   fn get_end_interrupt(&self) -> InterruptLine;
