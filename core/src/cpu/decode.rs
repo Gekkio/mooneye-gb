@@ -1,6 +1,51 @@
+// This file is part of Mooneye GB.
+// Copyright (C) 2014-2018 Joonas Javanainen <joonas.javanainen@gmail.com>
+//
+// Mooneye GB is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Mooneye GB is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use crate::cpu::register_file::Reg16::{AF, BC, DE, HL, SP};
 use crate::cpu::register_file::Reg8::{A, B, C, D, E, H, L};
-use crate::cpu::{Addr, Cond, Cpu, CpuContext, Immediate8, Step};
+use crate::cpu::{Cpu, CpuContext, Step};
+
+pub trait In8<T: Copy> {
+  fn read<H: CpuContext>(&mut self, src: T, ctx: &mut H) -> u8;
+}
+pub trait Out8<T: Copy> {
+  fn write<H: CpuContext>(&mut self, dst: T, ctx: &mut H, data: u8);
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Immediate8;
+
+#[derive(Clone, Copy, Debug)]
+pub enum Addr {
+  BC,
+  DE,
+  HL,
+  HLD,
+  HLI,
+  Direct,
+  ZeroPage,
+  ZeroPageC,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum Cond {
+  NZ,
+  Z,
+  NC,
+  C,
+}
 
 impl Cpu {
   pub fn decode_exec_fetch<C: CpuContext>(&mut self, ctx: &mut C) -> Step {

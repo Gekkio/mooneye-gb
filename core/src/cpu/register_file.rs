@@ -25,17 +25,6 @@ bitflags!(
   }
 );
 
-impl Flags {
-  #[inline]
-  pub fn test(&self, test: bool) -> Flags {
-    if test {
-      *self
-    } else {
-      Flags::empty()
-    }
-  }
-}
-
 #[derive(Clone, Copy, Debug)]
 pub enum Reg8 {
   A,
@@ -118,6 +107,39 @@ impl RegisterFile {
       }
       SP => self.sp = value,
     }
+  }
+
+  #[inline]
+  pub fn zf(&self) -> bool {
+    self.f.contains(Flags::ZERO)
+  }
+  #[inline]
+  pub fn nf(&self) -> bool {
+    self.f.contains(Flags::ADD_SUBTRACT)
+  }
+  #[inline]
+  pub fn hf(&self) -> bool {
+    self.f.contains(Flags::HALF_CARRY)
+  }
+  #[inline]
+  pub fn cf(&self) -> bool {
+    self.f.contains(Flags::CARRY)
+  }
+  #[inline]
+  pub fn set_zf(&mut self, zf: bool) {
+    self.f.set(Flags::ZERO, zf);
+  }
+  #[inline]
+  pub fn set_nf(&mut self, nf: bool) {
+    self.f.set(Flags::ADD_SUBTRACT, nf);
+  }
+  #[inline]
+  pub fn set_hf(&mut self, hf: bool) {
+    self.f.set(Flags::HALF_CARRY, hf);
+  }
+  #[inline]
+  pub fn set_cf(&mut self, cf: bool) {
+    self.f.set(Flags::CARRY, cf);
   }
 }
 

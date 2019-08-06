@@ -1,5 +1,21 @@
-use crate::cpu::register_file::{Flags, Reg16};
-use crate::cpu::{Cond, Cpu, CpuContext, In8, Out8, Step};
+// This file is part of Mooneye GB.
+// Copyright (C) 2014-2018 Joonas Javanainen <joonas.javanainen@gmail.com>
+//
+// Mooneye GB is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Mooneye GB is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
+use crate::cpu::decode::{Cond, In8, Out8};
+use crate::cpu::register_file::Reg16;
+use crate::cpu::{Cpu, CpuContext, Step};
 use crate::util::int::IntExt;
 
 impl Cpu {
@@ -9,13 +25,19 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        - - - -
-  pub fn load<B: CpuContext, O: Out8, I: In8>(&mut self, ctx: &mut B, out8: O, in8: I) -> Step {
-    let value = in8.read(self, ctx);
-    out8.write(self, ctx, value);
+  pub fn load<B: CpuContext, O: Copy, I: Copy>(&mut self, ctx: &mut B, out8: O, in8: I) -> Step
+  where
+    Self: Out8<O> + In8<I>,
+  {
+    let value = self.read(in8, ctx);
+    self.write(out8, ctx, value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   // Magic breakpoint
-  pub fn ld_b_b<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
+  pub fn ld_b_b<B>(&mut self, ctx: &mut B) -> Step
+  where
+    B: CpuContext,
+  {
     ctx.debug_opcode_callback();
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -24,12 +46,17 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        * 0 * *
-  pub fn add<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
+  pub fn add<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
     let (result, carry) = self.regs.a.overflowing_add(value);
     let half_carry = (self.regs.a & 0x0f).checked_add(value | 0xf0).is_none();
-    self.regs.f =
-      Flags::ZERO.test(result == 0) | Flags::CARRY.test(carry) | Flags::HALF_CARRY.test(half_carry);
+    self.regs.set_zf(result == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(half_carry);
+    self.regs.set_cf(carry);
     self.regs.a = result;
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -37,17 +64,21 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        * 0 * *
-  pub fn adc<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
-    let cy = if self.regs.f.contains(Flags::CARRY) {
-      1
-    } else {
-      0
-    };
+  pub fn adc<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
+    let cy = if self.regs.cf() { 1 } else { 0 };
     let result = self.regs.a.wrapping_add(value).wrapping_add(cy);
-    self.regs.f = Flags::ZERO.test(result == 0)
-      | Flags::CARRY.test(self.regs.a as u16 + value as u16 + cy as u16 > 0xff)
-      | Flags::HALF_CARRY.test((self.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
+    self.regs.set_zf(result == 0);
+    self.regs.set_nf(false);
+    self
+      .regs
+      .set_hf((self.regs.a & 0xf) + (value & 0xf) + cy > 0xf);
+    self
+      .regs
+      .set_cf(self.regs.a as u16 + value as u16 + cy as u16 > 0xff);
     self.regs.a = result;
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -55,8 +86,11 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        * 1 * *
-  pub fn sub<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
+  pub fn sub<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
     self.regs.a = self.alu_sub(value, false);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -64,8 +98,11 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        * 1 * *
-  pub fn sbc<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
+  pub fn sbc<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
     self.regs.a = self.alu_sub(value, true);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -73,8 +110,11 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        * 1 * *
-  pub fn cp<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
+  pub fn cp<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
     self.alu_sub(value, false);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -82,57 +122,80 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        * 0 1 0
-  pub fn and<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
+  pub fn and<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
     self.regs.a &= value;
-    self.regs.f = Flags::ZERO.test(self.regs.a == 0) | Flags::HALF_CARRY;
+    self.regs.set_zf(self.regs.a == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(true);
+    self.regs.set_cf(false);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// OR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
-  pub fn or<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
+  pub fn or<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
     self.regs.a |= value;
-    self.regs.f = Flags::ZERO.test(self.regs.a == 0);
+    self.regs.set_zf(self.regs.a == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(false);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// XOR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
-  pub fn xor<B: CpuContext, I: In8>(&mut self, ctx: &mut B, in8: I) -> Step {
-    let value = in8.read(self, ctx);
+  pub fn xor<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx);
     self.regs.a ^= value;
-    self.regs.f = Flags::ZERO.test(self.regs.a == 0);
+    self.regs.set_zf(self.regs.a == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(false);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// INC s
   ///
   /// Flags: Z N H C
   ///        * 0 * -
-  pub fn inc<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn inc<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: In8<IO> + Out8<IO>,
+  {
+    let value = self.read(io, ctx);
     let new_value = value.wrapping_add(1);
-    self.regs.f = Flags::ZERO.test(new_value == 0)
-      | Flags::HALF_CARRY.test(value & 0xf == 0xf)
-      | (Flags::CARRY & self.regs.f);
-    io.write(self, ctx, new_value);
+    self.regs.set_zf(new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(value & 0xf == 0xf);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// DEC s
   ///
   /// Flags: Z N H C
   ///        * 1 * -
-  pub fn dec<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn dec<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: In8<IO> + Out8<IO>,
+  {
+    let value = self.read(io, ctx);
     let new_value = value.wrapping_sub(1);
-    self.regs.f = Flags::ZERO.test(new_value == 0)
-      | Flags::ADD_SUBTRACT
-      | Flags::HALF_CARRY.test(value & 0xf == 0)
-      | (Flags::CARRY & self.regs.f);
-    io.write(self, ctx, new_value);
+    self.regs.set_zf(new_value == 0);
+    self.regs.set_nf(true);
+    self.regs.set_hf(value & 0xf == 0);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RLCA
@@ -175,115 +238,162 @@ impl Cpu {
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  pub fn rlc<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn rlc<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let new_value = self.alu_rlc(value, true);
-    io.write(self, ctx, new_value);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RL s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  pub fn rl<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn rl<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let new_value = self.alu_rl(value, true);
-    io.write(self, ctx, new_value);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RRC s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  pub fn rrc<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn rrc<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let new_value = self.alu_rrc(value, true);
-    io.write(self, ctx, new_value);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RR s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  pub fn rr<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn rr<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let new_value = self.alu_rr(value, true);
-    io.write(self, ctx, new_value);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// SLA s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  pub fn sla<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn sla<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let co = value & 0x80;
     let new_value = value << 1;
-    self.regs.f = Flags::ZERO.test(new_value == 0) | Flags::CARRY.test(co != 0);
-    io.write(self, ctx, new_value);
+    self.regs.set_zf(new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(co != 0);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// SRA s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  pub fn sra<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn sra<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let co = value & 0x01;
     let hi = value & 0x80;
     let new_value = (value >> 1) | hi;
-    self.regs.f = Flags::ZERO.test(new_value == 0) | Flags::CARRY.test(co != 0);
-    io.write(self, ctx, new_value);
+    self.regs.set_zf(new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(co != 0);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// SRL s
   ///
   /// Flags: Z N H C
   ///        * 0 0 *
-  pub fn srl<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn srl<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let co = value & 0x01;
     let new_value = value >> 1;
-    self.regs.f = Flags::ZERO.test(new_value == 0) | Flags::CARRY.test(co != 0);
-    io.write(self, ctx, new_value);
+    self.regs.set_zf(new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(co != 0);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// SWAP s
   ///
   /// Flags: Z N H C
   ///        * 0 0 0
-  pub fn swap<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, io: IO) -> Step {
-    let value = io.read(self, ctx);
+  pub fn swap<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx);
     let new_value = (value >> 4) | (value << 4);
-    self.regs.f = Flags::ZERO.test(value == 0);
-    io.write(self, ctx, new_value);
+    self.regs.set_zf(value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(false);
+    self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// BIT b, s
   ///
   /// Flags: Z N H C
   ///        * 0 1 -
-  pub fn bit<B: CpuContext, I: In8>(&mut self, ctx: &mut B, bit: usize, in8: I) -> Step {
-    let value = in8.read(self, ctx) & (1 << bit);
-    self.regs.f = Flags::ZERO.test(value == 0) | Flags::HALF_CARRY | (Flags::CARRY & self.regs.f);
+  pub fn bit<B: CpuContext, I: Copy>(&mut self, ctx: &mut B, bit: usize, in8: I) -> Step
+  where
+    Self: In8<I>,
+  {
+    let value = self.read(in8, ctx) & (1 << bit);
+    self.regs.set_zf(value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(true);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// SET b, s
   ///
   /// Flags: Z N H C
   ///        - - - -
-  pub fn set<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, bit: usize, io: IO) -> Step {
-    let value = io.read(self, ctx) | (1 << bit);
-    io.write(self, ctx, value);
+  pub fn set<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, bit: usize, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx) | (1 << bit);
+    self.write(io, ctx, value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RES b, s
   ///
   /// Flags: Z N H C
   ///        - - - -
-  pub fn res<B: CpuContext, IO: In8 + Out8>(&mut self, ctx: &mut B, bit: usize, io: IO) -> Step {
-    let value = io.read(self, ctx) & !(1 << bit);
-    io.write(self, ctx, value);
+  pub fn res<B: CpuContext, IO: Copy>(&mut self, ctx: &mut B, bit: usize, io: IO) -> Step
+  where
+    Self: Out8<IO> + In8<IO>,
+  {
+    let value = self.read(io, ctx) & !(1 << bit);
+    self.write(io, ctx, value);
     self.prefetch_next(ctx, self.regs.pc)
   }
   // --- Control
@@ -292,7 +402,7 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn jp<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    let addr = self.next_u16(ctx);
+    let addr = self.fetch_imm16(ctx);
     self.ctrl_jp(ctx, addr);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -308,7 +418,7 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn jr<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    let offset = self.next_u8(ctx) as i8;
+    let offset = self.fetch_imm8(ctx) as i8;
     self.ctrl_jr(ctx, offset);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -317,7 +427,7 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn call<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    let addr = self.next_u16(ctx);
+    let addr = self.fetch_imm16(ctx);
     self.ctrl_call(ctx, addr);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -343,8 +453,8 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn jp_cc<B: CpuContext>(&mut self, ctx: &mut B, cond: Cond) -> Step {
-    let addr = self.next_u16(ctx);
-    if cond.check(self.regs.f) {
+    let addr = self.fetch_imm16(ctx);
+    if self.check_cond(cond) {
       self.ctrl_jp(ctx, addr);
     }
     self.prefetch_next(ctx, self.regs.pc)
@@ -354,8 +464,8 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn jr_cc<B: CpuContext>(&mut self, ctx: &mut B, cond: Cond) -> Step {
-    let offset = self.next_u8(ctx) as i8;
-    if cond.check(self.regs.f) {
+    let offset = self.fetch_imm8(ctx) as i8;
+    if self.check_cond(cond) {
       self.ctrl_jr(ctx, offset);
     }
     self.prefetch_next(ctx, self.regs.pc)
@@ -365,8 +475,8 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn call_cc<B: CpuContext>(&mut self, ctx: &mut B, cond: Cond) -> Step {
-    let addr = self.next_u16(ctx);
-    if cond.check(self.regs.f) {
+    let addr = self.fetch_imm16(ctx);
+    if self.check_cond(cond) {
       self.ctrl_call(ctx, addr);
     }
     self.prefetch_next(ctx, self.regs.pc)
@@ -377,7 +487,7 @@ impl Cpu {
   ///        - - - -
   pub fn ret_cc<B: CpuContext>(&mut self, ctx: &mut B, cond: Cond) -> Step {
     ctx.tick_cycle();
-    if cond.check(self.regs.f) {
+    if self.check_cond(cond) {
       self.ctrl_ret(ctx);
     }
     self.prefetch_next(ctx, self.regs.pc)
@@ -388,7 +498,6 @@ impl Cpu {
   ///        - - - -
   pub fn rst<B: CpuContext>(&mut self, ctx: &mut B, addr: u8) -> Step {
     let pc = self.regs.pc;
-    ctx.tick_cycle();
     self.push_u16(ctx, pc);
     self.prefetch_next(ctx, addr as u16)
   }
@@ -424,7 +533,7 @@ impl Cpu {
   ///        - - - -
   pub fn di<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     self.ime = false;
-    self.opcode = self.next_u8(ctx);
+    self.opcode = self.fetch_imm8(ctx);
     Step::Running
   }
   /// EI
@@ -441,8 +550,9 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - 0 0 *
   pub fn ccf<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    self.regs.f =
-      (Flags::ZERO & self.regs.f) | Flags::CARRY.test(!self.regs.f.contains(Flags::CARRY));
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(!self.regs.cf());
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// SCF
@@ -450,7 +560,9 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - 0 0 1
   pub fn scf<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    self.regs.f = (Flags::ZERO & self.regs.f) | Flags::CARRY;
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(true);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// NOP
@@ -467,31 +579,27 @@ impl Cpu {
   pub fn daa<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     // DAA table in page 110 of the official "Game Boy Programming Manual"
     let mut carry = false;
-    if !self.regs.f.contains(Flags::ADD_SUBTRACT) {
-      if self.regs.f.contains(Flags::CARRY) || self.regs.a > 0x99 {
+    if !self.regs.nf() {
+      if self.regs.cf() || self.regs.a > 0x99 {
         self.regs.a = self.regs.a.wrapping_add(0x60);
         carry = true;
       }
-      if self.regs.f.contains(Flags::HALF_CARRY) || self.regs.a & 0x0f > 0x09 {
+      if self.regs.hf() || self.regs.a & 0x0f > 0x09 {
         self.regs.a = self.regs.a.wrapping_add(0x06);
       }
-    } else if self.regs.f.contains(Flags::CARRY) {
+    } else if self.regs.cf() {
       carry = true;
       self.regs.a = self
         .regs
         .a
-        .wrapping_add(if self.regs.f.contains(Flags::HALF_CARRY) {
-          0x9a
-        } else {
-          0xa0
-        });
-    } else if self.regs.f.contains(Flags::HALF_CARRY) {
+        .wrapping_add(if self.regs.hf() { 0x9a } else { 0xa0 });
+    } else if self.regs.hf() {
       self.regs.a = self.regs.a.wrapping_add(0xfa);
     }
 
-    self.regs.f = Flags::ZERO.test(self.regs.a == 0)
-      | (Flags::ADD_SUBTRACT & self.regs.f)
-      | Flags::CARRY.test(carry);
+    self.regs.set_zf(self.regs.a == 0);
+    self.regs.set_hf(false);
+    self.regs.set_cf(carry);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// CPL
@@ -500,10 +608,8 @@ impl Cpu {
   ///        - 1 1 -
   pub fn cpl<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     self.regs.a = !self.regs.a;
-    self.regs.f = (Flags::ZERO & self.regs.f)
-      | Flags::ADD_SUBTRACT
-      | Flags::HALF_CARRY
-      | (Flags::CARRY & self.regs.f);
+    self.regs.set_nf(true);
+    self.regs.set_hf(true);
     self.prefetch_next(ctx, self.regs.pc)
   }
   // --- 16-bit operations
@@ -513,7 +619,7 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn load16_imm<B: CpuContext>(&mut self, ctx: &mut B, reg: Reg16) -> Step {
-    let value = self.next_u16(ctx);
+    let value = self.fetch_imm16(ctx);
     self.regs.write16(reg, value);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -523,7 +629,7 @@ impl Cpu {
   ///        - - - -
   pub fn load16_nn_sp<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     let value = self.regs.sp;
-    let addr = self.next_u16(ctx);
+    let addr = self.fetch_imm16(ctx);
     ctx.write_cycle(addr, value as u8);
     ctx.write_cycle(addr.wrapping_add(1), (value >> 8) as u8);
     self.prefetch_next(ctx, self.regs.pc)
@@ -543,12 +649,14 @@ impl Cpu {
   /// Flags: Z N H C
   ///        0 0 * *
   pub fn load16_hl_sp_e<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    let offset = self.next_u8(ctx) as i8 as u16;
+    let offset = self.fetch_imm8(ctx) as i8 as u16;
     let sp = self.regs.sp as u16;
     let value = sp.wrapping_add(offset);
     self.regs.write16(Reg16::HL, value);
-    self.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, offset))
-      | Flags::CARRY.test(u16::test_add_carry_bit(7, sp, offset));
+    self.regs.set_zf(false);
+    self.regs.set_nf(false);
+    self.regs.set_hf(u16::test_add_carry_bit(3, sp, offset));
+    self.regs.set_cf(u16::test_add_carry_bit(7, sp, offset));
     ctx.tick_cycle();
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -558,7 +666,6 @@ impl Cpu {
   ///        - - - -
   pub fn push16<B: CpuContext>(&mut self, ctx: &mut B, reg: Reg16) -> Step {
     let value = self.regs.read16(reg);
-    ctx.tick_cycle();
     self.push_u16(ctx, value);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -581,9 +688,9 @@ impl Cpu {
     let hl = self.regs.read16(Reg16::HL);
     let value = self.regs.read16(reg);
     let result = hl.wrapping_add(value);
-    self.regs.f = (Flags::ZERO & self.regs.f)
-      | Flags::HALF_CARRY.test(u16::test_add_carry_bit(11, hl, value))
-      | Flags::CARRY.test(hl > 0xffff - value);
+    self.regs.set_nf(false);
+    self.regs.set_hf(u16::test_add_carry_bit(11, hl, value));
+    self.regs.set_cf(hl > 0xffff - value);
     self.regs.write16(Reg16::HL, result);
     ctx.tick_cycle();
     self.prefetch_next(ctx, self.regs.pc)
@@ -593,11 +700,13 @@ impl Cpu {
   /// Flags: Z N H C
   ///        0 0 * *
   pub fn add16_sp_e<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    let val = self.next_u8(ctx) as i8 as i16 as u16;
+    let offset = self.fetch_imm8(ctx) as i8 as i16 as u16;
     let sp = self.regs.sp;
-    self.regs.sp = sp.wrapping_add(val);
-    self.regs.f = Flags::HALF_CARRY.test(u16::test_add_carry_bit(3, sp, val))
-      | Flags::CARRY.test(u16::test_add_carry_bit(7, sp, val));
+    self.regs.sp = sp.wrapping_add(offset);
+    self.regs.set_zf(false);
+    self.regs.set_nf(false);
+    self.regs.set_hf(u16::test_add_carry_bit(3, sp, offset));
+    self.regs.set_cf(u16::test_add_carry_bit(7, sp, offset));
     ctx.tick_cycle();
     ctx.tick_cycle();
     self.prefetch_next(ctx, self.regs.pc)
@@ -627,7 +736,7 @@ impl Cpu {
     panic!("Undefined opcode {}", self.opcode)
   }
   pub fn cb_prefix<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    self.opcode = self.next_u8(ctx);
+    self.opcode = self.fetch_imm8(ctx);
     self.cb_decode_exec_fetch(ctx)
   }
 }

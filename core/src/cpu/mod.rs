@@ -16,7 +16,8 @@
 use bitflags::bitflags;
 use std::fmt;
 
-use self::register_file::{Flags, Reg16, Reg8, RegisterFile};
+use crate::cpu::decode::{Addr, Cond, Immediate8, In8, Out8};
+use crate::cpu::register_file::{Reg16, Reg8, RegisterFile};
 use crate::util::int::IntExt;
 
 mod decode;
@@ -59,93 +60,6 @@ pub struct Cpu {
   pub opcode: u8,
 }
 
-pub trait In8 {
-  fn read<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H) -> u8;
-}
-pub trait Out8 {
-  fn write<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H, data: u8);
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum Cond {
-  NZ,
-  Z,
-  NC,
-  C,
-}
-
-impl Cond {
-  fn check(&self, flags: Flags) -> bool {
-    use self::Cond::*;
-    match *self {
-      NZ => !flags.contains(Flags::ZERO),
-      Z => flags.contains(Flags::ZERO),
-      NC => !flags.contains(Flags::CARRY),
-      C => flags.contains(Flags::CARRY),
-    }
-  }
-}
-
-pub struct Immediate8;
-impl In8 for Immediate8 {
-  fn read<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H) -> u8 {
-    cpu.next_u8(ctx)
-  }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum Addr {
-  BC,
-  DE,
-  HL,
-  HLD,
-  HLI,
-  Direct,
-  ZeroPage,
-  ZeroPageC,
-}
-impl In8 for Addr {
-  fn read<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H) -> u8 {
-    let addr = cpu.indirect_addr(ctx, *self);
-    ctx.read_cycle(addr)
-  }
-}
-impl Out8 for Addr {
-  fn write<H: CpuContext>(&self, cpu: &mut Cpu, ctx: &mut H, value: u8) {
-    let addr = cpu.indirect_addr(ctx, *self);
-    ctx.write_cycle(addr, value)
-  }
-}
-
-impl In8 for Reg8 {
-  fn read<H: CpuContext>(&self, cpu: &mut Cpu, _: &mut H) -> u8 {
-    use self::register_file::Reg8::*;
-    match *self {
-      A => cpu.regs.a,
-      B => cpu.regs.b,
-      C => cpu.regs.c,
-      D => cpu.regs.d,
-      E => cpu.regs.e,
-      H => cpu.regs.h,
-      L => cpu.regs.l,
-    }
-  }
-}
-impl Out8 for Reg8 {
-  fn write<H: CpuContext>(&self, cpu: &mut Cpu, _: &mut H, value: u8) {
-    use self::register_file::Reg8::*;
-    match *self {
-      A => cpu.regs.a = value,
-      B => cpu.regs.b = value,
-      C => cpu.regs.c = value,
-      D => cpu.regs.d = value,
-      E => cpu.regs.e = value,
-      H => cpu.regs.h = value,
-      L => cpu.regs.l = value,
-    }
-  }
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Step {
   Running,
@@ -177,58 +91,39 @@ impl Cpu {
     }
   }
 
-  fn next_u8<H: CpuContext>(&mut self, ctx: &mut H) -> u8 {
+  fn fetch_imm8<H: CpuContext>(&mut self, ctx: &mut H) -> u8 {
     let addr = self.regs.pc;
     self.regs.pc = self.regs.pc.wrapping_add(1);
     ctx.read_cycle(addr)
   }
-  fn next_u16<H: CpuContext>(&mut self, ctx: &mut H) -> u16 {
-    let l = self.next_u8(ctx);
-    let h = self.next_u8(ctx);
-    ((h as u16) << 8) | (l as u16)
-  }
-
-  fn pop_u8<H: CpuContext>(&mut self, ctx: &mut H) -> u8 {
-    let sp = self.regs.sp;
-    let value = ctx.read_cycle(sp);
-    self.regs.sp = self.regs.sp.wrapping_add(1);
-    value
-  }
-  fn push_u8<H: CpuContext>(&mut self, ctx: &mut H, value: u8) {
-    self.regs.sp = self.regs.sp.wrapping_sub(1);
-    let sp = self.regs.sp;
-    ctx.write_cycle(sp, value);
+  fn fetch_imm16<H: CpuContext>(&mut self, ctx: &mut H) -> u16 {
+    let lo = self.fetch_imm8(ctx);
+    let hi = self.fetch_imm8(ctx);
+    u16::from_le_bytes([lo, hi])
   }
 
   fn pop_u16<H: CpuContext>(&mut self, ctx: &mut H) -> u16 {
-    let l = self.pop_u8(ctx);
-    let h = self.pop_u8(ctx);
-    ((h as u16) << 8) | (l as u16)
+    let lo = ctx.read_cycle(self.regs.sp);
+    self.regs.sp = self.regs.sp.wrapping_add(1);
+    let hi = ctx.read_cycle(self.regs.sp);
+    self.regs.sp = self.regs.sp.wrapping_add(1);
+    u16::from_le_bytes([lo, hi])
   }
   fn push_u16<H: CpuContext>(&mut self, ctx: &mut H, value: u16) {
-    self.push_u8(ctx, (value >> 8) as u8);
-    self.push_u8(ctx, value as u8);
+    let [lo, hi] = u16::to_le_bytes(value);
+    ctx.tick_cycle();
+    self.regs.sp = self.regs.sp.wrapping_sub(1);
+    ctx.write_cycle(self.regs.sp, hi);
+    self.regs.sp = self.regs.sp.wrapping_sub(1);
+    ctx.write_cycle(self.regs.sp, lo);
   }
 
-  fn indirect_addr<H: CpuContext>(&mut self, ctx: &mut H, addr: Addr) -> u16 {
-    use self::Addr::*;
-    match addr {
-      BC => self.regs.read16(Reg16::BC),
-      DE => self.regs.read16(Reg16::DE),
-      HL => self.regs.read16(Reg16::HL),
-      HLD => {
-        let addr = self.regs.read16(Reg16::HL);
-        self.regs.write16(Reg16::HL, addr.wrapping_sub(1));
-        addr
-      }
-      HLI => {
-        let addr = self.regs.read16(Reg16::HL);
-        self.regs.write16(Reg16::HL, addr.wrapping_add(1));
-        addr
-      }
-      Direct => self.next_u16(ctx),
-      ZeroPage => 0xff00u16 | self.next_u8(ctx) as u16,
-      ZeroPageC => 0xff00u16 | self.regs.c as u16,
+  fn check_cond(&self, cond: Cond) -> bool {
+    match cond {
+      Cond::NZ => !self.regs.zf(),
+      Cond::Z => self.regs.zf(),
+      Cond::NC => !self.regs.cf(),
+      Cond::C => self.regs.cf(),
     }
   }
 
@@ -238,10 +133,7 @@ impl Cpu {
       Step::InterruptDispatch => {
         self.ime = false;
         ctx.tick_cycle();
-        ctx.tick_cycle();
-        let pc = self.regs.pc;
-        self.push_u8(ctx, (pc >> 8) as u8);
-        self.push_u8(ctx, pc as u8);
+        self.push_u16(ctx, self.regs.pc);
         let interrupt =
           InterruptLine::from_bits_truncate(ctx.get_mid_interrupt().bits().isolate_rightmost_one());
         ctx.ack_interrupt(interrupt);
@@ -253,7 +145,7 @@ impl Cpu {
           InterruptLine::JOYPAD => 0x0060,
           _ => 0x0000,
         };
-        self.opcode = self.next_u8(ctx);
+        self.opcode = self.fetch_imm8(ctx);
         Step::Running
       }
       Step::Halt => {
@@ -268,56 +160,58 @@ impl Cpu {
   }
 
   fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
-    let cy = if use_carry && self.regs.f.contains(Flags::CARRY) {
-      1
-    } else {
-      0
-    };
+    let cy = if use_carry && self.regs.cf() { 1 } else { 0 };
     let result = self.regs.a.wrapping_sub(value).wrapping_sub(cy);
-    self.regs.f = Flags::ZERO.test(result == 0)
-      | Flags::ADD_SUBTRACT
-      | Flags::CARRY.test((self.regs.a as u16) < (value as u16) + (cy as u16))
-      | Flags::HALF_CARRY.test(
-        (self.regs.a & 0xf)
-          .wrapping_sub(value & 0xf)
-          .wrapping_sub(cy)
-          & (0xf + 1)
-          != 0,
-      );
+    self.regs.set_zf(result == 0);
+    self.regs.set_nf(true);
+    self.regs.set_hf(
+      (self.regs.a & 0xf)
+        .wrapping_sub(value & 0xf)
+        .wrapping_sub(cy)
+        & (0xf + 1)
+        != 0,
+    );
+    self
+      .regs
+      .set_cf((self.regs.a as u16) < (value as u16) + (cy as u16));
     result
   }
   fn alu_rl(&mut self, value: u8, set_zero: bool) -> u8 {
-    let ci = if self.regs.f.contains(Flags::CARRY) {
-      1
-    } else {
-      0
-    };
+    let ci = if self.regs.cf() { 1 } else { 0 };
     let co = value & 0x80;
     let new_value = (value << 1) | ci;
-    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) | Flags::CARRY.test(co != 0);
+    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(co != 0);
     new_value
   }
   fn alu_rlc(&mut self, value: u8, set_zero: bool) -> u8 {
     let co = value & 0x80;
     let new_value = value.rotate_left(1);
-    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) | Flags::CARRY.test(co != 0);
+    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(co != 0);
     new_value
   }
   fn alu_rr(&mut self, value: u8, set_zero: bool) -> u8 {
-    let ci = if self.regs.f.contains(Flags::CARRY) {
-      1
-    } else {
-      0
-    };
+    let ci = if self.regs.cf() { 1 } else { 0 };
     let co = value & 0x01;
     let new_value = (value >> 1) | (ci << 7);
-    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) | Flags::CARRY.test(co != 0);
+    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(co != 0);
     new_value
   }
   fn alu_rrc(&mut self, value: u8, set_zero: bool) -> u8 {
     let co = value & 0x01;
     let new_value = value.rotate_right(1);
-    self.regs.f = Flags::ZERO.test(set_zero && new_value == 0) | Flags::CARRY.test(co != 0);
+    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_nf(false);
+    self.regs.set_hf(false);
+    self.regs.set_cf(co != 0);
     new_value
   }
   fn ctrl_jp<H: CpuContext>(&mut self, ctx: &mut H, addr: u16) {
@@ -329,13 +223,121 @@ impl Cpu {
     ctx.tick_cycle();
   }
   fn ctrl_call<H: CpuContext>(&mut self, ctx: &mut H, addr: u16) {
-    let pc = self.regs.pc;
-    ctx.tick_cycle();
-    self.push_u16(ctx, pc);
+    self.push_u16(ctx, self.regs.pc);
     self.regs.pc = addr;
   }
   fn ctrl_ret<H: CpuContext>(&mut self, ctx: &mut H) {
     self.regs.pc = self.pop_u16(ctx);
     ctx.tick_cycle();
+  }
+}
+
+impl In8<Reg8> for Cpu {
+  fn read<H: CpuContext>(&mut self, src: Reg8, _: &mut H) -> u8 {
+    use self::register_file::Reg8::*;
+    match src {
+      A => self.regs.a,
+      B => self.regs.b,
+      C => self.regs.c,
+      D => self.regs.d,
+      E => self.regs.e,
+      H => self.regs.h,
+      L => self.regs.l,
+    }
+  }
+}
+impl Out8<Reg8> for Cpu {
+  fn write<H: CpuContext>(&mut self, dst: Reg8, _: &mut H, data: u8) {
+    use self::register_file::Reg8::*;
+    match dst {
+      A => self.regs.a = data,
+      B => self.regs.b = data,
+      C => self.regs.c = data,
+      D => self.regs.d = data,
+      E => self.regs.e = data,
+      H => self.regs.h = data,
+      L => self.regs.l = data,
+    }
+  }
+}
+impl In8<Immediate8> for Cpu {
+  fn read<H: CpuContext>(&mut self, _: Immediate8, ctx: &mut H) -> u8 {
+    self.fetch_imm8(ctx)
+  }
+}
+impl In8<Addr> for Cpu {
+  fn read<H: CpuContext>(&mut self, src: Addr, ctx: &mut H) -> u8 {
+    use crate::cpu::decode::Addr::*;
+    match src {
+      BC => {
+        let addr = self.regs.read16(Reg16::BC);
+        ctx.read_cycle(addr)
+      }
+      DE => {
+        let addr = self.regs.read16(Reg16::DE);
+        ctx.read_cycle(addr)
+      }
+      HL => {
+        let addr = self.regs.read16(Reg16::HL);
+        ctx.read_cycle(addr)
+      }
+      HLD => {
+        let addr = self.regs.read16(Reg16::HL);
+        self.regs.write16(Reg16::HL, addr.wrapping_sub(1));
+        ctx.read_cycle(addr)
+      }
+      HLI => {
+        let addr = self.regs.read16(Reg16::HL);
+        self.regs.write16(Reg16::HL, addr.wrapping_add(1));
+        ctx.read_cycle(addr)
+      }
+      Direct => {
+        let addr = self.fetch_imm16(ctx);
+        ctx.read_cycle(addr)
+      }
+      ZeroPage => {
+        let addr = self.fetch_imm8(ctx);
+        ctx.read_cycle_high(addr)
+      }
+      ZeroPageC => ctx.read_cycle_high(self.regs.c),
+    }
+  }
+}
+impl Out8<Addr> for Cpu {
+  fn write<H: CpuContext>(&mut self, dst: Addr, ctx: &mut H, data: u8) {
+    use crate::cpu::decode::Addr::*;
+    match dst {
+      BC => {
+        let addr = self.regs.read16(Reg16::BC);
+        ctx.write_cycle(addr, data)
+      }
+      DE => {
+        let addr = self.regs.read16(Reg16::DE);
+        ctx.write_cycle(addr, data)
+      }
+      HL => {
+        let addr = self.regs.read16(Reg16::HL);
+        ctx.write_cycle(addr, data)
+      }
+      HLD => {
+        let addr = self.regs.read16(Reg16::HL);
+        self.regs.write16(Reg16::HL, addr.wrapping_sub(1));
+        ctx.write_cycle(addr, data)
+      }
+      HLI => {
+        let addr = self.regs.read16(Reg16::HL);
+        self.regs.write16(Reg16::HL, addr.wrapping_add(1));
+        ctx.write_cycle(addr, data)
+      }
+      Direct => {
+        let addr = self.fetch_imm16(ctx);
+        ctx.write_cycle(addr, data)
+      }
+      ZeroPage => {
+        let addr = self.fetch_imm8(ctx);
+        ctx.write_cycle_high(addr, data)
+      }
+      ZeroPageC => ctx.write_cycle_high(self.regs.c, data),
+    }
   }
 }
