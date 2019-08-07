@@ -17,7 +17,6 @@ use bitflags::bitflags;
 
 use crate::cpu::InterruptLine;
 use crate::hardware::irq::InterruptRequest;
-use crate::hardware::MappedHardware;
 
 #[derive(Clone)]
 pub struct Timer {
@@ -44,73 +43,6 @@ impl TacReg {
       0b10 => (1 << 3),
       0b01 => (1 << 1),
       _ => (1 << 7),
-    }
-  }
-}
-
-pub struct Div;
-pub struct Tima;
-pub struct Tma;
-pub struct Tac;
-
-impl MappedHardware<Div> for Timer {
-  fn read_cycle<I: InterruptRequest>(&mut self, _: Div, intr_req: &mut I) -> u8 {
-    self.tick_cycle(intr_req);
-    (self.internal_counter >> 6) as u8
-  }
-  fn write_cycle<I: InterruptRequest>(&mut self, _: Div, _: u8, intr_req: &mut I) {
-    self.tick_cycle(intr_req);
-    if self.counter_bit() {
-      self.increment();
-    }
-    self.internal_counter = 0;
-  }
-}
-
-impl MappedHardware<Tima> for Timer {
-  fn read_cycle<I: InterruptRequest>(&mut self, _: Tima, intr_req: &mut I) -> u8 {
-    self.tick_cycle(intr_req);
-    self.counter
-  }
-  fn write_cycle<I: InterruptRequest>(&mut self, _: Tima, value: u8, intr_req: &mut I) {
-    let overflow = self.overflow;
-    self.tick_cycle(intr_req);
-    if !overflow {
-      self.overflow = false;
-      self.counter = value
-    }
-  }
-}
-
-impl MappedHardware<Tma> for Timer {
-  fn read_cycle<I: InterruptRequest>(&mut self, _: Tma, intr_req: &mut I) -> u8 {
-    self.tick_cycle(intr_req);
-    self.modulo
-  }
-  fn write_cycle<I: InterruptRequest>(&mut self, _: Tma, value: u8, intr_req: &mut I) {
-    let overflow = self.overflow;
-    self.tick_cycle(intr_req);
-    self.modulo = value;
-    if overflow {
-      self.counter = value;
-    }
-  }
-}
-
-impl MappedHardware<Tac> for Timer {
-  fn read_cycle<I: InterruptRequest>(&mut self, _: Tac, intr_req: &mut I) -> u8 {
-    self.tick_cycle(intr_req);
-    const TAC_UNUSED: u8 = 0b11111_000;
-    TAC_UNUSED | self.tac.bits()
-  }
-  fn write_cycle<I: InterruptRequest>(&mut self, _: Tac, value: u8, intr_req: &mut I) {
-    self.tick_cycle(intr_req);
-    let old_bit = self.enabled && self.counter_bit();
-    self.tac = TacReg::from_bits_truncate(value);
-    self.enabled = self.tac.contains(TacReg::ENABLE);
-    let new_bit = self.enabled && self.counter_bit();
-    if old_bit && !new_bit {
-      self.increment();
     }
   }
 }
@@ -148,6 +80,56 @@ impl Timer {
       }
     } else {
       self.internal_counter = self.internal_counter.wrapping_add(1);
+    }
+  }
+  pub fn div_read_cycle<I: InterruptRequest>(&mut self, intr_req: &mut I) -> u8 {
+    self.tick_cycle(intr_req);
+    (self.internal_counter >> 6) as u8
+  }
+  pub fn div_write_cycle<I: InterruptRequest>(&mut self, intr_req: &mut I) {
+    self.tick_cycle(intr_req);
+    if self.counter_bit() {
+      self.increment();
+    }
+    self.internal_counter = 0;
+  }
+  pub fn tima_read_cycle<I: InterruptRequest>(&mut self, intr_req: &mut I) -> u8 {
+    self.tick_cycle(intr_req);
+    self.counter
+  }
+  pub fn tima_write_cycle<I: InterruptRequest>(&mut self, value: u8, intr_req: &mut I) {
+    let overflow = self.overflow;
+    self.tick_cycle(intr_req);
+    if !overflow {
+      self.overflow = false;
+      self.counter = value
+    }
+  }
+  pub fn tma_read_cycle<I: InterruptRequest>(&mut self, intr_req: &mut I) -> u8 {
+    self.tick_cycle(intr_req);
+    self.modulo
+  }
+  pub fn tma_write_cycle<I: InterruptRequest>(&mut self, value: u8, intr_req: &mut I) {
+    let overflow = self.overflow;
+    self.tick_cycle(intr_req);
+    self.modulo = value;
+    if overflow {
+      self.counter = value;
+    }
+  }
+  pub fn tac_read_cycle<I: InterruptRequest>(&mut self, intr_req: &mut I) -> u8 {
+    self.tick_cycle(intr_req);
+    const TAC_UNUSED: u8 = 0b11111_000;
+    TAC_UNUSED | self.tac.bits()
+  }
+  pub fn tac_write_cycle<I: InterruptRequest>(&mut self, value: u8, intr_req: &mut I) {
+    self.tick_cycle(intr_req);
+    let old_bit = self.enabled && self.counter_bit();
+    self.tac = TacReg::from_bits_truncate(value);
+    self.enabled = self.tac.contains(TacReg::ENABLE);
+    let new_bit = self.enabled && self.counter_bit();
+    if old_bit && !new_bit {
+      self.increment();
     }
   }
 }
