@@ -77,10 +77,15 @@ quit:
 
     ld a, $42
     call serial_send_byte
+    ld a, $42
     call serial_send_byte
+    ld a, $42
     call serial_send_byte
+    ld a, $42
     call serial_send_byte
+    ld a, $42
     call serial_send_byte
+    ld a, $42
     call serial_send_byte
 
   @halt:
