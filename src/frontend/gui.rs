@@ -1,4 +1,4 @@
-use imgui::{im_str, Condition, ImString, StyleColor, StyleVar, Ui};
+use imgui::{im_str, Condition, ImString, StyleColor, StyleVar, Ui, Window};
 use std::time::Instant;
 
 use mooneye_gb::config::HardwareConfig;
@@ -20,13 +20,13 @@ impl WaitBootromScreen {
 
 impl Screen for WaitBootromScreen {
   fn render(&mut self, ui: &Ui<'_>) {
-    ui.window(im_str!("Help overlay"))
+    Window::new(im_str!("Help overlay"))
       .title_bar(false)
       .resizable(false)
       .movable(false)
       .always_auto_resize(true)
       .position([0.0, 0.0], Condition::Always)
-      .build(|| {
+      .build(ui, || {
         ui.text("Mooneye GB requires a boot ROM to run");
         ui.text("Drag and drop here a boot rom of one of these types:");
         ui.bullet_text(im_str!("Game Boy (usually called dmg_boot.bin)"));
@@ -56,13 +56,13 @@ impl ErrorOverlay {
     let elapsed = self.appear_timestamp.elapsed();
     let _bg = ui.push_style_color(StyleColor::WindowBg, [1.0, 1.0, 1.0, 0.4]);
     let _border = ui.push_style_var(StyleVar::WindowBorderSize(1.0));
-    ui.window(im_str!("Error overlay"))
+    Window::new(im_str!("Error overlay"))
       .title_bar(false)
       .resizable(false)
       .movable(false)
       .always_auto_resize(true)
       .position([0.0, 0.0], Condition::Always)
-      .build(|| {
+      .build(ui, || {
         ui.text_colored([1.0, 0.0, 0.0, 1.0], &self.error);
       });
     elapsed.as_secs() < 5
@@ -101,13 +101,13 @@ impl Screen for InGameScreen {
   fn render(&mut self, ui: &Ui<'_>) {
     if self.show_info_overlay {
       let _bg = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.4]);
-      ui.window(im_str!("Info overlay"))
+      Window::new(im_str!("Info overlay"))
         .title_bar(false)
         .resizable(false)
         .movable(false)
         .always_auto_resize(true)
         .position([0.0, 0.0], Condition::Always)
-        .build(|| {
+        .build(ui, || {
           ui.text(&self.model);
           ui.text(&self.cartridge_title);
           ui.text(format!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
