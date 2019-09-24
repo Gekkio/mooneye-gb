@@ -99,11 +99,11 @@ impl UpperHex for Joypad {
   }
 }
 
-/// P1 register
-///
-/// Bits are inverted in get_register/set_register, so in P1
-/// a set bit is 1 as usual.
 bitflags!(
+  /// P1 register
+  ///
+  /// Bits are inverted in get_register/set_register, so in P1
+  /// a set bit is 1 as usual.
   struct P1: u8 {
     const P10                = 1 << 0; // P10: →, A
     const P11                = 1 << 1; // P11: ←, B

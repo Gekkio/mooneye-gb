@@ -119,7 +119,7 @@ enum ExternalBus {
 impl ExternalBus {
   fn from_oam_dma_source(source: u8) -> ExternalBus {
     match source {
-      0x80...0x9f => ExternalBus::Video,
+      0x80..=0x9f => ExternalBus::Video,
       _ => ExternalBus::Main,
     }
   }
@@ -207,7 +207,7 @@ impl Hardware {
       0x06 => self.timer_mem_cycle(|timer, irq| timer.tma_read_cycle(irq)),
       0x07 => self.timer_mem_cycle(|timer, irq| timer.tac_read_cycle(irq)),
       0x0f => self.generic_mem_cycle(|hw| hw.irq.get_interrupt_flag()),
-      0x10...0x3f => self.generic_mem_cycle(|hw| hw.apu.read(addr)),
+      0x10..=0x3f => self.generic_mem_cycle(|hw| hw.apu.read(addr)),
       0x40 => self.generic_mem_cycle(|hw| hw.gpu.get_control()),
       0x41 => self.generic_mem_cycle(|hw| hw.gpu.get_stat()),
       0x42 => self.generic_mem_cycle(|hw| hw.gpu.get_scroll_y()),
@@ -220,7 +220,7 @@ impl Hardware {
       0x49 => self.generic_mem_cycle(|hw| hw.gpu.get_obj_palette1()),
       0x4a => self.generic_mem_cycle(|hw| hw.gpu.get_window_y()),
       0x4b => self.generic_mem_cycle(|hw| hw.gpu.get_window_x()),
-      0x80...0xfe => self.generic_mem_cycle(|hw| hw.hiram[(addr as usize) & 0x7f]),
+      0x80..=0xfe => self.generic_mem_cycle(|hw| hw.hiram[(addr as usize) & 0x7f]),
       0xff => self.generic_mem_cycle(|hw| hw.irq.get_interrupt_enable()),
       _ => self.generic_mem_cycle(|_| 0xff),
     }
@@ -239,7 +239,7 @@ impl Hardware {
       0xe0..=0xef => self.generic_mem_cycle(|hw| hw.work_ram.write_lower(addr, value)),
       0xf0..=0xfd => self.generic_mem_cycle(|hw| hw.work_ram.write_upper(addr, value)),
       0xfe => match addr & 0xff {
-        0x00...0x9f => self.generic_mem_cycle(|hw| {
+        0x00..=0x9f => self.generic_mem_cycle(|hw| {
           if !hw.oam_dma.is_active() {
             hw.gpu.write_oam(addr as u8, value)
           }
@@ -252,28 +252,28 @@ impl Hardware {
   fn read_internal(&mut self, addr: u16) -> u8 {
     match (addr >> 8) as u8 {
       0x00 if self.bootrom.is_active() => self.generic_mem_cycle(|hw| hw.bootrom[addr]),
-      0x00...0x3f => self.generic_mem_cycle(|hw| hw.cartridge.read_0000_3fff(addr)),
-      0x40...0x7f => self.generic_mem_cycle(|hw| hw.cartridge.read_4000_7fff(addr)),
-      0x80...0x97 => self.generic_mem_cycle(|hw| hw.gpu.read_character_ram(addr - 0x8000)),
-      0x98...0x9b => self.generic_mem_cycle(|hw| hw.gpu.read_tile_map1(addr - 0x9800)),
-      0x9c...0x9f => self.generic_mem_cycle(|hw| hw.gpu.read_tile_map2(addr - 0x9c00)),
-      0xa0...0xbf => self.generic_mem_cycle(|hw| hw.cartridge.read_a000_bfff(addr, 0xff)),
-      0xc0...0xcf => self.generic_mem_cycle(|hw| hw.work_ram.read_lower(addr)),
-      0xd0...0xdf => self.generic_mem_cycle(|hw| hw.work_ram.read_upper(addr)),
+      0x00..=0x3f => self.generic_mem_cycle(|hw| hw.cartridge.read_0000_3fff(addr)),
+      0x40..=0x7f => self.generic_mem_cycle(|hw| hw.cartridge.read_4000_7fff(addr)),
+      0x80..=0x97 => self.generic_mem_cycle(|hw| hw.gpu.read_character_ram(addr - 0x8000)),
+      0x98..=0x9b => self.generic_mem_cycle(|hw| hw.gpu.read_tile_map1(addr - 0x9800)),
+      0x9c..=0x9f => self.generic_mem_cycle(|hw| hw.gpu.read_tile_map2(addr - 0x9c00)),
+      0xa0..=0xbf => self.generic_mem_cycle(|hw| hw.cartridge.read_a000_bfff(addr, 0xff)),
+      0xc0..=0xcf => self.generic_mem_cycle(|hw| hw.work_ram.read_lower(addr)),
+      0xd0..=0xdf => self.generic_mem_cycle(|hw| hw.work_ram.read_upper(addr)),
       // Echo RAM
-      0xe0...0xef => self.generic_mem_cycle(|hw| hw.work_ram.read_lower(addr)),
-      0xf0...0xfd => self.generic_mem_cycle(|hw| hw.work_ram.read_upper(addr)),
+      0xe0..=0xef => self.generic_mem_cycle(|hw| hw.work_ram.read_lower(addr)),
+      0xf0..=0xfd => self.generic_mem_cycle(|hw| hw.work_ram.read_upper(addr)),
       0xfe => {
         match addr & 0xff {
-          0x00...0x9f => self.generic_mem_cycle(|hw| {
+          0x00..=0x9f => self.generic_mem_cycle(|hw| {
             if hw.oam_dma.is_active() {
               0xff
             } else {
               hw.gpu.read_oam(addr as u8)
             }
           }),
-          // 0x00 ... 0x9f => handle_oam!(),
-          // 0xa0 ... 0xff => handle_unusable!(),
+          // 0x00 ..= 0x9f => handle_oam!(),
+          // 0xa0 ..= 0xff => handle_unusable!(),
           _ => panic!("Unsupported read at ${:04x}", addr),
         }
       }
@@ -283,16 +283,16 @@ impl Hardware {
   fn emulate_oam_dma(&mut self) {
     if let Some(addr) = self.oam_dma.emulate() {
       let value = match addr >> 8 {
-        0x00...0x3f => self.cartridge.read_0000_3fff(addr),
-        0x40...0x7f => self.cartridge.read_4000_7fff(addr),
-        0x80...0x97 => self.gpu.read_character_ram(addr - 0x8000),
-        0x98...0x9b => self.gpu.read_tile_map1(addr - 0x9800),
-        0x9c...0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
-        0xa0...0xbf => self.cartridge.read_a000_bfff(addr, 0xff),
-        0xc0...0xcf => self.work_ram.read_lower(addr),
-        0xd0...0xdf => self.work_ram.read_upper(addr),
-        0xe0...0xef => self.work_ram.read_lower(addr),
-        0xf0...0xff => self.work_ram.read_upper(addr),
+        0x00..=0x3f => self.cartridge.read_0000_3fff(addr),
+        0x40..=0x7f => self.cartridge.read_4000_7fff(addr),
+        0x80..=0x97 => self.gpu.read_character_ram(addr - 0x8000),
+        0x98..=0x9b => self.gpu.read_tile_map1(addr - 0x9800),
+        0x9c..=0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
+        0xa0..=0xbf => self.cartridge.read_a000_bfff(addr, 0xff),
+        0xc0..=0xcf => self.work_ram.read_lower(addr),
+        0xd0..=0xdf => self.work_ram.read_upper(addr),
+        0xe0..=0xef => self.work_ram.read_lower(addr),
+        0xf0..=0xff => self.work_ram.read_upper(addr),
         _ => unreachable!("Unreachable OAM DMA read from ${:04x}", addr),
       };
       self.gpu.write_oam(addr as u8, value);

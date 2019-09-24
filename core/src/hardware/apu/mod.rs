@@ -108,7 +108,7 @@ impl Apu {
       0x24 => self.get_ctrl_volume(),
       0x25 => self.get_terminal_channels(),
       0x26 => self.get_ctrl_master(),
-      0x30...0x3f => self.ch3.read_wave_ram(addr - 0xff30),
+      0x30..=0x3f => self.ch3.read_wave_ram(addr - 0xff30),
       _ => 0xff,
     }
   }
@@ -116,7 +116,7 @@ impl Apu {
     if !self.enabled {
       match addr & 0xff {
         0x26 => self.set_ctrl_master(value),
-        0x30...0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
+        0x30..=0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
         _ => (),
       }
       return;
@@ -143,7 +143,7 @@ impl Apu {
       0x24 => self.set_ctrl_volume(value),
       0x25 => self.set_terminal_channels(value),
       0x26 => self.set_ctrl_master(value),
-      0x30...0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
+      0x30..=0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
       _ => (),
     }
   }

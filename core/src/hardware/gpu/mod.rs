@@ -169,8 +169,8 @@ impl Mode {
     // FIXME: This is basically an ugly hack to pass a test. Most likely we don't just want
     // to adjust the cycle counts, but to actually emulate the behaviour that causes the adjustment
     let scroll_adjust = match scroll_x % 0x08 {
-      5...7 => 2,
-      1...4 => 1,
+      5..=7 => 2,
+      1..=4 => 1,
       _ => 0,
     };
     match *self {
