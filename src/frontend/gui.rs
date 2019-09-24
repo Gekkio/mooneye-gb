@@ -54,8 +54,8 @@ impl ErrorOverlay {
   }
   fn render(&self, ui: &Ui<'_>) -> bool {
     let elapsed = self.appear_timestamp.elapsed();
-    let _bg = ui.push_style_color(StyleColor::WindowBg, [1.0, 1.0, 1.0, 0.4]);
-    let _border = ui.push_style_var(StyleVar::WindowBorderSize(1.0));
+    let bg = ui.push_style_color(StyleColor::WindowBg, [1.0, 1.0, 1.0, 0.4]);
+    let border = ui.push_style_var(StyleVar::WindowBorderSize(1.0));
     Window::new(im_str!("Error overlay"))
       .title_bar(false)
       .resizable(false)
@@ -65,6 +65,8 @@ impl ErrorOverlay {
       .build(ui, || {
         ui.text_colored([1.0, 0.0, 0.0, 1.0], &self.error);
       });
+    border.pop(ui);
+    bg.pop(ui);
     elapsed.as_secs() < 5
   }
 }
@@ -100,7 +102,7 @@ impl InGameScreen {
 impl Screen for InGameScreen {
   fn render(&mut self, ui: &Ui<'_>) {
     if self.show_info_overlay {
-      let _bg = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.4]);
+      let bg = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.4]);
       Window::new(im_str!("Info overlay"))
         .title_bar(false)
         .resizable(false)
@@ -112,6 +114,7 @@ impl Screen for InGameScreen {
           ui.text(&self.cartridge_title);
           ui.text(format!("FPS: {:.0}, speed: {:.0} %", self.fps, self.perf));
         });
+      bg.pop(ui);
     }
     if let Some(overlay) = self.error_overlay.take() {
       if overlay.render(ui) {
