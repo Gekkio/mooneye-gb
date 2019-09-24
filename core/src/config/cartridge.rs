@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use crc::crc32;
-use failure::Fail;
+use snafu::Snafu;
 use std::fmt;
 use std::fs::File;
 use std::io::{self, Read};
@@ -33,17 +33,17 @@ pub struct Cartridge {
   pub ram_size: CartridgeRamSize,
 }
 
-#[derive(Fail, Debug)]
+#[derive(Debug, Snafu)]
 pub enum CartridgeError {
-  #[fail(display = "IO error: {}", _0)]
-  Io(#[cause] io::Error),
-  #[fail(display = "Invalid cartridge: {}", _0)]
-  Validation(String),
+  #[snafu(display("IO error: {}", source))]
+  Io { source: io::Error },
+  #[snafu(display("Invalid cartridge: {}", msg))]
+  Validation { msg: String },
 }
 
 impl From<io::Error> for CartridgeError {
-  fn from(e: io::Error) -> CartridgeError {
-    CartridgeError::Io(e)
+  fn from(source: io::Error) -> CartridgeError {
+    CartridgeError::Io { source }
   }
 }
 
@@ -68,10 +68,9 @@ impl Cartridge {
   }
   pub fn from_data(data: Arc<[u8]>) -> Result<Cartridge, CartridgeError> {
     if data.len() < 0x8000 || data.len() % 0x4000 != 0 {
-      return Err(CartridgeError::Validation(format!(
-        "Invalid length: {} bytes",
-        data.len()
-      )));
+      return Err(CartridgeError::Validation {
+        msg: format!("Invalid length: {} bytes", data.len()),
+      });
     }
     let new_cartridge = data[0x14b] == 0x33;
 
@@ -81,43 +80,50 @@ impl Cartridge {
       } else {
         &data[0x134..0x143]
       };
-      let utf8 = str::from_utf8(slice)
-        .map_err(|_| CartridgeError::Validation("Invalid ROM title".to_string()))?;
+      let utf8 = str::from_utf8(slice).map_err(|_| CartridgeError::Validation {
+        msg: "Invalid ROM title".to_string(),
+      })?;
 
       utf8.trim_end_matches('\0').to_string()
     };
 
-    let mut cartridge_type = CartridgeType::from_u8(data[0x147]).ok_or_else(|| {
-      CartridgeError::Validation(format!("Unsupported cartridge type {:02x}", data[0x147]))
-    })?;
+    let mut cartridge_type =
+      CartridgeType::from_u8(data[0x147]).ok_or_else(|| CartridgeError::Validation {
+        msg: format!("Unsupported cartridge type {:02x}", data[0x147]),
+      })?;
     if let CartridgeType::Mbc1 { multicart, .. } = &mut cartridge_type {
       *multicart = is_mbc1_multicart(&data);
     }
-    let rom_size = CartridgeRomSize::from_u8(data[0x148]).ok_or_else(|| {
-      CartridgeError::Validation(format!("Unsupported rom size {:02x}", data[0x148]))
-    })?;
-    let ram_size = CartridgeRamSize::from_u8(data[0x149]).ok_or_else(|| {
-      CartridgeError::Validation(format!("Unsupported ram size {:02x}", data[0x149]))
-    })?;
+    let rom_size =
+      CartridgeRomSize::from_u8(data[0x148]).ok_or_else(|| CartridgeError::Validation {
+        msg: format!("Unsupported rom size {:02x}", data[0x148]),
+      })?;
+    let ram_size =
+      CartridgeRamSize::from_u8(data[0x149]).ok_or_else(|| CartridgeError::Validation {
+        msg: format!("Unsupported ram size {:02x}", data[0x149]),
+      })?;
 
     if cartridge_type.has_ram_chip() && ram_size == CartridgeRamSize::NoRam {
-      return Err(CartridgeError::Validation(format!(
-        "{:?} cartridge without ram",
-        cartridge_type
-      )));
+      return Err(CartridgeError::Validation {
+        msg: format!("{:?} cartridge without ram", cartridge_type),
+      });
     }
     if !cartridge_type.has_ram_chip() && ram_size != CartridgeRamSize::NoRam {
-      return Err(CartridgeError::Validation(format!(
-        "{:?} cartridge with ram size {:02x}",
-        cartridge_type, data[0x149]
-      )));
+      return Err(CartridgeError::Validation {
+        msg: format!(
+          "{:?} cartridge with ram size {:02x}",
+          cartridge_type, data[0x149]
+        ),
+      });
     }
     if data.len() != rom_size.as_usize() {
-      return Err(CartridgeError::Validation(format!(
-        "Expected {} bytes of cartridge ROM, got {:?}",
-        rom_size.as_usize(),
-        data.len()
-      )));
+      return Err(CartridgeError::Validation {
+        msg: format!(
+          "Expected {} bytes of cartridge ROM, got {:?}",
+          rom_size.as_usize(),
+          data.len()
+        ),
+      });
     }
 
     Ok(Cartridge {

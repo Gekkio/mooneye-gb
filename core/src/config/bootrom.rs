@@ -15,8 +15,8 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use crc::crc32;
 use directories::ProjectDirs;
-use failure::Fail;
 use log::{debug, info, warn};
+use snafu::Snafu;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
@@ -25,17 +25,17 @@ use std::sync::Arc;
 use crate::config::{Model, DEFAULT_MODEL_PRIORITY};
 use crate::hardware::BootromData;
 
-#[derive(Fail, Debug)]
+#[derive(Debug, Snafu)]
 pub enum BootromError {
-  #[fail(display = "IO error: {}", _0)]
-  Io(#[cause] io::Error),
-  #[fail(display = "Unrecognized boot ROM checksum: 0x{:08x}", crc32)]
+  #[snafu(display("IO error: {}", source))]
+  Io { source: io::Error },
+  #[snafu(display("Unrecognized boot ROM checksum: 0x{:08x}", crc32))]
   Checksum { crc32: u32 },
 }
 
 impl From<io::Error> for BootromError {
-  fn from(e: io::Error) -> BootromError {
-    BootromError::Io(e)
+  fn from(source: io::Error) -> BootromError {
+    BootromError::Io { source }
   }
 }
 
@@ -97,7 +97,7 @@ impl Bootrom {
       let path_str = path.to_string_lossy();
       debug!("Scanning {} for a boot ROM", path_str);
       match Bootrom::from_path(&path) {
-        Err(BootromError::Io(ref e)) if e.kind() == io::ErrorKind::NotFound => (),
+        Err(BootromError::Io { ref source }) if source.kind() == io::ErrorKind::NotFound => (),
         Err(ref e) => warn!("Warning: Boot rom \"{}\" ({})", path_str, e),
         Ok(bootrom) => {
           info!("Using {} boot ROM from {}", bootrom.model, path_str);
