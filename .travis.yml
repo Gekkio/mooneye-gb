@@ -21,6 +21,7 @@ addons:
   apt:
     packages:
       cmake
+      libudev-dev
 
 cache:
   directories:
