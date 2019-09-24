@@ -21,7 +21,6 @@ addons:
   apt:
     packages:
       cmake
-      libsdl2-dev
 
 cache:
   directories:
@@ -36,8 +35,6 @@ before_install:
 - tar -C core/bootroms -xvf .travis/boot_roms.tar
 - .travis/install_wla-dx.sh
 - export PATH=$PATH:$HOME/bin
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install sdl2; fi
 
 install:
 - cargo build --features include-bootroms --verbose

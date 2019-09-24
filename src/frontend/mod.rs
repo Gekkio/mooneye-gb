@@ -17,10 +17,7 @@ use failure::{format_err, Error};
 use glium::{glutin, Api, Display, Surface, Version};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use log::info;
-use sdl2;
-use sdl2::controller::{Axis, Button};
-use sdl2::event::Event;
-use sdl2::{EventPump, GameControllerSubsystem};
+use gilrs::{Button, Axis, EventType, Gilrs};
 use std::time::Duration;
 
 use self::gui::Screen;
@@ -38,9 +35,8 @@ mod gui;
 mod renderer;
 
 pub struct SdlFrontend {
-  sdl_game_controller: GameControllerSubsystem,
+  gilrs: Gilrs,
   events_loop: glutin::EventsLoop,
-  event_pump: EventPump,
   display: Display,
   imgui: imgui::Context,
   imgui_renderer: imgui_glium_renderer::Renderer,
@@ -109,10 +105,7 @@ enum InGameEvent {
 
 impl SdlFrontend {
   pub fn init() -> Result<SdlFrontend, Error> {
-    let sdl = sdl2::init().map_err(|msg| format_err!("SDL2 initialization failed: {}", msg))?;
-    let sdl_game_controller = sdl
-      .game_controller()
-      .map_err(|msg| format_err!("SDL2 game controller initialization failure: {}", msg))?;
+    let gilrs = Gilrs::new().map_err(|_| format_err!("Failed to initialize gamepad support"))?;
 
     use glium::glutin::dpi::LogicalSize;
 
@@ -130,10 +123,6 @@ impl SdlFrontend {
       .with_double_buffer(Some(true));
 
     let display = Display::new(window, context, &events_loop).unwrap();
-
-    let event_pump = sdl
-      .event_pump()
-      .map_err(|msg| format_err!("SDL2 event pump failure: {}", msg))?;
 
     info!(
       "Initialized renderer with {}",
@@ -159,9 +148,8 @@ impl SdlFrontend {
     }
 
     Ok(SdlFrontend {
-      sdl_game_controller,
+      gilrs,
       events_loop,
-      event_pump,
       display,
       imgui,
       imgui_renderer,
@@ -224,7 +212,7 @@ impl SdlFrontend {
           }
         }
       });
-      for _ in self.event_pump.poll_iter() {}
+      while let Some(_) = self.gilrs.next_event() {}
       if let Some(bootrom) = loaded_bootrom {
         return Ok(FrontendState::from_roms(Some(bootrom), cartridge));
       }
@@ -272,6 +260,31 @@ impl SdlFrontend {
       fps_counter.update(delta_s);
       screen.fps = fps_counter.get_fps();
       screen.perf = 100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
+
+      while let Some(gilrs::Event { event, .. }) = self.gilrs.next_event() {
+        match event {
+          EventType::ButtonPressed(button, _) => {
+            if let Some(key) = map_button(button) {
+              machine.key_down(key);
+            }
+          },
+          EventType::ButtonReleased(button, _) => {
+            if let Some(key) = map_button(button) {
+              machine.key_up(key);
+            }
+          },
+          EventType::AxisChanged(axis, value, _) => {
+            if let Some((key, state)) = map_axis(axis, value) {
+              if state {
+                machine.key_down(key);
+              } else {
+                machine.key_up(key);
+              }
+            }
+          },
+          _ => ()
+        }
+      }
 
       let renderer = &mut self.renderer;
       let display = &self.display;
@@ -354,34 +367,6 @@ impl SdlFrontend {
           )));
         }
         _ => (),
-      }
-
-      for event in self.event_pump.poll_iter() {
-        match event {
-          Event::ControllerDeviceAdded { which: id, .. } => {
-            self.sdl_game_controller.open(id as u32)?;
-          }
-          Event::ControllerButtonDown { button, .. } => {
-            if let Some(key) = map_button(button) {
-              machine.key_down(key);
-            }
-          }
-          Event::ControllerButtonUp { button, .. } => {
-            if let Some(key) = map_button(button) {
-              machine.key_up(key);
-            }
-          }
-          Event::ControllerAxisMotion { axis, value, .. } => {
-            if let Some((key, state)) = map_axis(axis, value) {
-              if state {
-                machine.key_down(key);
-              } else {
-                machine.key_up(key);
-              }
-            }
-          }
-          _ => (),
-        }
       }
 
       let mut target = self.display.draw();
@@ -532,22 +517,20 @@ impl SdlFrontend {
         _ => (),
       }
 
-      for event in self.event_pump.poll_iter() {
+      while let Some(gilrs::Event { event, .. }) = self.gilrs.next_event() {
+        println!("{:?}", event);
         match event {
-          Event::ControllerDeviceAdded { which: id, .. } => {
-            self.sdl_game_controller.open(id as u32)?;
-          }
-          Event::ControllerButtonDown { button, .. } => {
+          EventType::ButtonPressed(button, _) => {
             if let Some(key) = map_button(button) {
               handle.key_down(key)?;
             }
-          }
-          Event::ControllerButtonUp { button, .. } => {
+          },
+          EventType::ButtonReleased(button, _) => {
             if let Some(key) = map_button(button) {
               handle.key_up(key)?;
             }
-          }
-          Event::ControllerAxisMotion { axis, value, .. } => {
+          },
+          EventType::AxisChanged(axis, value, _) => {
             if let Some((key, state)) = map_axis(axis, value) {
               if state {
                 handle.key_down(key)?;
@@ -555,8 +538,8 @@ impl SdlFrontend {
                 handle.key_up(key)?;
               }
             }
-          }
-          _ => (),
+          },
+          _ => ()
         }
       }
 
@@ -614,27 +597,37 @@ fn map_button(button: Button) -> Option<GbKey> {
     Button::DPadLeft => Some(GbKey::Left),
     Button::DPadUp => Some(GbKey::Up),
     Button::DPadDown => Some(GbKey::Down),
-    Button::A => Some(GbKey::B),
-    Button::B => Some(GbKey::A),
+    Button::South => Some(GbKey::B),
+    Button::East => Some(GbKey::A),
     Button::Start => Some(GbKey::Start),
-    Button::Back => Some(GbKey::Select),
+    Button::Select => Some(GbKey::Select),
     _ => None,
   }
 }
 
-fn map_axis(axis: Axis, value: i16) -> Option<(GbKey, bool)> {
+fn map_axis(axis: Axis, value: f32) -> Option<(GbKey, bool)> {
   match axis {
-    Axis::LeftX => match value {
-      -32768..=-16384 => Some((GbKey::Left, true)),
-      -16383..=-1 => Some((GbKey::Left, false)),
-      0..=16383 => Some((GbKey::Right, false)),
-      16384..=32767 => Some((GbKey::Right, true)),
+    Axis::LeftStickX => {
+      if value < -0.5 {
+        Some((GbKey::Left, true))
+      } else if value < 0.0 {
+        Some((GbKey::Left, false))
+      } else if value < 0.5 {
+        Some((GbKey::Right, false))
+      } else {
+        Some((GbKey::Right, true))
+      }
     },
-    Axis::LeftY => match value {
-      -32768..=-16384 => Some((GbKey::Up, true)),
-      -16383..=-1 => Some((GbKey::Up, false)),
-      0..=16383 => Some((GbKey::Down, false)),
-      16384..=32767 => Some((GbKey::Down, true)),
+    Axis::LeftStickY => {
+      if value < -0.5 {
+        Some((GbKey::Up, true))
+      } else if value < 0.0 {
+        Some((GbKey::Up, false))
+      } else if value < 0.5 {
+        Some((GbKey::Down, false))
+      } else {
+        Some((GbKey::Down, true))
+      }
     },
     _ => None,
   }
