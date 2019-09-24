@@ -13,22 +13,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use app_dirs::{app_dir, AppDataType, AppInfo};
 use crc::crc32;
+use directories::ProjectDirs;
 use failure::Fail;
 use log::{debug, info, warn};
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{self, Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use crate::config::{Model, DEFAULT_MODEL_PRIORITY};
 use crate::hardware::BootromData;
-
-const APP_INFO: AppInfo = AppInfo {
-  name: "mooneye-gb",
-  author: "Gekkio",
-};
 
 #[derive(Fail, Debug)]
 pub enum BootromError {
@@ -47,6 +42,10 @@ impl From<io::Error> for BootromError {
 pub struct Bootrom {
   pub model: Model,
   pub data: Arc<BootromData>,
+}
+
+fn bootroms_dir() -> Option<PathBuf> {
+  ProjectDirs::from("", "Gekkio", "mooneye-gb").map(|dirs| dirs.data_dir().join("bootroms"))
 }
 
 impl Bootrom {
@@ -73,7 +72,6 @@ impl Bootrom {
   }
   #[cfg(not(feature = "include-bootroms"))]
   pub fn lookup(models: &[Model]) -> Option<Bootrom> {
-    use app_dirs::get_app_dir;
     use std::env;
 
     let mut candidates = vec![];
@@ -83,7 +81,7 @@ impl Bootrom {
       models
     };
 
-    if let Ok(dir) = get_app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
+    if let Some(dir) = bootroms_dir() {
       for model in models {
         candidates.push(dir.join(model.bootrom_file_name()));
       }
@@ -134,7 +132,8 @@ impl Bootrom {
     })
   }
   pub fn save_to_data_dir(&self) -> io::Result<()> {
-    if let Ok(dir) = app_dir(AppDataType::UserData, &APP_INFO, "bootroms") {
+    if let Some(dir) = bootroms_dir() {
+      fs::create_dir_all(&dir)?;
       let path = dir.join(self.model.bootrom_file_name());
       let mut file = File::create(&path)?;
       file.write_all(&self.data.0)?;
