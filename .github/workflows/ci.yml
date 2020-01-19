@@ -59,8 +59,8 @@ jobs:
           - ubuntu-latest
           - macos-latest
     env:
-      - WLA_DX_REPO="vhelin/wla-dx"
-      - WLA_DX_COMMIT="6ada10b1cd6035e8b58ce5246bf623b73e2704de"
+      WLA_DX_REPO: vhelin/wla-dx
+      WLA_DX_COMMIT: 6ada10b1cd6035e8b58ce5246bf623b73e2704de
     steps:
       - name: Checkout
         uses: actions/checkout@v2
