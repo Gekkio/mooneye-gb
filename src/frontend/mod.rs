@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use failure::{format_err, Error};
+use gilrs::{Axis, Button, EventType, Gilrs};
 use glium::{glutin, Api, Display, Surface, Version};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use log::info;
-use gilrs::{Button, Axis, EventType, Gilrs};
 use std::time::Duration;
 
 use self::gui::Screen;
@@ -267,12 +267,12 @@ impl SdlFrontend {
             if let Some(key) = map_button(button) {
               machine.key_down(key);
             }
-          },
+          }
           EventType::ButtonReleased(button, _) => {
             if let Some(key) = map_button(button) {
               machine.key_up(key);
             }
-          },
+          }
           EventType::AxisChanged(axis, value, _) => {
             if let Some((key, state)) = map_axis(axis, value) {
               if state {
@@ -281,8 +281,8 @@ impl SdlFrontend {
                 machine.key_up(key);
               }
             }
-          },
-          _ => ()
+          }
+          _ => (),
         }
       }
 
@@ -524,12 +524,12 @@ impl SdlFrontend {
             if let Some(key) = map_button(button) {
               handle.key_down(key)?;
             }
-          },
+          }
           EventType::ButtonReleased(button, _) => {
             if let Some(key) = map_button(button) {
               handle.key_up(key)?;
             }
-          },
+          }
           EventType::AxisChanged(axis, value, _) => {
             if let Some((key, state)) = map_axis(axis, value) {
               if state {
@@ -538,8 +538,8 @@ impl SdlFrontend {
                 handle.key_up(key)?;
               }
             }
-          },
-          _ => ()
+          }
+          _ => (),
         }
       }
 
@@ -617,7 +617,7 @@ fn map_axis(axis: Axis, value: f32) -> Option<(GbKey, bool)> {
       } else {
         Some((GbKey::Right, true))
       }
-    },
+    }
     Axis::LeftStickY => {
       if value < -0.5 {
         Some((GbKey::Up, true))
@@ -628,7 +628,7 @@ fn map_axis(axis: Axis, value: f32) -> Option<(GbKey, bool)> {
       } else {
         Some((GbKey::Down, true))
       }
-    },
+    }
     _ => None,
   }
 }
