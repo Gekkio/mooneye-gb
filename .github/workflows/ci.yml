@@ -21,6 +21,9 @@ jobs:
           toolchain: stable
           override: true
           components: rustfmt, clippy
+      - name: Install Ubuntu packages
+        run: sudo apt install cmake libudev-dev
+        if: runner.os == 'Linux'
       - name: Cache cargo registry
         uses: actions/cache@v1
         with:
@@ -35,6 +38,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
+          args: --all
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
         with:
