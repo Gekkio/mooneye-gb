@@ -28,12 +28,12 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo index
         uses: actions/cache@v1
         with:
           path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
       - name: Run cargo check
         uses: actions-rs/cargo@v1
         with:
@@ -49,10 +49,6 @@ jobs:
         with:
           command: clippy
           args: --all
-      - name: Clean cache
-        run: |
-          cargo install --no-default-features --features ci-autoclean cargo-cache
-          cargo-cache
   test:
     name: Run tests
     needs: [check]
@@ -81,12 +77,12 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo index
         uses: actions/cache@v1
         with:
           path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache wla-dx
         uses: actions/cache@v1
         with:
@@ -101,7 +97,3 @@ jobs:
         with:
           command: test
           args: --features include-bootroms --all
-      - name: Clean cache
-        run: |
-          cargo install --no-default-features --features ci-autoclean cargo-cache
-          cargo-cache
