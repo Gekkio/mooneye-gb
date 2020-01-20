@@ -92,6 +92,8 @@ jobs:
         run: .github/scripts/install_wla-dx.sh
       - name: Unpack bootroms
         run: .github/scripts/unpack_bootroms.sh
+        env:
+          BOOTROM_PASSPHRASE: ${{ secrets.BOOTROM_PASSPHRASE }}
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
