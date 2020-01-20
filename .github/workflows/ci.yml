@@ -49,6 +49,35 @@ jobs:
         with:
           command: clippy
           args: --all
+
+  build_test_roms:
+    name: Run tests
+    runs-on: ubuntu-latest
+    env:
+      WLA_DX_REPO: vhelin/wla-dx
+      WLA_DX_COMMIT: 6ada10b1cd6035e8b58ce5246bf623b73e2704de
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Ubuntu packages
+        run: sudo apt install cmake
+      - name: Cache wla-dx
+        id: cache
+        uses: actions/cache@v1
+        with:
+          path: ~/bin
+          key: ${{ runner.os }}-${{ env.WLA_DX_COMMIT }}-wla-dx
+      - name: Build wla-dx
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: .github/scripts/install_wla-dx.sh
+      - name: Build test ROMs
+        run: make -C tests clean all
+      - name: Persist test ROMs
+        uses: actions/upload-artifact@v1
+        with:
+          name: tests
+          path: tests/build
+
   test:
     name: Run tests
     needs: [check]
@@ -71,7 +100,7 @@ jobs:
           toolchain: stable
           override: true
       - name: Install Ubuntu packages
-        run: sudo apt install cmake libudev-dev
+        run: sudo apt install libudev-dev
         if: runner.os == 'Linux'
       - name: Cache cargo registry
         uses: actions/cache@v1
@@ -83,19 +112,12 @@ jobs:
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache wla-dx
-        uses: actions/cache@v1
-        with:
-          path: ~/bin
-          key: ${{ runner.os }}-${{ env.WLA_DX_COMMIT }}-wla-dx
-      - name: Build wla-dx
-        run: .github/scripts/install_wla-dx.sh
       - name: Unpack bootroms
         run: .github/scripts/unpack_bootroms.sh
         env:
           BOOTROM_PASSPHRASE: ${{ secrets.BOOTROM_PASSPHRASE }}
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --features include-bootroms --all
+      # - name: Run cargo test
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: test
+      #     args: --features include-bootroms --all
