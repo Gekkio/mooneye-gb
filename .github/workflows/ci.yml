@@ -22,7 +22,7 @@ jobs:
           override: true
           components: rustfmt, clippy
       - name: Install Ubuntu packages
-        run: sudo apt install cmake libudev-dev
+        run: sudo apt install libudev-dev
         if: runner.os == 'Linux'
       - name: Cache cargo registry
         uses: actions/cache@v1
@@ -90,9 +90,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-    env:
-      WLA_DX_REPO: vhelin/wla-dx
-      WLA_DX_COMMIT: 6ada10b1cd6035e8b58ce5246bf623b73e2704de
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -119,8 +116,13 @@ jobs:
         run: .github/scripts/unpack_bootroms.sh
         env:
           BOOTROM_PASSPHRASE: ${{ secrets.BOOTROM_PASSPHRASE }}
-      # - name: Run cargo test
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
-      #     args: --features include-bootroms --all
+      - name: Download test ROMs
+        uses: actions/download-artifact@v1
+        with:
+          name: tests
+          path: tests/build
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features include-bootroms --all
