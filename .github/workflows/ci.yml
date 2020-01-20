@@ -91,9 +91,11 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/bin
-          key: ${{ runner.os }}-wla-dx
+          key: ${{ runner.os }}-${{ env.WLA_DX_COMMIT }}-wla-dx
       - name: Build wla-dx
-        run: .github/install_wla-dx.sh
+        run: .github/scripts/install_wla-dx.sh
+      - name: Unpack bootroms
+        run: .github/scripts/unpack_bootroms.sh
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
