@@ -51,7 +51,7 @@ jobs:
           args: --all
 
   build_test_roms:
-    name: Run tests
+    name: Build test ROMs
     runs-on: ubuntu-latest
     env:
       WLA_DX_REPO: vhelin/wla-dx
@@ -65,13 +65,16 @@ jobs:
         id: cache
         uses: actions/cache@v1
         with:
-          path: ~/bin
+          path: ~/wla-dx
           key: ${{ runner.os }}-${{ env.WLA_DX_COMMIT }}-wla-dx
       - name: Build wla-dx
         if: steps.cache.outputs.cache-hit != 'true'
         run: .github/scripts/install_wla-dx.sh
       - name: Build test ROMs
         run: make -C tests clean all
+        env:
+          WLA: ~/wla-dx/binaries/wla-gb
+          WLALINK: ~/wla-dx/binaries/wlalink
       - name: Persist test ROMs
         uses: actions/upload-artifact@v1
         with:
