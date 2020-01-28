@@ -83,7 +83,7 @@ jobs:
 
   test:
     name: Run tests
-    needs: [check]
+    needs: [check, build_test_roms]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
