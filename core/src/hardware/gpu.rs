@@ -22,7 +22,7 @@ use crate::cpu::InterruptLine;
 use crate::emulation::EmuEvents;
 use crate::gameboy;
 use crate::gameboy::Color;
-use crate::hardware::interrupts::{InterruptRequest, Interrupts};
+use crate::hardware::interrupts::InterruptRequest;
 use crate::util::int::IntExt;
 
 const CHARACTER_RAM_TILES: usize = 384;
@@ -364,29 +364,29 @@ impl Gpu {
       _ => sprite.y.wrapping_add(16),
     }
   }
-  fn switch_mode(&mut self, mode: Mode, interrupts: &mut Interrupts) {
+  fn switch_mode<I: InterruptRequest>(&mut self, mode: Mode, intr_req: &mut I) {
     self.mode = mode;
     self.cycles += self.mode.cycles(self.scroll_x);
     match self.mode {
       Mode::AccessOam => {
         if self.stat.contains(Stat::ACCESS_OAM_INT) {
-          interrupts.request_t34_interrupt(InterruptLine::STAT);
+          intr_req.request_t34_interrupt(InterruptLine::STAT);
         }
       }
       Mode::HBlank => {}
       Mode::VBlank => {
-        interrupts.request_t34_interrupt(InterruptLine::VBLANK);
+        intr_req.request_t34_interrupt(InterruptLine::VBLANK);
         if self.stat.contains(Stat::VBLANK_INT) {
-          interrupts.request_t34_interrupt(InterruptLine::STAT);
+          intr_req.request_t34_interrupt(InterruptLine::STAT);
         }
         if self.stat.contains(Stat::ACCESS_OAM_INT) {
-          interrupts.request_t34_interrupt(InterruptLine::STAT);
+          intr_req.request_t34_interrupt(InterruptLine::STAT);
         }
       }
       _ => (),
     }
   }
-  pub fn emulate(&mut self, interrupts: &mut Interrupts, emu_events: &mut EmuEvents) {
+  pub fn emulate<I: InterruptRequest>(&mut self, intr_req: &mut I, emu_events: &mut EmuEvents) {
     if !self.control.contains(Control::LCD_ON) {
       return;
     }
@@ -395,7 +395,7 @@ impl Gpu {
     if self.cycles == 1 && self.mode == Mode::AccessVram {
       // STAT mode=0 interrupt happens one cycle before the actual mode switch!
       if self.stat.contains(Stat::HBLANK_INT) {
-        interrupts.request_t34_interrupt(InterruptLine::STAT);
+        intr_req.request_t34_interrupt(InterruptLine::STAT);
       }
     }
     if self.cycles > 0 {
@@ -403,40 +403,40 @@ impl Gpu {
     }
 
     match self.mode {
-      Mode::AccessOam => self.switch_mode(Mode::AccessVram, interrupts),
+      Mode::AccessOam => self.switch_mode(Mode::AccessVram, intr_req),
       Mode::AccessVram => {
         self.draw_line();
-        self.switch_mode(Mode::HBlank, interrupts)
+        self.switch_mode(Mode::HBlank, intr_req)
       }
       Mode::HBlank => {
         self.current_line += 1;
         if self.current_line < 144 {
-          self.switch_mode(Mode::AccessOam, interrupts);
+          self.switch_mode(Mode::AccessOam, intr_req);
         } else {
           emu_events.insert(EmuEvents::VSYNC);
-          self.switch_mode(Mode::VBlank, interrupts);
+          self.switch_mode(Mode::VBlank, intr_req);
         }
-        self.check_compare_interrupt(interrupts);
+        self.check_compare_interrupt(intr_req);
       }
       Mode::VBlank => {
         self.current_line += 1;
         if self.current_line > 153 {
           self.current_line = 0;
-          self.switch_mode(Mode::AccessOam, interrupts);
+          self.switch_mode(Mode::AccessOam, intr_req);
         } else {
           self.cycles += VBLANK_LINE_CYCLES;
         }
-        self.check_compare_interrupt(interrupts);
+        self.check_compare_interrupt(intr_req);
       }
     };
   }
-  fn check_compare_interrupt(&mut self, interrupts: &mut Interrupts) {
+  fn check_compare_interrupt<I: InterruptRequest>(&mut self, intr_req: &mut I) {
     if self.current_line != self.compare_line {
       self.stat.remove(Stat::COMPARE);
     } else {
       self.stat.insert(Stat::COMPARE);
       if self.stat.contains(Stat::COMPARE_INT) {
-        interrupts.request_t34_interrupt(InterruptLine::STAT);
+        intr_req.request_t34_interrupt(InterruptLine::STAT);
       }
     }
   }
