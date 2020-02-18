@@ -147,8 +147,8 @@ impl Cpu {
     }
   }
 
-  fn alu_sub(&mut self, value: u8, use_carry: bool) -> u8 {
-    let cy = if use_carry && self.regs.cf() { 1 } else { 0 };
+  fn alu_sub(&mut self, value: u8, carry: bool) -> u8 {
+    let cy = carry as u8;
     let result = self.regs.a.wrapping_sub(value).wrapping_sub(cy);
     self.regs.set_zf(result == 0);
     self.regs.set_nf(true);
@@ -164,39 +164,39 @@ impl Cpu {
       .set_cf((self.regs.a as u16) < (value as u16) + (cy as u16));
     result
   }
-  fn alu_rl(&mut self, value: u8, set_zero: bool) -> u8 {
-    let ci = if self.regs.cf() { 1 } else { 0 };
+  fn alu_rl(&mut self, value: u8) -> u8 {
+    let ci = self.regs.cf() as u8;
     let co = value & 0x80;
     let new_value = (value << 1) | ci;
-    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_zf(new_value == 0);
     self.regs.set_nf(false);
     self.regs.set_hf(false);
     self.regs.set_cf(co != 0);
     new_value
   }
-  fn alu_rlc(&mut self, value: u8, set_zero: bool) -> u8 {
+  fn alu_rlc(&mut self, value: u8) -> u8 {
     let co = value & 0x80;
     let new_value = value.rotate_left(1);
-    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_zf(new_value == 0);
     self.regs.set_nf(false);
     self.regs.set_hf(false);
     self.regs.set_cf(co != 0);
     new_value
   }
-  fn alu_rr(&mut self, value: u8, set_zero: bool) -> u8 {
-    let ci = if self.regs.cf() { 1 } else { 0 };
+  fn alu_rr(&mut self, value: u8) -> u8 {
+    let ci = self.regs.cf() as u8;
     let co = value & 0x01;
     let new_value = (value >> 1) | (ci << 7);
-    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_zf(new_value == 0);
     self.regs.set_nf(false);
     self.regs.set_hf(false);
     self.regs.set_cf(co != 0);
     new_value
   }
-  fn alu_rrc(&mut self, value: u8, set_zero: bool) -> u8 {
+  fn alu_rrc(&mut self, value: u8) -> u8 {
     let co = value & 0x01;
     let new_value = value.rotate_right(1);
-    self.regs.set_zf(set_zero && new_value == 0);
+    self.regs.set_zf(new_value == 0);
     self.regs.set_nf(false);
     self.regs.set_hf(false);
     self.regs.set_cf(co != 0);

@@ -69,7 +69,7 @@ impl Cpu {
     Self: In8<I>,
   {
     let value = self.read(in8, ctx);
-    let cy = if self.regs.cf() { 1 } else { 0 };
+    let cy = self.regs.cf() as u8;
     let result = self.regs.a.wrapping_add(value).wrapping_add(cy);
     self.regs.set_zf(result == 0);
     self.regs.set_nf(false);
@@ -103,7 +103,7 @@ impl Cpu {
     Self: In8<I>,
   {
     let value = self.read(in8, ctx);
-    self.regs.a = self.alu_sub(value, true);
+    self.regs.a = self.alu_sub(value, self.regs.cf());
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// CP s
@@ -204,7 +204,8 @@ impl Cpu {
   ///        0 0 0 *
   pub fn rlca<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     let value = self.regs.a;
-    self.regs.a = self.alu_rlc(value, false);
+    self.regs.a = self.alu_rlc(value);
+    self.regs.set_zf(false);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RLA
@@ -213,7 +214,8 @@ impl Cpu {
   ///        0 0 0 *
   pub fn rla<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     let value = self.regs.a;
-    self.regs.a = self.alu_rl(value, false);
+    self.regs.a = self.alu_rl(value);
+    self.regs.set_zf(false);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RRCA
@@ -222,7 +224,8 @@ impl Cpu {
   ///        0 0 0 *
   pub fn rrca<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     let value = self.regs.a;
-    self.regs.a = self.alu_rrc(value, false);
+    self.regs.a = self.alu_rrc(value);
+    self.regs.set_zf(false);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RRA
@@ -231,7 +234,8 @@ impl Cpu {
   ///        0 0 0 *
   pub fn rra<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
     let value = self.regs.a;
-    self.regs.a = self.alu_rr(value, false);
+    self.regs.a = self.alu_rr(value);
+    self.regs.set_zf(false);
     self.prefetch_next(ctx, self.regs.pc)
   }
   /// RLC s
@@ -243,7 +247,7 @@ impl Cpu {
     Self: Out8<IO> + In8<IO>,
   {
     let value = self.read(io, ctx);
-    let new_value = self.alu_rlc(value, true);
+    let new_value = self.alu_rlc(value);
     self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -256,7 +260,7 @@ impl Cpu {
     Self: Out8<IO> + In8<IO>,
   {
     let value = self.read(io, ctx);
-    let new_value = self.alu_rl(value, true);
+    let new_value = self.alu_rl(value);
     self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -269,7 +273,7 @@ impl Cpu {
     Self: Out8<IO> + In8<IO>,
   {
     let value = self.read(io, ctx);
-    let new_value = self.alu_rrc(value, true);
+    let new_value = self.alu_rrc(value);
     self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
@@ -282,7 +286,7 @@ impl Cpu {
     Self: Out8<IO> + In8<IO>,
   {
     let value = self.read(io, ctx);
-    let new_value = self.alu_rr(value, true);
+    let new_value = self.alu_rr(value);
     self.write(io, ctx, new_value);
     self.prefetch_next(ctx, self.regs.pc)
   }
