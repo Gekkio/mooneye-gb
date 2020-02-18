@@ -15,8 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use bitflags::bitflags;
 
-use crate::cpu::InterruptLine;
-use crate::hardware::interrupts::InterruptRequest;
+use crate::hardware::interrupts::{InterruptLine, InterruptRequest};
 
 #[derive(Clone)]
 pub struct Timer {

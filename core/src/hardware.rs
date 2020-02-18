@@ -16,7 +16,7 @@
 use std::fmt;
 
 use crate::config::HardwareConfig;
-use crate::cpu::{CpuContext, InterruptLine};
+use crate::cpu::CpuContext;
 use crate::emulation::{EmuEvents, EmuTime};
 use crate::gameboy;
 use crate::gameboy::{HiramData, HIRAM_EMPTY};
@@ -25,7 +25,7 @@ use crate::hardware::bootrom::Bootrom;
 pub use crate::hardware::bootrom::BootromData;
 use crate::hardware::cartridge::Cartridge;
 use crate::hardware::gpu::Gpu;
-use crate::hardware::interrupts::Interrupts;
+use crate::hardware::interrupts::{InterruptLine, Interrupts};
 use crate::hardware::joypad::Joypad;
 use crate::hardware::serial::Serial;
 use crate::hardware::timer::Timer;

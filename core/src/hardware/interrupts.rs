@@ -13,7 +13,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crate::cpu::InterruptLine;
+use bitflags::bitflags;
+
+use crate::util::int::IntExt;
+
+bitflags!(
+  pub struct InterruptLine: u8 {
+    const VBLANK = 1 << 0;
+    const STAT = 1 << 1;
+    const TIMER = 1 << 2;
+    const SERIAL = 1 << 3;
+    const JOYPAD = 1 << 4;
+  }
+);
+
+impl InterruptLine {
+  pub fn highest_priority(&self) -> InterruptLine {
+    InterruptLine::from_bits_truncate(self.bits().isolate_rightmost_one())
+  }
+}
 
 pub trait InterruptRequest {
   fn request_t12_interrupt(&mut self, interrupt: InterruptLine);

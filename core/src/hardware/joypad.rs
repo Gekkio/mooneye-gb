@@ -17,8 +17,7 @@ use bitflags::bitflags;
 use std::fmt;
 use std::fmt::{Binary, Formatter, LowerHex, UpperHex};
 
-use crate::cpu::InterruptLine;
-use crate::hardware::interrupts::{InterruptRequest, Interrupts};
+use crate::hardware::interrupts::{InterruptLine, InterruptRequest, Interrupts};
 use crate::GbKey;
 
 /// Gameboy joypad.

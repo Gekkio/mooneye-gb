@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use crate::cpu::{Cpu, CpuContext, InterruptLine, Step};
+use crate::cpu::{Cpu, CpuContext, Step};
+use crate::hardware::interrupts::InterruptLine;
 
 mod cb_test;
 mod test_0x;

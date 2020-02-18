@@ -18,11 +18,10 @@ use bitflags::bitflags;
 use std::cmp::Ordering;
 use std::fmt;
 
-use crate::cpu::InterruptLine;
 use crate::emulation::EmuEvents;
 use crate::gameboy;
 use crate::gameboy::Color;
-use crate::hardware::interrupts::InterruptRequest;
+use crate::hardware::interrupts::{InterruptLine, InterruptRequest};
 use crate::util::int::IntExt;
 
 const CHARACTER_RAM_TILES: usize = 384;

@@ -13,12 +13,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use bitflags::bitflags;
 use std::fmt;
 
 use crate::cpu::decode::{Addr, Cond, Immediate8, In8, Out8};
 use crate::cpu::register_file::{Reg16, Reg8, RegisterFile};
-use crate::util::int::IntExt;
+use crate::hardware::interrupts::InterruptLine;
 
 mod decode;
 mod execute;
@@ -26,16 +25,6 @@ pub mod register_file;
 
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
-
-bitflags!(
-  pub struct InterruptLine: u8 {
-    const VBLANK = 1 << 0;
-    const STAT = 1 << 1;
-    const TIMER = 1 << 2;
-    const SERIAL = 1 << 3;
-    const JOYPAD = 1 << 4;
-  }
-);
 
 pub trait CpuContext {
   fn read_cycle(&mut self, addr: u16) -> u8;
@@ -134,8 +123,7 @@ impl Cpu {
         self.ime = false;
         ctx.tick_cycle();
         self.push_u16(ctx, self.regs.pc);
-        let interrupt =
-          InterruptLine::from_bits_truncate(ctx.get_mid_interrupt().bits().isolate_rightmost_one());
+        let interrupt = ctx.get_mid_interrupt().highest_priority();
         ctx.ack_interrupt(interrupt);
         self.regs.pc = match interrupt {
           InterruptLine::VBLANK => 0x0040,
