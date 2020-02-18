@@ -186,15 +186,15 @@ impl Hardware {
       0x49 => self.generic_mem_cycle(|hw| hw.gpu.set_obj_palette1(value)),
       0x4a => self.generic_mem_cycle(|hw| hw.gpu.set_window_y(value)),
       0x4b => self.generic_mem_cycle(|hw| hw.gpu.set_window_x(value)),
-      0x50 => {
-        if self.bootrom.is_active() {
-          self.generic_mem_cycle(|hw| hw.bootrom.deactivate());
-          self.emu_events.insert(EmuEvents::BOOTROM_DISABLED);
+      0x50 => self.generic_mem_cycle(|hw| {
+        if hw.bootrom.is_active() && value & 0b1 != 0 {
+          hw.bootrom.deactivate();
+          hw.emu_events.insert(EmuEvents::BOOTROM_DISABLED);
         }
-      }
+      }),
       0x80..=0xfe => self.generic_mem_cycle(|hw| hw.hiram[(addr as usize) & 0x7f] = value),
       0xff => self.generic_mem_cycle(|hw| hw.irq.set_interrupt_enable(value)),
-      _ => (),
+      _ => self.generic_mem_cycle(|_| ()),
     }
   }
   fn read_internal_high(&mut self, addr: u16) -> u8 {
