@@ -25,7 +25,7 @@ use crate::hardware::bootrom::Bootrom;
 pub use crate::hardware::bootrom::BootromData;
 use crate::hardware::cartridge::Cartridge;
 use crate::hardware::gpu::Gpu;
-use crate::hardware::irq::Irq;
+use crate::hardware::interrupts::Interrupts;
 use crate::hardware::joypad::Joypad;
 use crate::hardware::serial::Serial;
 use crate::hardware::timer::Timer;
@@ -36,7 +36,7 @@ mod apu;
 mod bootrom;
 mod cartridge;
 mod gpu;
-pub mod irq;
+pub mod interrupts;
 mod joypad;
 mod serial;
 mod timer;
@@ -58,7 +58,7 @@ pub struct Hardware {
   serial: Serial,
   pub timer: Timer,
   oam_dma: OamDma,
-  irq: Irq,
+  interrupts: Interrupts,
   emu_events: EmuEvents,
   emu_time: EmuTime,
 }
@@ -138,7 +138,7 @@ impl Hardware {
       serial: Serial::new(),
       timer: Timer::new(),
       oam_dma: OamDma::new(),
-      irq: Irq::new(),
+      interrupts: Interrupts::new(),
       emu_events: EmuEvents::empty(),
       emu_time: EmuTime::zero(),
     }
@@ -158,7 +158,7 @@ impl Hardware {
     &self.gpu.back_buffer
   }
   pub fn key_down(&mut self, key: GbKey) {
-    self.joypad.key_down(key, &mut self.irq);
+    self.joypad.key_down(key, &mut self.interrupts);
   }
   pub fn key_up(&mut self, key: GbKey) {
     self.joypad.key_up(key);
@@ -168,11 +168,11 @@ impl Hardware {
       0x00 => self.generic_mem_cycle(|hw| hw.joypad.set_register(value)),
       0x01 => self.generic_mem_cycle(|hw| hw.serial.set_data(value)),
       0x02 => self.generic_mem_cycle(|hw| hw.serial.set_control(value)),
-      0x04 => self.timer_mem_cycle(|timer, irq| timer.div_write_cycle(irq)),
-      0x05 => self.timer_mem_cycle(|timer, irq| timer.tima_write_cycle(value, irq)),
-      0x06 => self.timer_mem_cycle(|timer, irq| timer.tma_write_cycle(value, irq)),
-      0x07 => self.timer_mem_cycle(|timer, irq| timer.tac_write_cycle(value, irq)),
-      0x0f => self.generic_mem_cycle(|hw| hw.irq.set_interrupt_flag(value)),
+      0x04 => self.timer_mem_cycle(|timer, interrupts| timer.div_write_cycle(interrupts)),
+      0x05 => self.timer_mem_cycle(|timer, interrupts| timer.tima_write_cycle(value, interrupts)),
+      0x06 => self.timer_mem_cycle(|timer, interrupts| timer.tma_write_cycle(value, interrupts)),
+      0x07 => self.timer_mem_cycle(|timer, interrupts| timer.tac_write_cycle(value, interrupts)),
+      0x0f => self.generic_mem_cycle(|hw| hw.interrupts.set_interrupt_flag(value)),
       0x10..=0x3f => self.generic_mem_cycle(|hw| hw.apu.write(addr, value)),
       0x40 => self.generic_mem_cycle(|hw| hw.gpu.set_control(value)),
       0x41 => self.generic_mem_cycle(|hw| hw.gpu.set_stat(value)),
@@ -193,7 +193,7 @@ impl Hardware {
         }
       }),
       0x80..=0xfe => self.generic_mem_cycle(|hw| hw.hiram[(addr as usize) & 0x7f] = value),
-      0xff => self.generic_mem_cycle(|hw| hw.irq.set_interrupt_enable(value)),
+      0xff => self.generic_mem_cycle(|hw| hw.interrupts.set_interrupt_enable(value)),
       _ => self.generic_mem_cycle(|_| ()),
     }
   }
@@ -202,11 +202,11 @@ impl Hardware {
       0x00 => self.generic_mem_cycle(|hw| hw.joypad.get_register()),
       0x01 => self.generic_mem_cycle(|hw| hw.serial.get_data()),
       0x02 => self.generic_mem_cycle(|hw| hw.serial.get_control()),
-      0x04 => self.timer_mem_cycle(|timer, irq| timer.div_read_cycle(irq)),
-      0x05 => self.timer_mem_cycle(|timer, irq| timer.tima_read_cycle(irq)),
-      0x06 => self.timer_mem_cycle(|timer, irq| timer.tma_read_cycle(irq)),
-      0x07 => self.timer_mem_cycle(|timer, irq| timer.tac_read_cycle(irq)),
-      0x0f => self.generic_mem_cycle(|hw| hw.irq.get_interrupt_flag()),
+      0x04 => self.timer_mem_cycle(|timer, interrupts| timer.div_read_cycle(interrupts)),
+      0x05 => self.timer_mem_cycle(|timer, interrupts| timer.tima_read_cycle(interrupts)),
+      0x06 => self.timer_mem_cycle(|timer, interrupts| timer.tma_read_cycle(interrupts)),
+      0x07 => self.timer_mem_cycle(|timer, interrupts| timer.tac_read_cycle(interrupts)),
+      0x0f => self.generic_mem_cycle(|hw| hw.interrupts.get_interrupt_flag()),
       0x10..=0x3f => self.generic_mem_cycle(|hw| hw.apu.read(addr)),
       0x40 => self.generic_mem_cycle(|hw| hw.gpu.get_control()),
       0x41 => self.generic_mem_cycle(|hw| hw.gpu.get_stat()),
@@ -221,7 +221,7 @@ impl Hardware {
       0x4a => self.generic_mem_cycle(|hw| hw.gpu.get_window_y()),
       0x4b => self.generic_mem_cycle(|hw| hw.gpu.get_window_x()),
       0x80..=0xfe => self.generic_mem_cycle(|hw| hw.hiram[(addr as usize) & 0x7f]),
-      0xff => self.generic_mem_cycle(|hw| hw.irq.get_interrupt_enable()),
+      0xff => self.generic_mem_cycle(|hw| hw.interrupts.get_interrupt_enable()),
       _ => self.generic_mem_cycle(|_| 0xff),
     }
   }
@@ -307,50 +307,50 @@ impl Hardware {
   fn emulate_internal(&mut self) {
     self.emu_time += EmuTime::from_machine_cycles(1);
     self.emulate_oam_dma();
-    self.gpu.emulate(&mut self.irq, &mut self.emu_events);
+    self.gpu.emulate(&mut self.interrupts, &mut self.emu_events);
     self.apu.emulate();
   }
   fn generic_mem_cycle<T, F: FnOnce(&mut Self) -> T>(&mut self, f: F) -> T {
     self.emulate_internal();
-    self.timer.tick_cycle(&mut self.irq);
+    self.timer.tick_cycle(&mut self.interrupts);
     f(self)
   }
-  fn timer_mem_cycle<T, F: FnOnce(&mut Timer, &mut Irq) -> T>(&mut self, f: F) -> T {
+  fn timer_mem_cycle<T, F: FnOnce(&mut Timer, &mut Interrupts) -> T>(&mut self, f: F) -> T {
     self.emulate_internal();
-    f(&mut self.timer, &mut self.irq)
+    f(&mut self.timer, &mut self.interrupts)
   }
 }
 
 impl CpuContext for Hardware {
   fn read_cycle(&mut self, addr: u16) -> u8 {
-    self.irq.begin_cycle();
+    self.interrupts.begin_cycle();
     self.read_internal(addr)
   }
   fn read_cycle_high(&mut self, addr: u8) -> u8 {
-    self.irq.begin_cycle();
+    self.interrupts.begin_cycle();
     self.read_internal_high(0xff00 | (addr as u16))
   }
   fn write_cycle(&mut self, addr: u16, value: u8) {
-    self.irq.begin_cycle();
+    self.interrupts.begin_cycle();
     self.write_internal(addr, value)
   }
   fn write_cycle_high(&mut self, addr: u8, value: u8) {
-    self.irq.begin_cycle();
+    self.interrupts.begin_cycle();
     self.write_internal_high(0xff00 | (addr as u16), value);
   }
   fn tick_cycle(&mut self) {
-    self.irq.begin_cycle();
+    self.interrupts.begin_cycle();
     self.emulate_internal();
-    self.timer.tick_cycle(&mut self.irq);
+    self.timer.tick_cycle(&mut self.interrupts);
   }
   fn get_mid_interrupt(&self) -> InterruptLine {
-    self.irq.get_mid_interrupt()
+    self.interrupts.get_mid_interrupt()
   }
   fn get_end_interrupt(&self) -> InterruptLine {
-    self.irq.get_end_interrupt()
+    self.interrupts.get_end_interrupt()
   }
   fn ack_interrupt(&mut self, mask: InterruptLine) {
-    self.irq.ack_interrupt(mask);
+    self.interrupts.ack_interrupt(mask);
   }
   fn debug_opcode_callback(&mut self) {
     self.emu_events.insert(EmuEvents::DEBUG_OP);

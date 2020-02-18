@@ -16,7 +16,7 @@
 use bitflags::bitflags;
 
 use crate::cpu::InterruptLine;
-use crate::hardware::irq::InterruptRequest;
+use crate::hardware::interrupts::InterruptRequest;
 
 #[derive(Clone)]
 pub struct Timer {

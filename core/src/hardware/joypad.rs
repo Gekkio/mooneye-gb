@@ -18,7 +18,7 @@ use std::fmt;
 use std::fmt::{Binary, Formatter, LowerHex, UpperHex};
 
 use crate::cpu::InterruptLine;
-use crate::hardware::irq::{InterruptRequest, Irq};
+use crate::hardware::interrupts::{InterruptRequest, Interrupts};
 use crate::GbKey;
 
 /// Gameboy joypad.
@@ -58,11 +58,11 @@ impl Joypad {
     self.update_register();
   }
 
-  pub fn key_down(&mut self, key: GbKey, irq: &mut Irq) {
+  pub fn key_down(&mut self, key: GbKey, interrupts: &mut Interrupts) {
     self.pressed_directional.insert(P1::directional(&key));
     self.pressed_button.insert(P1::button(&key));
     self.update_register();
-    irq.request_t12_interrupt(InterruptLine::JOYPAD);
+    interrupts.request_t12_interrupt(InterruptLine::JOYPAD);
   }
   pub fn key_up(&mut self, key: GbKey) {
     self.pressed_directional.remove(P1::directional(&key));

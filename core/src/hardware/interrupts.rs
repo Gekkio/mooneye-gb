@@ -21,16 +21,16 @@ pub trait InterruptRequest {
 }
 
 #[derive(Clone, Debug)]
-pub struct Irq {
+pub struct Interrupts {
   mid_intr: InterruptLine,
   end_intr: InterruptLine,
   mid_enable: u8,
   end_enable: u8,
 }
 
-impl Irq {
-  pub fn new() -> Irq {
-    Irq {
+impl Interrupts {
+  pub fn new() -> Interrupts {
+    Interrupts {
       mid_intr: InterruptLine::empty(),
       end_intr: InterruptLine::empty(),
       mid_enable: 0x00,
@@ -67,7 +67,7 @@ impl Irq {
   }
 }
 
-impl InterruptRequest for Irq {
+impl InterruptRequest for Interrupts {
   fn request_t12_interrupt(&mut self, interrupt: InterruptLine) {
     self.mid_intr |= interrupt;
     self.end_intr |= interrupt;
