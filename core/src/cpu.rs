@@ -18,6 +18,7 @@ use std::fmt;
 use crate::cpu::decode::{Addr, Cond, Immediate8, In8, Out8};
 use crate::cpu::register_file::{Reg16, Reg8, RegisterFile};
 use crate::hardware::interrupts::InterruptLine;
+use crate::CoreContext;
 
 mod decode;
 mod execute;
@@ -26,7 +27,7 @@ pub mod register_file;
 #[cfg(all(test, not(feature = "acceptance_tests")))]
 mod test;
 
-pub trait CpuContext {
+pub trait CpuContext: CoreContext {
   fn read_cycle(&mut self, addr: u16) -> u8;
   fn read_cycle_high(&mut self, addr: u8) -> u8 {
     self.read_cycle(0xff00 | (addr as u16))
@@ -40,7 +41,6 @@ pub trait CpuContext {
   fn tick_cycle(&mut self);
   fn has_interrupt(&self) -> bool;
   fn ack_interrupt(&mut self, mask: InterruptLine);
-  fn debug_opcode_callback(&mut self);
 }
 
 #[derive(Clone)]

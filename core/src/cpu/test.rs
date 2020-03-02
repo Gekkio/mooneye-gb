@@ -15,6 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use crate::cpu::{Cpu, CpuContext, Step};
 use crate::hardware::interrupts::InterruptLine;
+use crate::{Callbacks, CoreContext};
 
 mod cb_test;
 mod test_0x;
@@ -68,7 +69,13 @@ impl TestHardware {
   }
 }
 
-impl<'a> CpuContext for TestHardware {
+impl CoreContext for TestHardware {
+  fn callbacks(&mut self) -> Option<&mut dyn Callbacks> {
+    None
+  }
+}
+
+impl CpuContext for TestHardware {
   fn read_cycle(&mut self, addr: u16) -> u8 {
     self.t_cycles += 4;
     self.read(addr)
@@ -91,7 +98,6 @@ impl<'a> CpuContext for TestHardware {
     false
   }
   fn ack_interrupt(&mut self, _: InterruptLine) {}
-  fn debug_opcode_callback(&mut self) {}
 }
 
 pub fn run_test<I: Fn(&mut TestMachine) -> ()>(instructions: &[u8], init: I) -> TestMachine {

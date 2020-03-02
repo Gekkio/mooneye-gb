@@ -38,7 +38,9 @@ impl Cpu {
   where
     B: CpuContext,
   {
-    ctx.debug_opcode_callback();
+    if let Some(callbacks) = ctx.callbacks() {
+      callbacks.debug_opcode();
+    }
     self.prefetch_next(ctx, self.regs.pc)
   }
   // 8-bit arithmetic

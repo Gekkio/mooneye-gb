@@ -33,4 +33,15 @@ pub enum GbKey {
   Start,
 }
 
+use crate::emulation::EmuEvents;
 pub use crate::gameboy::*;
+
+pub trait Callbacks {
+  fn debug_opcode(&mut self);
+  fn bootrom_disabled(&mut self);
+  fn trigger_emu_events(&mut self, emu_events: EmuEvents);
+}
+
+pub trait CoreContext {
+  fn callbacks(&mut self) -> Option<&mut dyn Callbacks>;
+}
