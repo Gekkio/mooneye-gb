@@ -244,7 +244,7 @@ impl Hardware {
             hw.gpu.write_oam(addr as u8, value)
           }
         }),
-        _ => (),
+        _ => self.generic_mem_cycle(|_| ()),
       },
       0xff => self.write_internal_high(addr, value),
     }
@@ -305,7 +305,6 @@ impl Hardware {
     }
   }
   fn emulate_internal(&mut self) {
-    self.emu_time += EmuTime::from_machine_cycles(1);
     self.emulate_oam_dma();
     self.gpu.emulate(&mut self.interrupts, &mut self.emu_events);
     self.apu.emulate();
@@ -323,31 +322,45 @@ impl Hardware {
 
 impl CpuContext for Hardware {
   fn read_cycle(&mut self, addr: u16) -> u8 {
+    self.emu_time += EmuTime::from_machine_cycles(1);
     self.interrupts.begin_cycle();
     self.read_internal(addr)
   }
   fn read_cycle_high(&mut self, addr: u8) -> u8 {
+    self.emu_time += EmuTime::from_machine_cycles(1);
     self.interrupts.begin_cycle();
     self.read_internal_high(0xff00 | (addr as u16))
   }
-  fn write_cycle(&mut self, addr: u16, value: u8) {
+  fn read_cycle_intr(&mut self, addr: u16) -> (InterruptLine, u8) {
+    self.emu_time += EmuTime::from_machine_cycles(1);
     self.interrupts.begin_cycle();
-    self.write_internal(addr, value)
+    let data = self.read_internal(addr);
+    (self.interrupts.get_mid_interrupt(), data)
   }
-  fn write_cycle_high(&mut self, addr: u8, value: u8) {
+  fn write_cycle(&mut self, addr: u16, data: u8) {
+    self.emu_time += EmuTime::from_machine_cycles(1);
     self.interrupts.begin_cycle();
-    self.write_internal_high(0xff00 | (addr as u16), value);
+    self.write_internal(addr, data)
+  }
+  fn write_cycle_high(&mut self, addr: u8, data: u8) {
+    self.emu_time += EmuTime::from_machine_cycles(1);
+    self.interrupts.begin_cycle();
+    self.write_internal_high(0xff00 | (addr as u16), data);
+  }
+  fn write_cycle_intr(&mut self, addr: u16, data: u8) -> InterruptLine {
+    self.emu_time += EmuTime::from_machine_cycles(1);
+    self.interrupts.begin_cycle();
+    self.write_internal(addr, data);
+    self.interrupts.get_mid_interrupt()
   }
   fn tick_cycle(&mut self) {
+    self.emu_time += EmuTime::from_machine_cycles(1);
     self.interrupts.begin_cycle();
     self.emulate_internal();
     self.timer.tick_cycle(&mut self.interrupts);
   }
-  fn get_mid_interrupt(&self) -> InterruptLine {
-    self.interrupts.get_mid_interrupt()
-  }
-  fn get_end_interrupt(&self) -> InterruptLine {
-    self.interrupts.get_end_interrupt()
+  fn has_interrupt(&self) -> bool {
+    !self.interrupts.get_end_interrupt().is_empty()
   }
   fn ack_interrupt(&mut self, mask: InterruptLine) {
     self.interrupts.ack_interrupt(mask);

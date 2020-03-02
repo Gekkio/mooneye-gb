@@ -73,18 +73,22 @@ impl<'a> CpuContext for TestHardware {
     self.t_cycles += 4;
     self.read(addr)
   }
+  fn read_cycle_intr(&mut self, addr: u16) -> (InterruptLine, u8) {
+    (InterruptLine::empty(), self.read_cycle(addr))
+  }
   fn write_cycle(&mut self, addr: u16, value: u8) {
     self.t_cycles += 4;
     self.memory[addr as usize] = value;
   }
+  fn write_cycle_intr(&mut self, addr: u16, value: u8) -> InterruptLine {
+    self.write_cycle(addr, value);
+    InterruptLine::empty()
+  }
   fn tick_cycle(&mut self) {
     self.t_cycles += 4;
   }
-  fn get_mid_interrupt(&self) -> InterruptLine {
-    InterruptLine::empty()
-  }
-  fn get_end_interrupt(&self) -> InterruptLine {
-    InterruptLine::empty()
+  fn has_interrupt(&self) -> bool {
+    false
   }
   fn ack_interrupt(&mut self, _: InterruptLine) {}
   fn debug_opcode_callback(&mut self) {}

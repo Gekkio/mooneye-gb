@@ -511,8 +511,9 @@ impl Cpu {
   /// Flags: Z N H C
   ///        - - - -
   pub fn halt<B: CpuContext>(&mut self, ctx: &mut B) -> Step {
-    self.opcode = ctx.read_cycle(self.regs.pc);
-    if !ctx.get_mid_interrupt().is_empty() {
+    let (interrupts, opcode) = ctx.read_cycle_intr(self.regs.pc);
+    self.opcode = opcode;
+    if !interrupts.is_empty() {
       if self.ime {
         Step::InterruptDispatch
       } else {

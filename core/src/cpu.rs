@@ -31,13 +31,14 @@ pub trait CpuContext {
   fn read_cycle_high(&mut self, addr: u8) -> u8 {
     self.read_cycle(0xff00 | (addr as u16))
   }
+  fn read_cycle_intr(&mut self, addr: u16) -> (InterruptLine, u8);
   fn write_cycle(&mut self, addr: u16, data: u8);
   fn write_cycle_high(&mut self, addr: u8, data: u8) {
     self.write_cycle(0xff00 | (addr as u16), data);
   }
+  fn write_cycle_intr(&mut self, addr: u16, data: u8) -> InterruptLine;
   fn tick_cycle(&mut self);
-  fn get_mid_interrupt(&self) -> InterruptLine;
-  fn get_end_interrupt(&self) -> InterruptLine;
+  fn has_interrupt(&self) -> bool;
   fn ack_interrupt(&mut self, mask: InterruptLine);
   fn debug_opcode_callback(&mut self);
 }
@@ -71,8 +72,9 @@ impl Cpu {
   }
 
   fn prefetch_next<H: CpuContext>(&mut self, ctx: &mut H, addr: u16) -> Step {
-    self.opcode = ctx.read_cycle(addr);
-    if self.ime && !ctx.get_mid_interrupt().is_empty() {
+    let (interrupts, opcode) = ctx.read_cycle_intr(addr);
+    self.opcode = opcode;
+    if self.ime && !interrupts.is_empty() {
       Step::InterruptDispatch
     } else {
       self.regs.pc = addr.wrapping_add(1);
@@ -122,8 +124,17 @@ impl Cpu {
       Step::InterruptDispatch => {
         self.ime = false;
         ctx.tick_cycle();
-        self.push_u16(ctx, self.regs.pc);
-        let interrupt = ctx.get_mid_interrupt().highest_priority();
+
+        let [lo, hi] = u16::to_le_bytes(self.regs.pc);
+        ctx.tick_cycle();
+
+        self.regs.sp = self.regs.sp.wrapping_sub(1);
+        ctx.write_cycle(self.regs.sp, hi);
+
+        self.regs.sp = self.regs.sp.wrapping_sub(1);
+        let interrupts = ctx.write_cycle_intr(self.regs.sp, lo);
+
+        let interrupt = interrupts.highest_priority();
         ctx.ack_interrupt(interrupt);
         self.regs.pc = match interrupt {
           InterruptLine::VBLANK => 0x0040,
@@ -137,7 +148,7 @@ impl Cpu {
         Step::Running
       }
       Step::Halt => {
-        if !ctx.get_end_interrupt().is_empty() {
+        if ctx.has_interrupt() {
           self.prefetch_next(ctx, self.regs.pc)
         } else {
           ctx.tick_cycle();
