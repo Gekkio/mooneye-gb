@@ -42,10 +42,6 @@ mod serial;
 mod timer;
 mod work_ram;
 
-pub trait Bus: CpuContext {
-  fn trigger_emu_events(&mut self, events: EmuEvents);
-}
-
 #[derive(Clone)]
 pub struct Hardware {
   pub bootrom: Bootrom,
@@ -367,12 +363,6 @@ impl CpuContext for Hardware {
   }
   fn debug_opcode_callback(&mut self) {
     self.emu_events.insert(EmuEvents::DEBUG_OP);
-  }
-}
-
-impl Bus for Hardware {
-  fn trigger_emu_events(&mut self, events: EmuEvents) {
-    self.emu_events.insert(events)
   }
 }
 
