@@ -38,59 +38,55 @@ pub trait InterruptRequest {
   fn request_t34_interrupt(&mut self, interrupt: InterruptLine);
 }
 
+impl InterruptRequest for InterruptLine {
+  fn request_t12_interrupt(&mut self, interrupt: InterruptLine) {
+    *self |= interrupt;
+  }
+  fn request_t34_interrupt(&mut self, interrupt: InterruptLine) {
+    *self |= interrupt;
+  }
+}
+
 #[derive(Clone, Debug)]
 pub struct Interrupts {
-  mid_intr: InterruptLine,
-  end_intr: InterruptLine,
-  mid_enable: u8,
-  end_enable: u8,
+  intr_flags: InterruptLine,
+  intr_enable: u8,
 }
 
 impl Interrupts {
   pub fn new() -> Interrupts {
     Interrupts {
-      mid_intr: InterruptLine::empty(),
-      end_intr: InterruptLine::empty(),
-      mid_enable: 0x00,
-      end_enable: 0x00,
+      intr_flags: InterruptLine::empty(),
+      intr_enable: 0x00,
     }
   }
   pub fn get_interrupt_flag(&self) -> u8 {
     const IF_UNUSED_MASK: u8 = (1 << 5) | (1 << 6) | (1 << 7);
 
-    self.mid_intr.bits() | IF_UNUSED_MASK
+    self.intr_flags.bits() | IF_UNUSED_MASK
   }
   pub fn get_interrupt_enable(&self) -> u8 {
-    self.mid_enable
+    self.intr_enable
   }
   pub fn set_interrupt_flag(&mut self, value: u8) {
-    self.end_intr = InterruptLine::from_bits_truncate(value);
+    self.intr_flags = InterruptLine::from_bits_truncate(value);
   }
   pub fn set_interrupt_enable(&mut self, value: u8) {
-    self.end_enable = value;
+    self.intr_enable = value;
   }
-  pub fn begin_cycle(&mut self) {
-    self.mid_intr = self.end_intr;
-    self.mid_enable = self.end_enable;
-  }
-  pub fn get_mid_interrupt(&self) -> InterruptLine {
-    self.mid_intr & InterruptLine::from_bits_truncate(self.mid_enable)
-  }
-  pub fn get_end_interrupt(&self) -> InterruptLine {
-    self.end_intr & InterruptLine::from_bits_truncate(self.end_enable)
+  pub fn get_interrupt(&self) -> InterruptLine {
+    self.intr_flags & InterruptLine::from_bits_truncate(self.intr_enable)
   }
   pub fn ack_interrupt(&mut self, mask: InterruptLine) {
-    self.mid_intr -= mask;
-    self.end_intr -= mask;
+    self.intr_flags -= mask;
   }
 }
 
 impl InterruptRequest for Interrupts {
   fn request_t12_interrupt(&mut self, interrupt: InterruptLine) {
-    self.mid_intr |= interrupt;
-    self.end_intr |= interrupt;
+    self.intr_flags |= interrupt;
   }
   fn request_t34_interrupt(&mut self, interrupt: InterruptLine) {
-    self.end_intr |= interrupt;
+    self.intr_flags |= interrupt;
   }
 }

@@ -187,7 +187,7 @@ impl<'a> InterruptRequest for (&'a mut Interrupts, &'a mut EmuEvents) {
   }
 }
 
-impl<'a> CoreContext for (&'a mut Interrupts, &'a mut EmuEvents) {
+impl<'a, T> CoreContext for (T, &'a mut EmuEvents) {
   fn callbacks(&mut self) -> Option<&mut dyn Callbacks> {
     Some(self.1)
   }
@@ -406,35 +406,65 @@ impl Callbacks for EmuEvents {
   }
 }
 
+struct InterruptCheck<'a> {
+  check: Interrupts,
+  interrupts: &'a mut Interrupts,
+  emu_events: &'a mut EmuEvents,
+}
+
+impl<'a> InterruptRequest for InterruptCheck<'a> {
+  fn request_t12_interrupt(&mut self, interrupt: InterruptLine) {
+    self.check.request_t12_interrupt(interrupt);
+    self.interrupts.request_t12_interrupt(interrupt);
+  }
+  fn request_t34_interrupt(&mut self, interrupt: InterruptLine) {
+    self.interrupts.request_t34_interrupt(interrupt);
+  }
+}
+
+impl<'a> CoreContext for InterruptCheck<'a> {
+  fn callbacks(&mut self) -> Option<&mut dyn Callbacks> {
+    Some(self.emu_events)
+  }
+}
+
+impl<'a> PeripheralsContext for InterruptCheck<'a> {
+  fn interrupts(&self) -> &Interrupts {
+    &self.interrupts
+  }
+  fn interrupts_mut(&mut self) -> &mut Interrupts {
+    &mut self.interrupts
+  }
+}
+
 impl CpuContext for Hardware {
   fn read_cycle(&mut self, addr: u16) -> u8 {
     self.emu_time += EmuTime::from_machine_cycles(1);
-    self.interrupts.begin_cycle();
     let mut ctx = (&mut self.interrupts, &mut self.emu_events);
     self.peripherals.read(&mut ctx, addr)
   }
   fn read_cycle_high(&mut self, addr: u8) -> u8 {
     self.emu_time += EmuTime::from_machine_cycles(1);
-    self.interrupts.begin_cycle();
     let mut ctx = (&mut self.interrupts, &mut self.emu_events);
     self.peripherals.read_high(&mut ctx, 0xff00 | (addr as u16))
   }
   fn read_cycle_intr(&mut self, addr: u16) -> (InterruptLine, u8) {
     self.emu_time += EmuTime::from_machine_cycles(1);
-    self.interrupts.begin_cycle();
-    let mut ctx = (&mut self.interrupts, &mut self.emu_events);
+    let mut ctx = InterruptCheck {
+      check: self.interrupts.clone(),
+      interrupts: &mut self.interrupts,
+      emu_events: &mut self.emu_events,
+    };
     let data = self.peripherals.read(&mut ctx, addr);
-    (self.interrupts.get_mid_interrupt(), data)
+    (ctx.check.get_interrupt(), data)
   }
   fn write_cycle(&mut self, addr: u16, data: u8) {
     self.emu_time += EmuTime::from_machine_cycles(1);
-    self.interrupts.begin_cycle();
     let mut ctx = (&mut self.interrupts, &mut self.emu_events);
     self.peripherals.write(&mut ctx, addr, data)
   }
   fn write_cycle_high(&mut self, addr: u8, data: u8) {
     self.emu_time += EmuTime::from_machine_cycles(1);
-    self.interrupts.begin_cycle();
     let mut ctx = (&mut self.interrupts, &mut self.emu_events);
     self
       .peripherals
@@ -442,19 +472,21 @@ impl CpuContext for Hardware {
   }
   fn write_cycle_intr(&mut self, addr: u16, data: u8) -> InterruptLine {
     self.emu_time += EmuTime::from_machine_cycles(1);
-    self.interrupts.begin_cycle();
-    let mut ctx = (&mut self.interrupts, &mut self.emu_events);
+    let mut ctx = InterruptCheck {
+      check: self.interrupts.clone(),
+      interrupts: &mut self.interrupts,
+      emu_events: &mut self.emu_events,
+    };
     self.peripherals.write(&mut ctx, addr, data);
-    self.interrupts.get_mid_interrupt()
+    ctx.check.get_interrupt()
   }
   fn tick_cycle(&mut self) {
     self.emu_time += EmuTime::from_machine_cycles(1);
-    self.interrupts.begin_cycle();
     let mut ctx = (&mut self.interrupts, &mut self.emu_events);
     self.peripherals.generic_cycle(&mut ctx);
   }
   fn has_interrupt(&self) -> bool {
-    !self.interrupts.get_end_interrupt().is_empty()
+    !self.interrupts.get_interrupt().is_empty()
   }
   fn ack_interrupt(&mut self, mask: InterruptLine) {
     self.interrupts.ack_interrupt(mask);
