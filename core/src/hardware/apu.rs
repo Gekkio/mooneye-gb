@@ -90,63 +90,234 @@ impl Apu {
       cycles: 4096,
     }
   }
-  pub fn read(&self, addr: u16) -> u8 {
-    match addr & 0xff {
-      0x10 => self.ch1.sweep.read_reg(),
-      0x11 => self.ch1.read_reg1(),
-      0x12 => self.ch1.envelope.read_reg(),
-      0x14 => self.ch1.read_reg4(),
-      0x16 => self.ch2.read_reg1(),
-      0x17 => self.ch2.envelope.read_reg(),
-      0x19 => self.ch2.read_reg4(),
-      0x1a => self.ch3.read_reg0(),
-      0x1c => self.ch3.read_reg2(),
-      0x1e => self.ch3.read_reg4(),
-      0x21 => self.ch4.envelope.read_reg(),
-      0x22 => self.ch4.read_reg3(),
-      0x23 => self.ch4.read_reg4(),
-      0x24 => self.get_ctrl_volume(),
-      0x25 => self.get_terminal_channels(),
-      0x26 => self.get_ctrl_master(),
-      0x30..=0x3f => self.ch3.read_wave_ram(addr - 0xff30),
-      _ => 0xff,
+  pub fn tick_cycle(&mut self) {
+    if self.cycles > 0 {
+      self.cycles -= 1;
+    } else {
+      self.cycles = 4096;
+      self.ch1.clock();
+      self.ch2.clock();
+      self.ch3.clock();
+      self.ch4.clock();
     }
   }
-  pub fn write(&mut self, addr: u16, value: u8) {
-    if !self.enabled {
-      match addr & 0xff {
-        0x26 => self.set_ctrl_master(value),
-        0x30..=0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
-        _ => (),
-      }
-      return;
-    }
-    match addr & 0xff {
-      0x10 => self.ch1.sweep.write_reg(value),
-      0x11 => self.ch1.write_reg1(value),
-      0x12 => self.ch1.envelope.write_reg(value),
-      0x13 => self.ch1.write_reg3(value),
-      0x14 => self.ch1.write_reg4(value),
-      0x16 => self.ch2.write_reg1(value),
-      0x17 => self.ch2.envelope.write_reg(value),
-      0x18 => self.ch2.write_reg3(value),
-      0x19 => self.ch2.write_reg4(value),
-      0x1a => self.ch3.write_reg0(value),
-      0x1b => self.ch3.write_reg1(value),
-      0x1c => self.ch3.write_reg2(value),
-      0x1d => self.ch3.write_reg3(value),
-      0x1e => self.ch3.write_reg4(value),
-      0x20 => self.ch4.write_reg1(value),
-      0x21 => self.ch4.envelope.write_reg(value),
-      0x22 => self.ch4.write_reg3(value),
-      0x23 => self.ch4.write_reg4(value),
-      0x24 => self.set_ctrl_volume(value),
-      0x25 => self.set_terminal_channels(value),
-      0x26 => self.set_ctrl_master(value),
-      0x30..=0x3f => self.ch3.write_wave_ram(addr - 0xff30, value),
-      _ => (),
+  pub fn nr10_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch1.sweep.read_reg()
+  }
+  pub fn nr10_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch1.sweep.write_reg(value);
     }
   }
+  pub fn nr11_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch1.read_reg1()
+  }
+  pub fn nr11_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch1.write_reg1(value);
+    }
+  }
+  pub fn nr12_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch1.envelope.read_reg()
+  }
+  pub fn nr12_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch1.envelope.write_reg(value);
+    }
+  }
+  pub fn nr13_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    0xff
+  }
+  pub fn nr13_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch1.write_reg3(value);
+    }
+  }
+  pub fn nr14_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch1.read_reg4()
+  }
+  pub fn nr14_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch1.write_reg4(value);
+    }
+  }
+  pub fn nr21_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch2.read_reg1()
+  }
+  pub fn nr21_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch2.write_reg1(value);
+    }
+  }
+  pub fn nr22_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch2.envelope.read_reg()
+  }
+  pub fn nr22_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch2.envelope.write_reg(value);
+    }
+  }
+  pub fn nr23_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    0xff
+  }
+  pub fn nr23_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch2.write_reg3(value);
+    }
+  }
+  pub fn nr24_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch2.read_reg4()
+  }
+  pub fn nr24_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch2.write_reg4(value);
+    }
+  }
+  pub fn nr30_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch3.read_reg0()
+  }
+  pub fn nr30_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch3.write_reg0(value);
+    }
+  }
+  pub fn nr31_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    0xff
+  }
+  pub fn nr31_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch3.write_reg1(value);
+    }
+  }
+  pub fn nr32_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch3.read_reg2()
+  }
+  pub fn nr32_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch3.write_reg2(value);
+    }
+  }
+  pub fn nr33_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    0xff
+  }
+  pub fn nr33_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch3.write_reg3(value);
+    }
+  }
+  pub fn nr34_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch3.read_reg4()
+  }
+  pub fn nr34_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch3.write_reg4(value);
+    }
+  }
+  pub fn nr41_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    0xff
+  }
+  pub fn nr41_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch4.write_reg1(value);
+    }
+  }
+  pub fn nr42_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch4.envelope.read_reg()
+  }
+  pub fn nr42_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch4.envelope.write_reg(value);
+    }
+  }
+  pub fn nr43_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch4.read_reg3()
+  }
+  pub fn nr43_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch4.write_reg3(value);
+    }
+  }
+  pub fn nr44_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.ch4.read_reg4()
+  }
+  pub fn nr44_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.ch4.write_reg4(value);
+    }
+  }
+  pub fn nr50_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.get_ctrl_volume()
+  }
+  pub fn nr50_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.set_ctrl_volume(value);
+    }
+  }
+  pub fn nr51_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.get_terminal_channels()
+  }
+  pub fn nr51_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    if self.enabled {
+      self.set_terminal_channels(value);
+    }
+  }
+  pub fn nr52_read_cycle(&mut self) -> u8 {
+    self.tick_cycle();
+    self.get_ctrl_master()
+  }
+  pub fn nr52_write_cycle(&mut self, value: u8) {
+    self.tick_cycle();
+    self.set_ctrl_master(value);
+  }
+  pub fn wave_ram_read_cycle(&mut self, addr: u16) -> u8 {
+    self.tick_cycle();
+    self.ch3.read_wave_ram(addr - 0xff30)
+  }
+  pub fn wave_ram_write_cycle(&mut self, addr: u16, value: u8) {
+    self.tick_cycle();
+    self.ch3.write_wave_ram(addr - 0xff30, value);
+  }
+
   pub fn get_terminal_channels(&self) -> u8 {
     self.term1_channels.bits | (self.term2_channels.bits << 4)
   }
@@ -190,17 +361,6 @@ impl Apu {
     self.term1_vin = value & (1 << 3) != 0;
     self.term2_volume = Volume::from_u8((value >> 4) & 0x07).unwrap();
     self.term2_vin = value & (1 << 7) != 0;
-  }
-  pub fn emulate(&mut self) {
-    if self.cycles > 0 {
-      self.cycles -= 1;
-    } else {
-      self.cycles = 4096;
-      self.ch1.clock();
-      self.ch2.clock();
-      self.ch3.clock();
-      self.ch4.clock();
-    }
   }
 }
 

@@ -240,7 +240,28 @@ impl Peripherals {
         self.generic_cycle(ctx);
         ctx.interrupts_mut().set_interrupt_flag(value);
       }
-      0x10..=0x3f => self.generic_mem_cycle(ctx, |hw| hw.apu.write(addr, value)),
+      0x10 => self.apu_mem_cycle(ctx, |apu| apu.nr10_write_cycle(value)),
+      0x11 => self.apu_mem_cycle(ctx, |apu| apu.nr11_write_cycle(value)),
+      0x12 => self.apu_mem_cycle(ctx, |apu| apu.nr12_write_cycle(value)),
+      0x13 => self.apu_mem_cycle(ctx, |apu| apu.nr13_write_cycle(value)),
+      0x14 => self.apu_mem_cycle(ctx, |apu| apu.nr14_write_cycle(value)),
+      0x16 => self.apu_mem_cycle(ctx, |apu| apu.nr21_write_cycle(value)),
+      0x17 => self.apu_mem_cycle(ctx, |apu| apu.nr22_write_cycle(value)),
+      0x18 => self.apu_mem_cycle(ctx, |apu| apu.nr23_write_cycle(value)),
+      0x19 => self.apu_mem_cycle(ctx, |apu| apu.nr24_write_cycle(value)),
+      0x1a => self.apu_mem_cycle(ctx, |apu| apu.nr30_write_cycle(value)),
+      0x1b => self.apu_mem_cycle(ctx, |apu| apu.nr31_write_cycle(value)),
+      0x1c => self.apu_mem_cycle(ctx, |apu| apu.nr32_write_cycle(value)),
+      0x1d => self.apu_mem_cycle(ctx, |apu| apu.nr33_write_cycle(value)),
+      0x1e => self.apu_mem_cycle(ctx, |apu| apu.nr34_write_cycle(value)),
+      0x20 => self.apu_mem_cycle(ctx, |apu| apu.nr41_write_cycle(value)),
+      0x21 => self.apu_mem_cycle(ctx, |apu| apu.nr42_write_cycle(value)),
+      0x22 => self.apu_mem_cycle(ctx, |apu| apu.nr43_write_cycle(value)),
+      0x23 => self.apu_mem_cycle(ctx, |apu| apu.nr44_write_cycle(value)),
+      0x24 => self.apu_mem_cycle(ctx, |apu| apu.nr50_write_cycle(value)),
+      0x25 => self.apu_mem_cycle(ctx, |apu| apu.nr51_write_cycle(value)),
+      0x26 => self.apu_mem_cycle(ctx, |apu| apu.nr52_write_cycle(value)),
+      0x30..=0x3f => self.apu_mem_cycle(ctx, |apu| apu.wave_ram_write_cycle(addr, value)),
       0x40 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_control(value)),
       0x41 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_stat(value)),
       0x42 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_scroll_y(value)),
@@ -283,7 +304,28 @@ impl Peripherals {
         self.generic_cycle(ctx);
         ctx.interrupts().get_interrupt_flag()
       }
-      0x10..=0x3f => self.generic_mem_cycle(ctx, |hw| hw.apu.read(addr)),
+      0x10 => self.apu_mem_cycle(ctx, |apu| apu.nr10_read_cycle()),
+      0x11 => self.apu_mem_cycle(ctx, |apu| apu.nr11_read_cycle()),
+      0x12 => self.apu_mem_cycle(ctx, |apu| apu.nr12_read_cycle()),
+      0x13 => self.apu_mem_cycle(ctx, |apu| apu.nr13_read_cycle()),
+      0x14 => self.apu_mem_cycle(ctx, |apu| apu.nr14_read_cycle()),
+      0x16 => self.apu_mem_cycle(ctx, |apu| apu.nr21_read_cycle()),
+      0x17 => self.apu_mem_cycle(ctx, |apu| apu.nr22_read_cycle()),
+      0x18 => self.apu_mem_cycle(ctx, |apu| apu.nr23_read_cycle()),
+      0x19 => self.apu_mem_cycle(ctx, |apu| apu.nr24_read_cycle()),
+      0x1a => self.apu_mem_cycle(ctx, |apu| apu.nr30_read_cycle()),
+      0x1b => self.apu_mem_cycle(ctx, |apu| apu.nr31_read_cycle()),
+      0x1c => self.apu_mem_cycle(ctx, |apu| apu.nr32_read_cycle()),
+      0x1d => self.apu_mem_cycle(ctx, |apu| apu.nr33_read_cycle()),
+      0x1e => self.apu_mem_cycle(ctx, |apu| apu.nr34_read_cycle()),
+      0x20 => self.apu_mem_cycle(ctx, |apu| apu.nr41_read_cycle()),
+      0x21 => self.apu_mem_cycle(ctx, |apu| apu.nr42_read_cycle()),
+      0x22 => self.apu_mem_cycle(ctx, |apu| apu.nr43_read_cycle()),
+      0x23 => self.apu_mem_cycle(ctx, |apu| apu.nr44_read_cycle()),
+      0x24 => self.apu_mem_cycle(ctx, |apu| apu.nr50_read_cycle()),
+      0x25 => self.apu_mem_cycle(ctx, |apu| apu.nr51_read_cycle()),
+      0x26 => self.apu_mem_cycle(ctx, |apu| apu.nr52_read_cycle()),
+      0x30..=0x3f => self.apu_mem_cycle(ctx, |apu| apu.wave_ram_read_cycle(addr)),
       0x40 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_control()),
       0x41 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_stat()),
       0x42 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_scroll_y()),
@@ -361,14 +403,11 @@ impl Peripherals {
       0xff => self.read_high(ctx, addr),
     }
   }
-  fn emulate<C: PeripheralsContext>(&mut self, ctx: &mut C) {
+  fn generic_cycle<C: PeripheralsContext>(&mut self, ctx: &mut C) {
     self.emulate_oam_dma();
     self.gpu.emulate(ctx);
-    self.apu.emulate();
-  }
-  fn generic_cycle<C: PeripheralsContext>(&mut self, ctx: &mut C) {
-    self.emulate(ctx);
     self.timer.tick_cycle(ctx);
+    self.apu.tick_cycle();
   }
   fn generic_mem_cycle<T, C: PeripheralsContext, F: FnOnce(&mut Self) -> T>(
     &mut self,
@@ -378,13 +417,26 @@ impl Peripherals {
     self.generic_cycle(ctx);
     f(self)
   }
+  fn apu_mem_cycle<T, C: PeripheralsContext, F: FnOnce(&mut Apu) -> T>(
+    &mut self,
+    ctx: &mut C,
+    f: F,
+  ) -> T {
+    self.emulate_oam_dma();
+    self.gpu.emulate(ctx);
+    self.timer.tick_cycle(ctx);
+    f(&mut self.apu)
+  }
   fn timer_mem_cycle<T, C: PeripheralsContext, F: FnOnce(&mut Timer, &mut C) -> T>(
     &mut self,
     ctx: &mut C,
     f: F,
   ) -> T {
-    self.emulate(ctx);
-    f(&mut self.timer, ctx)
+    self.emulate_oam_dma();
+    self.gpu.emulate(ctx);
+    let result = f(&mut self.timer, ctx);
+    self.apu.tick_cycle();
+    result
   }
 }
 
