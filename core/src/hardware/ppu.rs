@@ -25,9 +25,6 @@ use crate::hardware::interrupts::{InterruptLine, InterruptRequest};
 use crate::util::int::IntExt;
 use crate::CoreContext;
 
-const CHARACTER_RAM_TILES: usize = 384;
-const TILE_MAP_SIZE: usize = 0x400;
-const OAM_SPRITES: usize = 40;
 const ACCESS_OAM_CYCLES: isize = 21;
 const ACCESS_VRAM_CYCLES: isize = 43;
 const HBLANK_CYCLES: isize = 50;
@@ -50,22 +47,9 @@ pub struct Ppu {
   obj_palette1: Palette,
   mode: Mode,
   cycles: isize,
-  character_ram: [Tile; CHARACTER_RAM_TILES],
-  oam: [Sprite; OAM_SPRITES],
-  tile_map1: [u8; TILE_MAP_SIZE],
-  tile_map2: [u8; TILE_MAP_SIZE],
+  vram: Box<[u8; 0x2000]>,
+  oam: Box<[u8; 0x100]>,
   pub back_buffer: Box<gameboy::ScreenBuffer>,
-}
-
-#[derive(Clone, Copy)]
-struct Tile {
-  data: [u8; 16],
-}
-
-impl Tile {
-  fn new() -> Tile {
-    Tile { data: [0; 16] }
-  }
 }
 
 #[derive(Clone, Copy)]
@@ -74,17 +58,6 @@ struct Sprite {
   y: u8,
   tile_num: u8,
   flags: SpriteFlags,
-}
-
-impl Sprite {
-  fn new() -> Sprite {
-    Sprite {
-      x: 0,
-      y: 0,
-      tile_num: 0,
-      flags: SpriteFlags::empty(),
-    }
-  }
 }
 
 bitflags!(
@@ -206,10 +179,8 @@ impl Ppu {
       obj_palette1: Palette::new(),
       mode: Mode::AccessOam,
       cycles: ACCESS_OAM_CYCLES,
-      character_ram: [Tile::new(); CHARACTER_RAM_TILES],
-      oam: [Sprite::new(); OAM_SPRITES],
-      tile_map1: [0; TILE_MAP_SIZE],
-      tile_map2: [0; TILE_MAP_SIZE],
+      vram: Box::new([0; 0x2000]),
+      oam: Box::new([0; 0x100]),
       back_buffer: Box::new(gameboy::SCREEN_EMPTY),
     }
   }
@@ -300,69 +271,29 @@ impl Ppu {
   pub fn set_window_y(&mut self, value: u8) {
     self.window_y = value;
   }
-  pub fn write_character_ram(&mut self, reladdr: u16, value: u8) {
+  pub fn write_video_ram(&mut self, addr: u16, value: u8) {
     if self.mode == Mode::AccessVram {
       return;
     }
-    let tile = &mut self.character_ram[reladdr as usize / 16];
-    tile.data[reladdr as usize % 16] = value;
+    self.vram[(addr as usize & 0x1fff)] = value;
   }
-  pub fn write_tile_map1(&mut self, reladdr: u16, value: u8) {
-    if self.mode == Mode::AccessVram {
-      return;
-    }
-    self.tile_map1[reladdr as usize] = value;
-  }
-  pub fn write_tile_map2(&mut self, reladdr: u16, value: u8) {
-    if self.mode == Mode::AccessVram {
-      return;
-    }
-    self.tile_map2[reladdr as usize] = value;
-  }
-  pub fn write_oam(&mut self, reladdr: u8, value: u8) {
+  pub fn write_oam(&mut self, addr: u16, value: u8) {
     if self.mode == Mode::AccessVram || self.mode == Mode::AccessOam {
       return;
     }
-    let sprite = &mut self.oam[reladdr as usize / 4];
-    match reladdr as usize % 4 {
-      3 => {
-        sprite.flags = SpriteFlags::from_bits_truncate(value);
-      }
-      2 => sprite.tile_num = value,
-      1 => sprite.x = value.wrapping_sub(8),
-      _ => sprite.y = value.wrapping_sub(16),
-    }
+    self.oam[(addr as usize & 0xff)] = value;
   }
-  pub fn read_character_ram(&self, reladdr: u16) -> u8 {
+  pub fn read_video_ram(&self, addr: u16) -> u8 {
     if self.mode == Mode::AccessVram {
       return UNDEFINED_READ;
     }
-    let tile = &self.character_ram[reladdr as usize / 16];
-    tile.data[reladdr as usize % 16]
+    self.vram[(addr as usize & 0x1fff)]
   }
-  pub fn read_tile_map1(&self, reladdr: u16) -> u8 {
-    if self.mode == Mode::AccessVram {
-      return UNDEFINED_READ;
-    }
-    self.tile_map1[reladdr as usize]
-  }
-  pub fn read_tile_map2(&self, reladdr: u16) -> u8 {
-    if self.mode == Mode::AccessVram {
-      return UNDEFINED_READ;
-    }
-    self.tile_map2[reladdr as usize]
-  }
-  pub fn read_oam(&self, reladdr: u8) -> u8 {
+  pub fn read_oam(&self, addr: u16) -> u8 {
     if self.mode == Mode::AccessVram || self.mode == Mode::AccessOam {
       return UNDEFINED_READ;
     }
-    let sprite = &self.oam[reladdr as usize / 4];
-    match reladdr as usize % 4 {
-      3 => sprite.flags.bits(),
-      2 => sprite.tile_num,
-      1 => sprite.x.wrapping_add(8),
-      _ => sprite.y.wrapping_add(16),
-    }
+    self.oam[(addr as usize & 0xff)]
   }
   fn switch_mode<I: CoreContext + InterruptRequest>(&mut self, mode: Mode, ctx: &mut I) {
     self.mode = mode;
@@ -449,11 +380,10 @@ impl Ppu {
     let mut bg_prio = [false; gameboy::SCREEN_WIDTH];
 
     if self.control.contains(Control::BG_ON) {
-      let addr_select = self.control.contains(Control::BG_ADDR);
-      let tile_map = if self.control.contains(Control::BG_MAP) {
-        &self.tile_map2
+      let map_mask = if self.control.contains(Control::BG_MAP) {
+        0x1c00
       } else {
-        &self.tile_map1
+        0x1800
       };
 
       let y = self.current_line.wrapping_add(self.scroll_y);
@@ -461,18 +391,18 @@ impl Ppu {
       for i in 0..gameboy::SCREEN_WIDTH {
         let x = (i as u8).wrapping_add(self.scroll_x);
         let col = (x / 8) as usize;
-        let raw_tile_num = tile_map[row * 32 + col];
 
-        let tile_num = if addr_select {
-          raw_tile_num as usize
+        let tile_num = self.vram[(((row * 32 + col) | map_mask) & 0x1fff)] as usize;
+        let tile_num = if self.control.contains(Control::BG_ADDR) {
+          tile_num as usize
         } else {
-          128 + ((raw_tile_num as i8 as i16) + 128) as usize
+          128 + ((tile_num as i8 as i16) + 128) as usize
         };
-        let tile = &self.character_ram[tile_num];
 
-        let line = (y % 8) * 2;
-        let data1 = tile.data[(line as u16) as usize];
-        let data2 = tile.data[(line as u16 + 1) as usize];
+        let line = ((y % 8) * 2) as usize;
+        let tile_mask = tile_num << 4;
+        let data1 = self.vram[(tile_mask | line) & 0x1fff];
+        let data2 = self.vram[(tile_mask | (line + 1)) & 0x1fff];
 
         let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
@@ -483,13 +413,12 @@ impl Ppu {
       }
     }
     if self.control.contains(Control::WINDOW_ON) && self.window_y <= self.current_line {
-      let window_x = self.window_x.wrapping_sub(7);
-      let addr_select = self.control.contains(Control::BG_ADDR);
-      let tile_map = if self.control.contains(Control::WINDOW_MAP) {
-        &self.tile_map2
+      let map_mask = if self.control.contains(Control::WINDOW_MAP) {
+        0x1c00
       } else {
-        &self.tile_map1
+        0x1800
       };
+      let window_x = self.window_x.wrapping_sub(7);
 
       let y = self.current_line - self.window_y;
       let row = (y / 8) as usize;
@@ -499,18 +428,18 @@ impl Ppu {
           x = i as u8 - window_x;
         }
         let col = (x / 8) as usize;
-        let raw_tile_num = tile_map[row * 32 + col];
 
-        let tile_num = if addr_select {
-          raw_tile_num as usize
+        let tile_num = self.vram[(((row * 32 + col) | map_mask) & 0x1fff)] as usize;
+        let tile_num = if self.control.contains(Control::BG_ADDR) {
+          tile_num as usize
         } else {
-          128 + ((raw_tile_num as i8 as i16) + 128) as usize
+          128 + ((tile_num as i8 as i16) + 128) as usize
         };
-        let tile = &self.character_ram[tile_num];
 
-        let line = (y % 8) * 2;
-        let data1 = tile.data[(line as u16) as usize];
-        let data2 = tile.data[(line as u16 + 1) as usize];
+        let line = ((y % 8) * 2) as usize;
+        let tile_mask = tile_num << 4;
+        let data1 = self.vram[(tile_mask | line) & 0x1fff];
+        let data2 = self.vram[(tile_mask | (line + 1)) & 0x1fff];
 
         let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
         let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
@@ -529,10 +458,27 @@ impl Ppu {
 
       let current_line = self.current_line;
 
-      let mut sprites_to_draw: ArrayVec<[(usize, &Sprite); 10]> = self
+      let mut sprites_to_draw: ArrayVec<[(usize, Sprite); 10]> = self
         .oam
-        .iter()
-        .filter(|sprite| current_line.wrapping_sub(sprite.y) < size)
+        .chunks(4)
+        .filter_map(|chunk| match chunk {
+          &[y, x, tile_num, flags] => {
+            let y = y.wrapping_sub(16);
+            let x = x.wrapping_sub(8);
+            let flags = SpriteFlags::from_bits_truncate(flags);
+            if current_line.wrapping_sub(y) < size {
+              Some(Sprite {
+                y,
+                x,
+                tile_num,
+                flags,
+              })
+            } else {
+              None
+            }
+          }
+          _ => None,
+        })
         .take(10)
         .enumerate()
         .collect();
@@ -563,9 +509,9 @@ impl Ppu {
           line -= 8;
         }
         line *= 2;
-        let tile = &self.character_ram[tile_num];
-        let data1 = tile.data[(line as u16) as usize];
-        let data2 = tile.data[(line as u16 + 1) as usize];
+        let tile_mask = tile_num << 4;
+        let data1 = self.vram[(tile_mask | line as usize) & 0x1fff];
+        let data2 = self.vram[(tile_mask | (line + 1) as usize) & 0x1fff];
 
         for x in (0..8).rev() {
           let bit = if sprite.flags.contains(SpriteFlags::FLIPX) {

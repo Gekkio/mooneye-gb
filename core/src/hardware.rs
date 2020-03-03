@@ -208,9 +208,7 @@ impl Peripherals {
       let value = match addr >> 8 {
         0x00..=0x3f => self.cartridge.read_0000_3fff(addr),
         0x40..=0x7f => self.cartridge.read_4000_7fff(addr),
-        0x80..=0x97 => self.ppu.read_character_ram(addr - 0x8000),
-        0x98..=0x9b => self.ppu.read_tile_map1(addr - 0x9800),
-        0x9c..=0x9f => self.ppu.read_tile_map2(addr - 0x9c00),
+        0x80..=0x9f => self.ppu.read_video_ram(addr),
         0xa0..=0xbf => self.cartridge.read_a000_bfff(addr, 0xff),
         0xc0..=0xcf => self.work_ram.read_lower(addr),
         0xd0..=0xdf => self.work_ram.read_upper(addr),
@@ -218,7 +216,7 @@ impl Peripherals {
         0xf0..=0xff => self.work_ram.read_upper(addr),
         _ => unreachable!("Unreachable OAM DMA read from ${:04x}", addr),
       };
-      self.ppu.write_oam(addr as u8, value);
+      self.ppu.write_oam(addr, value);
     }
     if let Some(source) = self.oam_dma.starting.take() {
       self.oam_dma.start(source);
@@ -350,11 +348,7 @@ impl Peripherals {
     match (addr >> 8) as u8 {
       0x00 if self.bootrom.is_active() => self.generic_cycle(ctx),
       0x00..=0x7f => self.generic_mem_cycle(ctx, |hw| hw.cartridge.write_control(addr, value)),
-      0x80..=0x97 => {
-        self.generic_mem_cycle(ctx, |hw| hw.ppu.write_character_ram(addr - 0x8000, value))
-      }
-      0x98..=0x9b => self.generic_mem_cycle(ctx, |hw| hw.ppu.write_tile_map1(addr - 0x9800, value)),
-      0x9c..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.ppu.write_tile_map2(addr - 0x9c00, value)),
+      0x80..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.ppu.write_video_ram(addr, value)),
       0xa0..=0xbf => self.generic_mem_cycle(ctx, |hw| hw.cartridge.write_a000_bfff(addr, value)),
       0xc0..=0xcf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.write_lower(addr, value)),
       0xd0..=0xdf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.write_upper(addr, value)),
@@ -364,7 +358,7 @@ impl Peripherals {
       0xfe => match addr & 0xff {
         0x00..=0x9f => self.generic_mem_cycle(ctx, |hw| {
           if !hw.oam_dma.is_active() {
-            hw.ppu.write_oam(addr as u8, value)
+            hw.ppu.write_oam(addr, value)
           }
         }),
         _ => self.generic_cycle(ctx),
@@ -377,9 +371,7 @@ impl Peripherals {
       0x00 if self.bootrom.is_active() => self.generic_mem_cycle(ctx, |hw| hw.bootrom[addr]),
       0x00..=0x3f => self.generic_mem_cycle(ctx, |hw| hw.cartridge.read_0000_3fff(addr)),
       0x40..=0x7f => self.generic_mem_cycle(ctx, |hw| hw.cartridge.read_4000_7fff(addr)),
-      0x80..=0x97 => self.generic_mem_cycle(ctx, |hw| hw.ppu.read_character_ram(addr - 0x8000)),
-      0x98..=0x9b => self.generic_mem_cycle(ctx, |hw| hw.ppu.read_tile_map1(addr - 0x9800)),
-      0x9c..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.ppu.read_tile_map2(addr - 0x9c00)),
+      0x80..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.ppu.read_video_ram(addr)),
       0xa0..=0xbf => self.generic_mem_cycle(ctx, |hw| hw.cartridge.read_a000_bfff(addr, 0xff)),
       0xc0..=0xcf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.read_lower(addr)),
       0xd0..=0xdf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.read_upper(addr)),
@@ -392,7 +384,7 @@ impl Peripherals {
             if hw.oam_dma.is_active() {
               0xff
             } else {
-              hw.ppu.read_oam(addr as u8)
+              hw.ppu.read_oam(addr)
             }
           }),
           // 0x00 ..= 0x9f => handle_oam!(),
