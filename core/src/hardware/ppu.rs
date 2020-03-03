@@ -36,7 +36,7 @@ const UNDEFINED_READ: u8 = 0xff;
 const STAT_UNUSED_MASK: u8 = (1 << 7);
 
 #[derive(Clone)]
-pub struct Gpu {
+pub struct Ppu {
   control: Control,
   stat: Stat,
   current_line: u8,
@@ -190,9 +190,9 @@ impl Mode {
   }
 }
 
-impl Gpu {
-  pub fn new() -> Gpu {
-    Gpu {
+impl Ppu {
+  pub fn new() -> Ppu {
+    Ppu {
       control: Control::empty(),
       stat: Stat::empty(),
       current_line: 0,
@@ -587,7 +587,7 @@ impl Gpu {
   }
 }
 
-impl fmt::Debug for Gpu {
+impl fmt::Debug for Ppu {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
       f,

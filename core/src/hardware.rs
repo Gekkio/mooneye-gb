@@ -22,9 +22,9 @@ use crate::hardware::apu::Apu;
 use crate::hardware::bootrom::Bootrom;
 pub use crate::hardware::bootrom::BootromData;
 use crate::hardware::cartridge::Cartridge;
-use crate::hardware::gpu::Gpu;
 use crate::hardware::interrupts::{InterruptLine, InterruptRequest, Interrupts};
 use crate::hardware::joypad::Joypad;
+use crate::hardware::ppu::Ppu;
 use crate::hardware::serial::Serial;
 use crate::hardware::timer::Timer;
 use crate::hardware::work_ram::WorkRam;
@@ -34,9 +34,9 @@ use crate::{Callbacks, CoreContext};
 mod apu;
 mod bootrom;
 mod cartridge;
-mod gpu;
 pub mod interrupts;
 mod joypad;
+mod ppu;
 mod serial;
 mod timer;
 mod work_ram;
@@ -55,7 +55,7 @@ pub struct Peripherals {
   pub cartridge: Cartridge,
   work_ram: WorkRam,
   hiram: HiramData,
-  gpu: Gpu,
+  ppu: Ppu,
   apu: Apu,
   joypad: Joypad,
   serial: Serial,
@@ -132,7 +132,7 @@ impl Peripherals {
       cartridge: Cartridge::new(config.cartridge),
       work_ram: WorkRam::new(),
       hiram: HIRAM_EMPTY,
-      gpu: Gpu::new(),
+      ppu: Ppu::new(),
       apu: Apu::new(),
       joypad: Joypad::new(),
       serial: Serial::new(),
@@ -163,7 +163,7 @@ impl Hardware {
     self.emu_time
   }
   pub fn screen_buffer(&self) -> &gameboy::ScreenBuffer {
-    &self.peripherals.gpu.back_buffer
+    &self.peripherals.ppu.back_buffer
   }
   pub fn key_down(&mut self, key: GbKey) {
     self.peripherals.joypad.key_down(key, &mut self.interrupts);
@@ -208,9 +208,9 @@ impl Peripherals {
       let value = match addr >> 8 {
         0x00..=0x3f => self.cartridge.read_0000_3fff(addr),
         0x40..=0x7f => self.cartridge.read_4000_7fff(addr),
-        0x80..=0x97 => self.gpu.read_character_ram(addr - 0x8000),
-        0x98..=0x9b => self.gpu.read_tile_map1(addr - 0x9800),
-        0x9c..=0x9f => self.gpu.read_tile_map2(addr - 0x9c00),
+        0x80..=0x97 => self.ppu.read_character_ram(addr - 0x8000),
+        0x98..=0x9b => self.ppu.read_tile_map1(addr - 0x9800),
+        0x9c..=0x9f => self.ppu.read_tile_map2(addr - 0x9c00),
         0xa0..=0xbf => self.cartridge.read_a000_bfff(addr, 0xff),
         0xc0..=0xcf => self.work_ram.read_lower(addr),
         0xd0..=0xdf => self.work_ram.read_upper(addr),
@@ -218,7 +218,7 @@ impl Peripherals {
         0xf0..=0xff => self.work_ram.read_upper(addr),
         _ => unreachable!("Unreachable OAM DMA read from ${:04x}", addr),
       };
-      self.gpu.write_oam(addr as u8, value);
+      self.ppu.write_oam(addr as u8, value);
     }
     if let Some(source) = self.oam_dma.starting.take() {
       self.oam_dma.start(source);
@@ -262,18 +262,18 @@ impl Peripherals {
       0x25 => self.apu_mem_cycle(ctx, |apu| apu.nr51_write_cycle(value)),
       0x26 => self.apu_mem_cycle(ctx, |apu| apu.nr52_write_cycle(value)),
       0x30..=0x3f => self.apu_mem_cycle(ctx, |apu| apu.wave_ram_write_cycle(addr, value)),
-      0x40 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_control(value)),
-      0x41 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_stat(value)),
-      0x42 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_scroll_y(value)),
-      0x43 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_scroll_x(value)),
-      0x44 => self.generic_mem_cycle(ctx, |hw| hw.gpu.reset_current_line()),
-      0x45 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_compare_line(value)),
+      0x40 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_control(value)),
+      0x41 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_stat(value)),
+      0x42 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_scroll_y(value)),
+      0x43 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_scroll_x(value)),
+      0x44 => self.generic_mem_cycle(ctx, |hw| hw.ppu.reset_current_line()),
+      0x45 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_compare_line(value)),
       0x46 => self.generic_mem_cycle(ctx, |hw| hw.oam_dma.request(value)),
-      0x47 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_bg_palette(value)),
-      0x48 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_obj_palette0(value)),
-      0x49 => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_obj_palette1(value)),
-      0x4a => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_window_y(value)),
-      0x4b => self.generic_mem_cycle(ctx, |hw| hw.gpu.set_window_x(value)),
+      0x47 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_bg_palette(value)),
+      0x48 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_obj_palette0(value)),
+      0x49 => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_obj_palette1(value)),
+      0x4a => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_window_y(value)),
+      0x4b => self.generic_mem_cycle(ctx, |hw| hw.ppu.set_window_x(value)),
       0x50 => {
         self.generic_cycle(ctx);
         if self.bootrom.is_active() && value & 0b1 != 0 {
@@ -326,18 +326,18 @@ impl Peripherals {
       0x25 => self.apu_mem_cycle(ctx, |apu| apu.nr51_read_cycle()),
       0x26 => self.apu_mem_cycle(ctx, |apu| apu.nr52_read_cycle()),
       0x30..=0x3f => self.apu_mem_cycle(ctx, |apu| apu.wave_ram_read_cycle(addr)),
-      0x40 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_control()),
-      0x41 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_stat()),
-      0x42 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_scroll_y()),
-      0x43 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_scroll_x()),
-      0x44 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_current_line()),
-      0x45 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_compare_line()),
+      0x40 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_control()),
+      0x41 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_stat()),
+      0x42 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_scroll_y()),
+      0x43 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_scroll_x()),
+      0x44 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_current_line()),
+      0x45 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_compare_line()),
       0x46 => self.generic_mem_cycle(ctx, |hw| hw.oam_dma.source),
-      0x47 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_bg_palette()),
-      0x48 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_obj_palette0()),
-      0x49 => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_obj_palette1()),
-      0x4a => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_window_y()),
-      0x4b => self.generic_mem_cycle(ctx, |hw| hw.gpu.get_window_x()),
+      0x47 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_bg_palette()),
+      0x48 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_obj_palette0()),
+      0x49 => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_obj_palette1()),
+      0x4a => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_window_y()),
+      0x4b => self.generic_mem_cycle(ctx, |hw| hw.ppu.get_window_x()),
       0x80..=0xfe => self.generic_mem_cycle(ctx, |hw| hw.hiram[(addr as usize) & 0x7f]),
       0xff => {
         self.generic_cycle(ctx);
@@ -351,10 +351,10 @@ impl Peripherals {
       0x00 if self.bootrom.is_active() => self.generic_cycle(ctx),
       0x00..=0x7f => self.generic_mem_cycle(ctx, |hw| hw.cartridge.write_control(addr, value)),
       0x80..=0x97 => {
-        self.generic_mem_cycle(ctx, |hw| hw.gpu.write_character_ram(addr - 0x8000, value))
+        self.generic_mem_cycle(ctx, |hw| hw.ppu.write_character_ram(addr - 0x8000, value))
       }
-      0x98..=0x9b => self.generic_mem_cycle(ctx, |hw| hw.gpu.write_tile_map1(addr - 0x9800, value)),
-      0x9c..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.gpu.write_tile_map2(addr - 0x9c00, value)),
+      0x98..=0x9b => self.generic_mem_cycle(ctx, |hw| hw.ppu.write_tile_map1(addr - 0x9800, value)),
+      0x9c..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.ppu.write_tile_map2(addr - 0x9c00, value)),
       0xa0..=0xbf => self.generic_mem_cycle(ctx, |hw| hw.cartridge.write_a000_bfff(addr, value)),
       0xc0..=0xcf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.write_lower(addr, value)),
       0xd0..=0xdf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.write_upper(addr, value)),
@@ -364,7 +364,7 @@ impl Peripherals {
       0xfe => match addr & 0xff {
         0x00..=0x9f => self.generic_mem_cycle(ctx, |hw| {
           if !hw.oam_dma.is_active() {
-            hw.gpu.write_oam(addr as u8, value)
+            hw.ppu.write_oam(addr as u8, value)
           }
         }),
         _ => self.generic_cycle(ctx),
@@ -377,9 +377,9 @@ impl Peripherals {
       0x00 if self.bootrom.is_active() => self.generic_mem_cycle(ctx, |hw| hw.bootrom[addr]),
       0x00..=0x3f => self.generic_mem_cycle(ctx, |hw| hw.cartridge.read_0000_3fff(addr)),
       0x40..=0x7f => self.generic_mem_cycle(ctx, |hw| hw.cartridge.read_4000_7fff(addr)),
-      0x80..=0x97 => self.generic_mem_cycle(ctx, |hw| hw.gpu.read_character_ram(addr - 0x8000)),
-      0x98..=0x9b => self.generic_mem_cycle(ctx, |hw| hw.gpu.read_tile_map1(addr - 0x9800)),
-      0x9c..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.gpu.read_tile_map2(addr - 0x9c00)),
+      0x80..=0x97 => self.generic_mem_cycle(ctx, |hw| hw.ppu.read_character_ram(addr - 0x8000)),
+      0x98..=0x9b => self.generic_mem_cycle(ctx, |hw| hw.ppu.read_tile_map1(addr - 0x9800)),
+      0x9c..=0x9f => self.generic_mem_cycle(ctx, |hw| hw.ppu.read_tile_map2(addr - 0x9c00)),
       0xa0..=0xbf => self.generic_mem_cycle(ctx, |hw| hw.cartridge.read_a000_bfff(addr, 0xff)),
       0xc0..=0xcf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.read_lower(addr)),
       0xd0..=0xdf => self.generic_mem_cycle(ctx, |hw| hw.work_ram.read_upper(addr)),
@@ -392,7 +392,7 @@ impl Peripherals {
             if hw.oam_dma.is_active() {
               0xff
             } else {
-              hw.gpu.read_oam(addr as u8)
+              hw.ppu.read_oam(addr as u8)
             }
           }),
           // 0x00 ..= 0x9f => handle_oam!(),
@@ -405,7 +405,7 @@ impl Peripherals {
   }
   fn generic_cycle<C: PeripheralsContext>(&mut self, ctx: &mut C) {
     self.emulate_oam_dma();
-    self.gpu.emulate(ctx);
+    self.ppu.emulate(ctx);
     self.timer.tick_cycle(ctx);
     self.apu.tick_cycle();
   }
@@ -423,7 +423,7 @@ impl Peripherals {
     f: F,
   ) -> T {
     self.emulate_oam_dma();
-    self.gpu.emulate(ctx);
+    self.ppu.emulate(ctx);
     self.timer.tick_cycle(ctx);
     f(&mut self.apu)
   }
@@ -433,7 +433,7 @@ impl Peripherals {
     f: F,
   ) -> T {
     self.emulate_oam_dma();
-    self.gpu.emulate(ctx);
+    self.ppu.emulate(ctx);
     let result = f(&mut self.timer, ctx);
     self.apu.tick_cycle();
     result
