@@ -893,7 +893,7 @@ dependencies = [
  "quickcheck 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
- "snafu 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "snafu 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1428,16 +1428,16 @@ dependencies = [
 
 [[package]]
 name = "snafu"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "doc-comment 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "snafu-derive 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "snafu-derive 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "snafu-derive"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2014,8 +2014,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum simplelog 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)" = "05a3e303ace6adb0a60a9e9e2fbc6a33e1749d1e43587e2125f7efa9c5e107c5"
 "checksum smallvec 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)" = "f7b0758c52e15a8b5e3691eae6cc559f08eee9406e548a4477ba4e67770a82b6"
 "checksum smithay-client-toolkit 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "2ccb8c57049b2a34d2cc2b203fa785020ba0129d31920ef0d317430adaf748fa"
-"checksum snafu 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)" = "546db9181bce2aa22ed883c33d65603b76335b4c2533a98289f54265043de7a1"
-"checksum snafu-derive 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)" = "bdc75da2e0323f297402fd9c8fdba709bb04e4c627cbe31d19a2c91fc8d9f0e2"
+"checksum snafu 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)" = "48492e4f51c6e679217e80c11290edfdedf3133e358f4f432a6296f4c820f95b"
+"checksum snafu-derive 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)" = "b5d1c41856cbfa99befda5034c72539dd9d7dd6f3e61058bdb804ac40715bc2a"
 "checksum sourcefile 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "4bf77cb82ba8453b42b6ae1d692e4cdc92f9a47beaf89a847c8be83f4e328ad3"
 "checksum stb_truetype 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f77b6b07e862c66a9f3e62a07588fee67cd90a9135a2b942409f195507b4fb51"
 "checksum stdweb 0.4.20 (registry+https://github.com/rust-lang/crates.io-index)" = "d022496b16281348b52d0e30ae99e01a73d737b2f45d38fed4edf79f9325a1d5"
