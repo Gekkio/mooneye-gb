@@ -56,7 +56,7 @@ impl Mbc1State {
   }
   fn ram_offset(&self) -> usize {
     let bank = if self.mode { self.bank2 as usize } else { 0b00 };
-    (RAM_BANK_SIZE * bank)
+    RAM_BANK_SIZE * bank
   }
 }
 
