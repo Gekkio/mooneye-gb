@@ -23,7 +23,7 @@ nalgebra = "0.21"
 num-traits = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
-simplelog = "0.7"
+simplelog = "0.8"
 
 [dev-dependencies]
 criterion = "0.3"
