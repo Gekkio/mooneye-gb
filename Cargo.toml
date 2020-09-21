@@ -16,7 +16,7 @@ gilrs = "0.7"
 glium = "0.25"
 imgui = "0.2"
 imgui-glium-renderer = "0.2"
-imgui-winit-support = "0.2"
+imgui-winit-support = "0.5"
 log = "0.4"
 mooneye-gb-core = { version = "0.2.0-pre", path = "core" }
 nalgebra = "0.21"
