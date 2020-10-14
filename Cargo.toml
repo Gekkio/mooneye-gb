@@ -19,7 +19,7 @@ imgui-glium-renderer = "0.2"
 imgui-winit-support = "0.2"
 log = "0.4"
 mooneye-gb-core = { version = "0.2.0-pre", path = "core" }
-nalgebra = "0.21"
+nalgebra = "0.22"
 num-traits = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
