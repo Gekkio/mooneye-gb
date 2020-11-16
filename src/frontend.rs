@@ -13,43 +13,118 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use failure::{format_err, Error};
+use anyhow::{anyhow, Error};
 use gilrs::{Axis, Button, EventType, Gilrs};
+use glium::glutin::dpi::LogicalSize;
+use glium::glutin::event::{Event, WindowEvent};
+use glium::glutin::event_loop::{ControlFlow, EventLoop};
 use glium::{glutin, Api, Display, Surface, Version};
-use imgui_winit_support::{HiDpiMode, WinitPlatform};
-use log::info;
-use std::time::Duration;
-
-use self::gui::Screen;
-use self::renderer::Renderer;
-use crate::fps_counter::FpsCounter;
-use crate::frame_times::FrameTimes;
-use crate::perf_counter::PerfCounter;
+use imgui_winit_support::HiDpiMode;
+use log::{error, info};
 use mooneye_gb::config::{Bootrom, Cartridge, HardwareConfig};
 use mooneye_gb::emulation::{EmuEvents, EmuTime};
 use mooneye_gb::machine::Machine;
 use mooneye_gb::*;
+use std::path::Path;
+use std::time::Duration;
 
-mod emu_thread;
+use crate::fps_counter::FpsCounter;
+use crate::frame_times::FrameTimes;
+use crate::frontend::gui::Screen;
+use crate::frontend::renderer::Renderer;
+use crate::perf_counter::PerfCounter;
+
 mod gui;
 mod renderer;
 
-pub struct SdlFrontend {
-  gilrs: Gilrs,
-  events_loop: glutin::EventsLoop,
-  display: Display,
-  imgui: imgui::Context,
-  imgui_renderer: imgui_glium_renderer::Renderer,
-  imgui_platform: WinitPlatform,
-  renderer: Renderer,
-  times: FrameTimes,
+enum FrontendState {
+  WaitBootrom(Option<Cartridge>, gui::WaitBootromScreen),
+  InGame(InGameState),
 }
 
-enum FrontendState {
-  WaitBootrom(Option<Cartridge>),
-  InGame(InGameState),
-  InGameTurbo(InGameState),
-  Exit,
+impl FrontendState {
+  pub fn update_delta_time(&mut self, delta: Duration) {
+    if let FrontendState::InGame(state) = self {
+      state.update_delta_time(delta);
+    }
+  }
+  pub fn handle_gilrs(&mut self, event: gilrs::EventType) {
+    if let FrontendState::InGame(InGameState { machine, .. }) = self {
+      match event {
+        EventType::ButtonPressed(button, _) => {
+          if let Some(key) = map_button(button) {
+            machine.key_down(key);
+          }
+        }
+        EventType::ButtonReleased(button, _) => {
+          if let Some(key) = map_button(button) {
+            machine.key_up(key);
+          }
+        }
+        EventType::AxisChanged(axis, value, _) => {
+          if let Some((key, state)) = map_axis(axis, value) {
+            if state {
+              machine.key_down(key);
+            } else {
+              machine.key_up(key);
+            }
+          }
+        }
+        _ => (),
+      }
+    }
+  }
+  pub fn handle_keyboard(&mut self, input: glutin::event::KeyboardInput) {
+    use glium::glutin::event::{ElementState, VirtualKeyCode};
+    if let FrontendState::InGame(InGameState {
+      machine, screen, ..
+    }) = self
+    {
+      if let Some(keycode) = input.virtual_keycode {
+        if let Some(key) = map_keycode(keycode) {
+          match input.state {
+            ElementState::Pressed => machine.key_down(key),
+            ElementState::Released => machine.key_up(key),
+          }
+        }
+        match (keycode, input.state) {
+          (VirtualKeyCode::F2, ElementState::Pressed) => screen.toggle_info_overlay(),
+          _ => (),
+        }
+      }
+    }
+  }
+  pub fn tick(&mut self, renderer: &mut Renderer, ui: &imgui::Ui) {
+    match self {
+      FrontendState::WaitBootrom(_, screen) => screen.render(ui),
+      FrontendState::InGame(state) => {
+        state.tick(renderer, ui);
+      }
+    }
+  }
+  pub fn drop_file(&mut self, path: &Path) {
+    match self {
+      FrontendState::WaitBootrom(cartridge, screen) => match Bootrom::from_path(&path) {
+        Ok(bootrom) => {
+          if let Err(error) = bootrom.save_to_data_dir() {
+            error!("Failed to save boot rom: {}", error);
+          }
+          *self = FrontendState::from_roms(Some(bootrom), cartridge.clone());
+        }
+        Err(e) => screen.set_error(format!("{}", e)),
+      },
+      FrontendState::InGame(state) => match Cartridge::from_path(path) {
+        Ok(cartridge) => {
+          *self = FrontendState::InGame(InGameState::from_config(HardwareConfig {
+            cartridge,
+            bootrom: state.config.bootrom.clone(),
+            ..state.config
+          }));
+        }
+        Err(e) => state.screen.set_error(format!("{}", e)),
+      },
+    }
+  }
 }
 
 struct InGameState {
@@ -58,6 +133,8 @@ struct InGameState {
   screen: gui::InGameScreen,
   fps_counter: FpsCounter,
   perf_counter: PerfCounter,
+  delta: Duration,
+  emu_time: EmuTime,
 }
 
 impl InGameState {
@@ -68,11 +145,43 @@ impl InGameState {
     let perf_counter = PerfCounter::new();
     InGameState {
       config,
+      emu_time: machine.emu_time(),
       machine,
       screen,
       fps_counter,
       perf_counter,
+      delta: Duration::default(),
     }
+  }
+  pub fn update_delta_time(&mut self, delta: Duration) {
+    self.delta = delta;
+    let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
+    self.fps_counter.update(delta_s);
+    self.screen.fps = self.fps_counter.get_fps();
+    self.screen.perf =
+      100.0 * self.perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
+  }
+  pub fn tick(&mut self, renderer: &mut Renderer, ui: &imgui::Ui) {
+    let delta_s =
+      self.delta.as_secs() as f64 + f64::from(self.delta.subsec_nanos()) / 1_000_000_000.0;
+    let machine_cycles =
+      EmuTime::from_machine_cycles(((self.delta * CPU_SPEED_HZ as u32).as_secs() as u64) / 4);
+
+    let target_time = self.emu_time + machine_cycles;
+    loop {
+      let (events, end_time) = self.machine.emulate(target_time);
+
+      if events.contains(EmuEvents::VSYNC) {
+        renderer.update_pixels(self.machine.screen_buffer());
+      }
+
+      if end_time >= target_time {
+        self.perf_counter.update(end_time - self.emu_time, delta_s);
+        self.emu_time = end_time;
+        break;
+      }
+    }
+    self.screen.render(ui);
   }
 }
 
@@ -85,499 +194,153 @@ impl FrontendState {
         bootrom: Some(bootrom.data),
         cartridge,
       })),
-      (None, Some(cartridge)) => WaitBootrom(Some(cartridge)),
+      (None, Some(cartridge)) => WaitBootrom(Some(cartridge), gui::WaitBootromScreen::default()),
       (Some(bootrom), None) => InGame(InGameState::from_config(HardwareConfig {
         model: bootrom.model,
         bootrom: Some(bootrom.data),
         cartridge: Cartridge::no_cartridge(),
       })),
-      _ => WaitBootrom(None),
+      _ => WaitBootrom(None, gui::WaitBootromScreen::default()),
     }
   }
 }
 
-enum InGameEvent {
-  Exit,
-  Turbo,
-  TurboOff,
-  LoadCartridge(Cartridge),
-}
+pub fn run(bootrom: Option<Bootrom>, cartridge: Option<Cartridge>) -> Result<(), Error> {
+  let mut state = FrontendState::from_roms(bootrom, cartridge);
 
-impl SdlFrontend {
-  pub fn init() -> Result<SdlFrontend, Error> {
-    let gilrs = Gilrs::new().map_err(|_| format_err!("Failed to initialize gamepad support"))?;
+  let mut gilrs = Gilrs::new().map_err(|_| anyhow!("Failed to initialize gamepad support"))?;
 
-    use glium::glutin::dpi::LogicalSize;
+  let event_loop = EventLoop::new();
 
-    let events_loop = glutin::EventsLoop::new();
+  let window = glutin::window::WindowBuilder::new()
+    .with_min_inner_size(LogicalSize::new(160., 144.))
+    .with_inner_size(LogicalSize::new(640., 576.))
+    .with_title("Mooneye GB");
 
-    let window = glutin::WindowBuilder::new()
-      .with_min_dimensions(LogicalSize::new(160., 144.))
-      .with_dimensions(LogicalSize::new(640., 576.))
-      .with_title("Mooneye GB");
+  let context = glutin::ContextBuilder::new()
+    .with_hardware_acceleration(Some(true))
+    .with_vsync(true)
+    .with_srgb(true)
+    .with_double_buffer(Some(true));
 
-    let context = glutin::ContextBuilder::new()
-      .with_hardware_acceleration(Some(true))
-      .with_vsync(true)
-      .with_srgb(true)
-      .with_double_buffer(Some(true));
+  let display = Display::new(window, context, &event_loop)?;
 
-    let display = Display::new(window, context, &events_loop).unwrap();
+  let mut renderer = Renderer::new(&display)?;
+  info!(
+    "Initialized renderer with {}",
+    match *display.get_opengl_version() {
+      Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
+      Version(Api::GlEs, major, minor) => format!("OpenGL ES {}.{}", major, minor),
+    }
+  );
 
-    info!(
-      "Initialized renderer with {}",
-      match *display.get_opengl_version() {
-        Version(Api::Gl, major, minor) => format!("OpenGL {}.{}", major, minor),
-        Version(Api::GlEs, major, minor) => format!("OpenGL ES {}.{}", major, minor),
+  let mut imgui = imgui::Context::create();
+  imgui.set_ini_filename(None);
+  imgui.set_log_filename(None);
+
+  let mut user_interface = UserInterface::new(&mut imgui, &display)?;
+  let mut frame_times = FrameTimes::new(Duration::from_secs(1) / 60);
+
+  event_loop.run(move |event, _, control_flow| {
+    *control_flow = ControlFlow::Poll;
+
+    user_interface.handle_event(&mut imgui, &display, &event);
+    match event {
+      Event::NewEvents(_) => {
+        let delta = frame_times.update();
+        imgui.io_mut().update_delta_time(delta);
+        state.update_delta_time(delta);
       }
-    );
+      Event::MainEventsCleared => {
+        while let Some(gilrs::Event { event, .. }) = gilrs.next_event() {
+          state.handle_gilrs(event);
+        }
 
-    let renderer = Renderer::new(&display)?;
+        if let Err(e) = user_interface.prepare_frame(&mut imgui, &display) {
+          error!("Failed to prepare frame: {}", e);
+          *control_flow = ControlFlow::Exit;
+          return;
+        }
+        display.gl_window().window().request_redraw();
+      }
+      Event::RedrawRequested(_) => {
+        let ui = imgui.frame();
 
-    let mut imgui = imgui::Context::create();
-    imgui.set_ini_filename(None);
-    imgui.set_log_filename(None);
-    let imgui_renderer = imgui_glium_renderer::Renderer::init(&mut imgui, &display)
-      .map_err(|e| format_err!("Failed to initialize renderer: {}", e))?;
-    let mut imgui_platform = WinitPlatform::init(&mut imgui);
+        let mut target = display.draw();
+        target.clear_color_srgb(1.0, 1.0, 1.0, 1.0);
 
-    {
-      let gl_window = display.gl_window();
-      let window = gl_window.window();
-      imgui_platform.attach_window(imgui.io_mut(), &window, HiDpiMode::Default);
+        state.tick(&mut renderer, &ui);
+        renderer.draw(&mut target).expect("Failed to render");
+
+        user_interface.prepare_render(&display, &ui);
+        if let Err(e) = user_interface.render(&mut target, ui) {
+          error!("Failed to render user interface: {}", e);
+          *control_flow = ControlFlow::Exit;
+        }
+        if let Err(e) = target.finish() {
+          error!("Failed to swap buffers: {}", e);
+          *control_flow = ControlFlow::Exit;
+        }
+      }
+      Event::RedrawEventsCleared => frame_times.limit(),
+      Event::WindowEvent { event, .. } => match event {
+        WindowEvent::Resized(..) => renderer.update_dimensions(&display),
+        WindowEvent::DroppedFile(path) => state.drop_file(&path),
+        WindowEvent::CloseRequested | WindowEvent::Destroyed => *control_flow = ControlFlow::Exit,
+        WindowEvent::KeyboardInput { input, .. } => state.handle_keyboard(input),
+        _ => (),
+      },
+      _ => (),
     }
+  })
+}
 
-    Ok(SdlFrontend {
-      gilrs,
-      events_loop,
-      display,
-      imgui,
-      imgui_renderer,
-      imgui_platform,
-      renderer,
-      times: FrameTimes::new(Duration::from_secs(1) / 60),
-    })
+struct UserInterface {
+  platform: imgui_winit_support::WinitPlatform,
+  renderer: imgui_glium_renderer::Renderer,
+}
+
+impl UserInterface {
+  pub fn new(imgui: &mut imgui::Context, display: &Display) -> Result<UserInterface, Error> {
+    let mut platform = imgui_winit_support::WinitPlatform::init(imgui);
+    let gl_window = display.gl_window();
+    platform.attach_window(imgui.io_mut(), gl_window.window(), HiDpiMode::Default);
+
+    let renderer = imgui_glium_renderer::Renderer::init(imgui, display)?;
+    Ok(UserInterface { platform, renderer })
   }
-  pub fn main(
-    mut self,
-    bootrom: Option<Bootrom>,
-    cartridge: Option<Cartridge>,
+  pub fn handle_event(&mut self, imgui: &mut imgui::Context, display: &Display, event: &Event<()>) {
+    let gl_window = display.gl_window();
+    self
+      .platform
+      .handle_event(imgui.io_mut(), gl_window.window(), &event);
+  }
+  pub fn prepare_frame(
+    &mut self,
+    imgui: &mut imgui::Context,
+    display: &Display,
   ) -> Result<(), Error> {
-    let mut state = FrontendState::from_roms(bootrom, cartridge);
-    loop {
-      state = match state {
-        FrontendState::WaitBootrom(cartridge) => self.main_wait_bootrom(cartridge)?,
-        FrontendState::InGame(state) => self.main_in_game(state)?,
-        FrontendState::InGameTurbo(state) => self.main_in_game_turbo(state)?,
-        FrontendState::Exit => break,
-      }
-    }
+    let gl_window = display.gl_window();
+    gl_window.window().request_redraw();
+    self
+      .platform
+      .prepare_frame(imgui.io_mut(), gl_window.window())?;
     Ok(())
   }
-  fn main_wait_bootrom(&mut self, cartridge: Option<Cartridge>) -> Result<FrontendState, Error> {
-    let mut screen = gui::WaitBootromScreen::default();
-
-    self.times.reset();
-
-    let mut loaded_bootrom = None;
-
-    'main: loop {
-      let delta = self.times.update();
-      let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
-
-      let renderer = &mut self.renderer;
-      let display = &self.display;
-      let gl_window = display.gl_window();
-      let window = gl_window.window();
-      let imgui = &mut self.imgui;
-      let imgui_platform = &mut self.imgui_platform;
-      let mut exit = false;
-      self.events_loop.poll_events(|event| {
-        imgui_platform.handle_event(imgui.io_mut(), &window, &event);
-        if let glutin::Event::WindowEvent { event, .. } = event {
-          use glium::glutin::WindowEvent;
-          match event {
-            WindowEvent::Resized(..) => renderer.update_dimensions(display),
-            WindowEvent::CloseRequested | WindowEvent::Destroyed => exit = true,
-            WindowEvent::DroppedFile(path) => match Bootrom::from_path(&path) {
-              Ok(bootrom) => {
-                if let Err(error) = bootrom.save_to_data_dir() {
-                  println!("Failed to save boot rom: {}", error);
-                }
-                loaded_bootrom = Some(bootrom);
-              }
-              Err(e) => screen.set_error(format!("{}", e)),
-            },
-            _ => (),
-          }
-        }
-      });
-      while let Some(_) = self.gilrs.next_event() {}
-      if let Some(bootrom) = loaded_bootrom {
-        return Ok(FrontendState::from_roms(Some(bootrom), cartridge));
-      }
-      if exit {
-        break 'main;
-      }
-
-      let mut target = self.display.draw();
-      target.clear_color(1.0, 1.0, 1.0, 1.0);
-
-      self
-        .imgui_platform
-        .prepare_frame(self.imgui.io_mut(), &window)
-        .map_err(|e| format_err!("Failed to prepare imgui frame: {}", e))?;
-      self.imgui.io_mut().delta_time = delta_s as f32;
-      let ui = self.imgui.frame();
-      screen.render(&ui);
-      self.imgui_platform.prepare_render(&ui, &window);
-      let draw_data = ui.render();
-      self
-        .imgui_renderer
-        .render(&mut target, draw_data)
-        .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
-      target.finish()?;
-
-      self.times.limit();
-    }
-    Ok(FrontendState::Exit)
+  pub fn prepare_render(&mut self, display: &Display, ui: &imgui::Ui) {
+    self
+      .platform
+      .prepare_render(&ui, display.gl_window().window());
   }
-  fn main_in_game(&mut self, state: InGameState) -> Result<FrontendState, Error> {
-    let InGameState {
-      config,
-      mut machine,
-      mut screen,
-      mut fps_counter,
-      mut perf_counter,
-    } = state;
-    let mut emu_time = machine.emu_time();
-    self.times.reset();
-
-    'main: loop {
-      let delta = self.times.update();
-      let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
-
-      fps_counter.update(delta_s);
-      screen.fps = fps_counter.get_fps();
-      screen.perf = 100.0 * perf_counter.get_machine_cycles_per_s() * 4.0 / CPU_SPEED_HZ as f64;
-
-      while let Some(gilrs::Event { event, .. }) = self.gilrs.next_event() {
-        match event {
-          EventType::ButtonPressed(button, _) => {
-            if let Some(key) = map_button(button) {
-              machine.key_down(key);
-            }
-          }
-          EventType::ButtonReleased(button, _) => {
-            if let Some(key) = map_button(button) {
-              machine.key_up(key);
-            }
-          }
-          EventType::AxisChanged(axis, value, _) => {
-            if let Some((key, state)) = map_axis(axis, value) {
-              if state {
-                machine.key_down(key);
-              } else {
-                machine.key_up(key);
-              }
-            }
-          }
-          _ => (),
-        }
-      }
-
-      let renderer = &mut self.renderer;
-      let display = &self.display;
-      let gl_window = display.gl_window();
-      let window = gl_window.window();
-      let imgui = &mut self.imgui;
-      let imgui_platform = &mut self.imgui_platform;
-      let mut ig_event = None;
-      self.events_loop.poll_events(|event| {
-        imgui_platform.handle_event(imgui.io_mut(), &window, &event);
-        if let glutin::Event::WindowEvent { event, .. } = event {
-          use glium::glutin::ElementState;
-          use glium::glutin::KeyboardInput;
-          use glium::glutin::VirtualKeyCode;
-          use glium::glutin::WindowEvent;
-          match event {
-            WindowEvent::Resized(..) => renderer.update_dimensions(display),
-            WindowEvent::CloseRequested | WindowEvent::Destroyed => {
-              ig_event = Some(InGameEvent::Exit)
-            }
-            WindowEvent::KeyboardInput {
-              input:
-                KeyboardInput {
-                  state: ElementState::Pressed,
-                  virtual_keycode: Some(keycode),
-                  ..
-                },
-              ..
-            } => {
-              if let Some(key) = map_keycode(keycode) {
-                machine.key_down(key);
-              }
-              match keycode {
-                VirtualKeyCode::LShift => ig_event = Some(InGameEvent::Turbo),
-                VirtualKeyCode::F2 => screen.toggle_info_overlay(),
-                VirtualKeyCode::Escape => ig_event = Some(InGameEvent::Exit),
-                _ => (),
-              }
-            }
-            WindowEvent::KeyboardInput {
-              input:
-                KeyboardInput {
-                  state: ElementState::Released,
-                  virtual_keycode: Some(keycode),
-                  ..
-                },
-              ..
-            } => {
-              if let Some(key) = map_keycode(keycode) {
-                machine.key_up(key);
-              }
-            }
-            WindowEvent::DroppedFile(path) => match Cartridge::from_path(&path) {
-              Ok(cartridge) => {
-                ig_event = Some(InGameEvent::LoadCartridge(cartridge));
-              }
-              Err(e) => screen.set_error(format!("{}", e)),
-            },
-            _ => (),
-          }
-        }
-      });
-      match ig_event {
-        Some(InGameEvent::Exit) => break 'main,
-        Some(InGameEvent::Turbo) => {
-          return Ok(FrontendState::InGameTurbo(InGameState {
-            config,
-            machine,
-            screen,
-            fps_counter,
-            perf_counter,
-          }));
-        }
-        Some(InGameEvent::LoadCartridge(cartridge)) => {
-          return Ok(FrontendState::InGame(InGameState::from_config(
-            HardwareConfig {
-              cartridge,
-              ..config
-            },
-          )));
-        }
-        _ => (),
-      }
-
-      let mut target = self.display.draw();
-      target.clear_color(0.0, 0.0, 0.0, 1.0);
-
-      self
-        .imgui_platform
-        .prepare_frame(self.imgui.io_mut(), &window)
-        .map_err(|e| format_err!("Failed to prepare imgui frame: {}", e))?;
-      self.imgui.io_mut().delta_time = delta_s as f32;
-      let ui = self.imgui.frame();
-
-      let machine_cycles =
-        EmuTime::from_machine_cycles(((delta * CPU_SPEED_HZ as u32).as_secs() as u64) / 4);
-
-      let target_time = emu_time + machine_cycles;
-      loop {
-        let (events, end_time) = machine.emulate(target_time);
-
-        if events.contains(EmuEvents::VSYNC) {
-          renderer.update_pixels(machine.screen_buffer());
-        }
-
-        if end_time >= target_time {
-          perf_counter.update(end_time - emu_time, delta_s);
-          emu_time = end_time;
-          break;
-        }
-      }
-      renderer.draw(&mut target)?;
-
-      screen.render(&ui);
-      self.imgui_platform.prepare_render(&ui, &window);
-      let draw_data = ui.render();
-      self
-        .imgui_renderer
-        .render(&mut target, draw_data)
-        .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
-      target.finish()?;
-
-      self.times.limit();
-    }
-    Ok(FrontendState::Exit)
-  }
-  fn main_in_game_turbo(&mut self, state: InGameState) -> Result<FrontendState, Error> {
-    let InGameState {
-      config,
-      machine,
-      mut screen,
-      mut fps_counter,
-      perf_counter,
-    } = state;
-    self.times.reset();
-
-    let handle = emu_thread::spawn(machine, perf_counter);
-    handle.next_tick(Box::new(SCREEN_EMPTY))?;
-
-    'main: loop {
-      let delta = self.times.update();
-      let delta_s = delta.as_secs() as f64 + f64::from(delta.subsec_nanos()) / 1_000_000_000.0;
-
-      fps_counter.update(delta_s);
-      screen.fps = fps_counter.get_fps();
-
-      let renderer = &mut self.renderer;
-      let display = &self.display;
-      let gl_window = display.gl_window();
-      let window = gl_window.window();
-      let imgui = &mut self.imgui;
-      let imgui_platform = &mut self.imgui_platform;
-      let mut ig_event = None;
-      self.events_loop.poll_events(|event| {
-        imgui_platform.handle_event(imgui.io_mut(), &window, &event);
-        if let glutin::Event::WindowEvent { event, .. } = event {
-          use glium::glutin::ElementState;
-          use glium::glutin::KeyboardInput;
-          use glium::glutin::VirtualKeyCode;
-          use glium::glutin::WindowEvent;
-          match event {
-            WindowEvent::Resized(..) => renderer.update_dimensions(display),
-            WindowEvent::CloseRequested | WindowEvent::Destroyed => {
-              ig_event = Some(InGameEvent::Exit)
-            }
-            WindowEvent::KeyboardInput {
-              input:
-                KeyboardInput {
-                  state: ElementState::Pressed,
-                  virtual_keycode: Some(keycode),
-                  ..
-                },
-              ..
-            } => {
-              if let Some(key) = map_keycode(keycode) {
-                let _ = handle.key_down(key);
-              }
-              match keycode {
-                VirtualKeyCode::F2 => screen.toggle_info_overlay(),
-                VirtualKeyCode::Escape => ig_event = Some(InGameEvent::Exit),
-                _ => (),
-              }
-            }
-            WindowEvent::KeyboardInput {
-              input:
-                KeyboardInput {
-                  state: ElementState::Released,
-                  virtual_keycode: Some(keycode),
-                  ..
-                },
-              ..
-            } => {
-              if let Some(key) = map_keycode(keycode) {
-                let _ = handle.key_up(key);
-              }
-              if keycode == VirtualKeyCode::LShift {
-                ig_event = Some(InGameEvent::TurboOff);
-              }
-            }
-            WindowEvent::DroppedFile(path) => match Cartridge::from_path(&path) {
-              Ok(cartridge) => {
-                ig_event = Some(InGameEvent::LoadCartridge(cartridge));
-              }
-              Err(e) => screen.set_error(format!("{}", e)),
-            },
-            _ => (),
-          }
-        }
-      });
-      match ig_event {
-        Some(InGameEvent::Exit) => break 'main,
-        Some(InGameEvent::TurboOff) => {
-          let (machine, perf_counter) = handle.stop()?;
-          return Ok(FrontendState::InGame(InGameState {
-            config,
-            machine,
-            screen,
-            fps_counter,
-            perf_counter,
-          }));
-        }
-        Some(InGameEvent::LoadCartridge(cartridge)) => {
-          return Ok(FrontendState::InGame(InGameState::from_config(
-            HardwareConfig {
-              cartridge,
-              ..config
-            },
-          )));
-        }
-        _ => (),
-      }
-
-      while let Some(gilrs::Event { event, .. }) = self.gilrs.next_event() {
-        println!("{:?}", event);
-        match event {
-          EventType::ButtonPressed(button, _) => {
-            if let Some(key) = map_button(button) {
-              handle.key_down(key)?;
-            }
-          }
-          EventType::ButtonReleased(button, _) => {
-            if let Some(key) = map_button(button) {
-              handle.key_up(key)?;
-            }
-          }
-          EventType::AxisChanged(axis, value, _) => {
-            if let Some((key, state)) = map_axis(axis, value) {
-              if state {
-                handle.key_down(key)?;
-              } else {
-                handle.key_up(key)?;
-              }
-            }
-          }
-          _ => (),
-        }
-      }
-
-      let mut target = self.display.draw();
-      target.clear_color(0.0, 0.0, 0.0, 1.0);
-
-      self
-        .imgui_platform
-        .prepare_frame(self.imgui.io_mut(), &window)
-        .map_err(|e| format_err!("Failed to prepare imgui frame: {}", e))?;
-      self.imgui.io_mut().delta_time = delta_s as f32;
-      let ui = self.imgui.frame();
-
-      if let Some(tick) = handle.check_tick() {
-        screen.perf = 100.0 * tick.cycles_per_s * 4.0 / CPU_SPEED_HZ as f64;
-        if tick.screen_buffer_updated {
-          renderer.update_pixels(&tick.screen_buffer);
-        }
-        handle.next_tick(tick.screen_buffer)?;
-      }
-
-      renderer.draw(&mut target)?;
-
-      screen.render(&ui);
-      self.imgui_platform.prepare_render(&ui, &window);
-      let draw_data = ui.render();
-      self
-        .imgui_renderer
-        .render(&mut target, draw_data)
-        .map_err(|e| format_err!("GUI rendering failed: {}", e))?;
-      target.finish()?;
-    }
-    Ok(FrontendState::Exit)
+  pub fn render<T: Surface>(&mut self, target: &mut T, ui: imgui::Ui) -> Result<(), Error> {
+    let draw_data = ui.render();
+    self.renderer.render(target, draw_data)?;
+    Ok(())
   }
 }
 
-fn map_keycode(key: glutin::VirtualKeyCode) -> Option<GbKey> {
-  use glium::glutin::VirtualKeyCode::*;
+fn map_keycode(key: glutin::event::VirtualKeyCode) -> Option<GbKey> {
+  use glium::glutin::event::VirtualKeyCode::*;
   match key {
     Right => Some(GbKey::Right),
     Left => Some(GbKey::Left),

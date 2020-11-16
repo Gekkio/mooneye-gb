@@ -15,6 +15,7 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use serde_derive::Deserialize;
 use std::fmt;
+use std::str::FromStr;
 
 pub static DEFAULT_MODEL_PRIORITY: [Model; 5] =
   [Model::Dmg, Model::Mgb, Model::Sgb2, Model::Sgb, Model::Dmg0];
@@ -26,6 +27,31 @@ pub enum Model {
   Mgb,
   Sgb,
   Sgb2,
+}
+
+#[derive(Debug)]
+pub struct InvalidModel;
+
+impl std::error::Error for InvalidModel {}
+impl fmt::Display for InvalidModel {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "invalid model name")
+  }
+}
+
+impl FromStr for Model {
+  type Err = InvalidModel;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      "dmg0" => Ok(Model::Dmg0),
+      "dmg" => Ok(Model::Dmg),
+      "mgb" => Ok(Model::Mgb),
+      "sgb" => Ok(Model::Sgb),
+      "sgb2" => Ok(Model::Sgb2),
+      _ => Err(InvalidModel),
+    }
+  }
 }
 
 impl Model {

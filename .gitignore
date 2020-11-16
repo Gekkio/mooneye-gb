@@ -7,5 +7,6 @@
 imgui.ini
 target/
 Cargo.lock
+.idea/
 /roms
 /tests/tags

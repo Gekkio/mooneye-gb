@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
-use failure::Error;
+use anyhow::Error;
 use glium::backend::Facade;
 use glium::index::PrimitiveType;
 use glium::texture::pixel_buffer::PixelBuffer;

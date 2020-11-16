@@ -15,19 +15,13 @@
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 #![windows_subsystem = "windows"]
 
-use mooneye_gb;
-use simplelog;
-
-use docopt::Docopt;
-use failure::Error;
+use anyhow::Error;
 use log::{error, info, warn};
 use mooneye_gb::config::{Bootrom, Cartridge, Model};
-use serde_derive::Deserialize;
 use simplelog::{LevelFilter, TermLogger, TerminalMode};
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 use std::process;
-
-use crate::frontend::SdlFrontend;
 
 mod fps_counter;
 mod frame_times;
@@ -53,16 +47,54 @@ Options:
 "
 );
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 struct Args {
-  arg_rom: Option<String>,
-  flag_bootrom: Option<String>,
+  help: bool,
   flag_model: Option<Model>,
+  flag_bootrom: Option<PathBuf>,
+  arg_rom: Option<PathBuf>,
 }
 
-fn read_boot_rom(path: &str, expected_model: Option<Model>) -> Bootrom {
-  let bootrom = Bootrom::from_path(&Path::new(path)).unwrap_or_else(|err| {
-    error!("Failed to read boot rom from \"{}\" ({})", path, err);
+fn parse_path(s: &OsStr) -> Result<PathBuf, &'static str> {
+  Ok(s.into())
+}
+
+fn parse_args(mut args: pico_args::Arguments) -> Result<Args, Error> {
+  let help = args.contains(["-h", "--help"]);
+  let flag_model = args.opt_value_from_str(["-m", "--model"])?;
+  let flag_bootrom = args.opt_value_from_os_str(["-b", "--bootrom"], parse_path)?;
+  let arg_rom = args.free_from_os_str(parse_path)?;
+  args.finish()?;
+  Ok(Args {
+    help,
+    flag_model,
+    flag_bootrom,
+    arg_rom,
+  })
+}
+
+fn main() -> Result<(), Error> {
+  match parse_args(pico_args::Arguments::from_env()) {
+    Err(e) => {
+      eprintln!("{}", e);
+      eprintln!("{}", USAGE);
+      process::exit(1);
+    }
+    Ok(Args { help: true, .. }) => {
+      eprintln!("{}", USAGE);
+      process::exit(1);
+    }
+    Ok(args) => run(args),
+  }
+}
+
+fn read_boot_rom(path: &Path, expected_model: Option<Model>) -> Bootrom {
+  let bootrom = Bootrom::from_path(path).unwrap_or_else(|err| {
+    error!(
+      "Failed to read boot rom from \"{}\" ({})",
+      path.display(),
+      err
+    );
     process::exit(1)
   });
   if let Some(model) = expected_model {
@@ -73,17 +105,12 @@ fn read_boot_rom(path: &str, expected_model: Option<Model>) -> Bootrom {
   bootrom
 }
 
-fn run() -> Result<(), Error> {
-  let args: Args = Docopt::new(USAGE)
-    .and_then(|d| d.deserialize())
-    .unwrap_or_else(|e| e.exit());
-
+fn run(args: Args) -> Result<(), Error> {
   let _ = TermLogger::init(
     LevelFilter::Debug,
     simplelog::Config::default(),
     TerminalMode::Mixed,
   );
-
   info!("Starting Mooneye GB v{}", VERSION);
 
   let bootrom = match (args.flag_model, args.flag_bootrom) {
@@ -100,20 +127,13 @@ fn run() -> Result<(), Error> {
   };
 
   let cartridge = args.arg_rom.map(|path| {
-    Cartridge::from_path(&Path::new(&path)).unwrap_or_else(|err| {
-      error!("Failed to read rom from \"{}\" ({})", path, err);
+    Cartridge::from_path(&path).unwrap_or_else(|err| {
+      error!("Failed to read rom from \"{}\" ({})", path.display(), err);
       process::exit(1)
     })
   });
 
-  let frontend = SdlFrontend::init()?;
-  frontend.main(bootrom, cartridge)
-}
+  frontend::run(bootrom, cartridge)?;
 
-fn main() {
-  if let Err(ref e) = run() {
-    error!("{:?}", e);
-
-    process::exit(1);
-  }
+  Ok(())
 }
