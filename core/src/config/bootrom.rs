@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Mooneye GB.  If not, see <http://www.gnu.org/licenses/>.
 use crc::crc32;
-use directories::ProjectDirs;
+use directories_next::ProjectDirs;
 use log::{debug, info, warn};
 use snafu::Snafu;
 use std::fs::{self, File};
