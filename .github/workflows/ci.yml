@@ -19,6 +19,9 @@ jobs:
           toolchain: stable
           override: true
           components: rustfmt, clippy
+      - name: Update Ubuntu package lists
+        run: sudo apt update
+        if: runner.os == 'Linux'
       - name: Install Ubuntu packages
         run: sudo apt install libudev-dev
         if: runner.os == 'Linux'
@@ -57,6 +60,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Update Ubuntu package lists
+        run: sudo apt update
+        if: runner.os == 'Linux'
       - name: Install Ubuntu packages
         run: sudo apt install cmake
       - name: Cache wla-dx
@@ -97,6 +103,9 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - name: Update Ubuntu package lists
+        run: sudo apt update
+        if: runner.os == 'Linux'
       - name: Install Ubuntu packages
         run: sudo apt install libudev-dev
         if: runner.os == 'Linux'
