@@ -23,7 +23,7 @@ num-traits = "0.2"
 pico-args = "0.3"
 serde = "1.0"
 serde_derive = "1.0"
-simplelog = "0.8"
+simplelog = "0.9"
 
 [dev-dependencies]
 criterion = "0.3"
