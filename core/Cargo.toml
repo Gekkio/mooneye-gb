@@ -21,7 +21,7 @@ serde_derive = "1.0"
 snafu = "0.6"
 
 [dev-dependencies]
-quickcheck = "0.9"
+quickcheck = "1.0"
 
 [features]
 include-bootroms = []
