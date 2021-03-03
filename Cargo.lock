@@ -951,12 +951,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libm"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
-
-[[package]]
 name = "libudev-sys"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1004,9 +998,9 @@ dependencies = [
 
 [[package]]
 name = "matrixmultiply"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4f7ec66360130972f34830bfad9ef05c6610a43938a467bcc9ab9369ab3478f"
+checksum = "1300bdbea33ec2836b01ff1f5a6eed8bad66d0c31f94d9b7993407a8b054c3a1"
 dependencies = [
  "rawpointer",
 ]
@@ -1144,9 +1138,9 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
-version = "0.23.1"
+version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a41c09fb7e71f683dbdd1b251c12e72699670e2d63c4622690423658810b2d9"
+checksum = "e2ac95d3b4b9ee72d70be9131c9bd23ab9982d45fc58d7c4cb171b03ef3b6540"
 dependencies = [
  "approx",
  "generic-array",
@@ -1154,8 +1148,6 @@ dependencies = [
  "num-complex",
  "num-rational",
  "num-traits",
- "rand",
- "rand_distr",
  "simba",
  "typenum",
 ]
@@ -1275,7 +1267,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a64b1ec5cda2586e284722486d802acf1f7dbdc623e2bfc57e65ca1cd099290"
 dependencies = [
  "autocfg",
- "libm",
 ]
 
 [[package]]
@@ -1491,16 +1482,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
 dependencies = [
  "getrandom",
-]
-
-[[package]]
-name = "rand_distr"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9e9532ada3929fb8b2e9dbe28d1e06c9b2cc65813f074fcb6bd5fbefeff9d56"
-dependencies = [
- "num-traits",
- "rand",
 ]
 
 [[package]]
@@ -1729,9 +1710,9 @@ dependencies = [
 
 [[package]]
 name = "simba"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17bfe642b1728a6e89137ad428ef5d4738eca4efaba9590f9e110b8944028621"
+checksum = "5132a955559188f3d13c9ba831e77c802ddc8782783f050ed0c52f5988b95f4c"
 dependencies = [
  "approx",
  "num-complex",
