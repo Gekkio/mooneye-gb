@@ -63,8 +63,8 @@ fn parse_args(mut args: pico_args::Arguments) -> Result<Args, Error> {
   let help = args.contains(["-h", "--help"]);
   let flag_model = args.opt_value_from_str(["-m", "--model"])?;
   let flag_bootrom = args.opt_value_from_os_str(["-b", "--bootrom"], parse_path)?;
-  let arg_rom = args.free_from_os_str(parse_path)?;
-  args.finish()?;
+  let arg_rom = args.opt_free_from_os_str(parse_path)?;
+  let _ = args.finish();
   Ok(Args {
     help,
     flag_model,
