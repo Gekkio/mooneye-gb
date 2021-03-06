@@ -22,6 +22,8 @@
 
 .include "common.s"
 
+.define wram.functions $c000
+
 .macro call_wram ARGS target
   call target - wram_functions_start + wram.functions
 .endm
@@ -202,8 +204,11 @@ fetch_expected_value:
 wram_functions_end:
 
 .ramsection "Harness-WRAM" slot WRAM0_SLOT
-  wram.functions dsb $200
   wram.expected_banks dsb $180
+.ends
+
+.ramsection "Harness-WRAM-functions" slot WRAM0_SLOT orga wram.functions force
+  wram._functions dsb $200
 .ends
 
 .ramsection "Harness-HRAM" slot HRAM_SLOT
