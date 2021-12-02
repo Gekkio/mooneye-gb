@@ -75,7 +75,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: .github/scripts/install_wla-dx.sh
       - name: Build test ROMs
-        run: make -C tests clean all
+        run: make -C external/mooneye-test-suite clean all
         env:
           WLA: ~/wla-dx/binaries/wla-gb
           WLALINK: ~/wla-dx/binaries/wlalink
@@ -83,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: tests
-          path: tests/build
+          path: external/mooneye-test-suite/build
 
   test:
     name: Run tests
@@ -127,7 +127,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: tests
-          path: tests/build
+          path: external/mooneye-test-suite/build
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:

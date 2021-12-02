@@ -1,0 +1,3 @@
+[submodule "external/mooneye-test-suite"]
+	path = external/mooneye-test-suite
+	url = https://github.com/Gekkio/mooneye-test-suite.git

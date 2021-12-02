@@ -185,7 +185,7 @@ fn run_test_with_model(name: &str, model: Model) {
   let bootrom =
     Bootrom::lookup(&[model]).unwrap_or_else(|| panic!("No boot ROM found ({:?})", model));
 
-  let test_name = format!("../tests/build/{}.gb", name);
+  let test_name = format!("../external/mooneye-test-suite/build/{}.gb", name);
   let cartridge_path = PathBuf::from(&test_name);
   let cartridge = Cartridge::from_path(&cartridge_path).unwrap();
 
