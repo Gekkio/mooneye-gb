@@ -30,7 +30,7 @@ const ACCESS_VRAM_CYCLES: isize = 43;
 const HBLANK_CYCLES: isize = 50;
 const VBLANK_LINE_CYCLES: isize = 114;
 const UNDEFINED_READ: u8 = 0xff;
-const STAT_UNUSED_MASK: u8 = (1 << 7);
+const STAT_UNUSED_MASK: u8 = 1 << 7;
 
 #[derive(Clone)]
 pub struct Ppu {
