@@ -411,42 +411,42 @@ impl Ppu {
         bg_prio[i] = raw_color != Color::Off;
         pixels[i] = color;
       }
-    }
-    if self.control.contains(Control::WINDOW_ON) && self.window_y <= self.current_line {
-      let map_mask = if self.control.contains(Control::WINDOW_MAP) {
-        0x1c00
-      } else {
-        0x1800
-      };
-      let window_x = self.window_x.wrapping_sub(7);
-
-      let y = self.current_line - self.window_y;
-      let row = (y / 8) as usize;
-      for i in (window_x as usize)..gameboy::SCREEN_WIDTH {
-        let mut x = (i as u8).wrapping_add(self.scroll_x);
-        if x >= window_x {
-          x = i as u8 - window_x;
-        }
-        let col = (x / 8) as usize;
-
-        let tile_num = self.vram[(((row * 32 + col) | map_mask) & 0x1fff)] as usize;
-        let tile_num = if self.control.contains(Control::BG_ADDR) {
-          tile_num as usize
+      if self.control.contains(Control::WINDOW_ON) && self.window_y <= self.current_line {
+        let map_mask = if self.control.contains(Control::WINDOW_MAP) {
+          0x1c00
         } else {
-          128 + ((tile_num as i8 as i16) + 128) as usize
+          0x1800
         };
+        let window_x = self.window_x.wrapping_sub(7);
 
-        let line = ((y % 8) * 2) as usize;
-        let tile_mask = tile_num << 4;
-        let data1 = self.vram[(tile_mask | line) & 0x1fff];
-        let data2 = self.vram[(tile_mask | (line + 1)) & 0x1fff];
+        let y = self.current_line - self.window_y;
+        let row = (y / 8) as usize;
+        for i in (window_x as usize)..gameboy::SCREEN_WIDTH {
+          let mut x = (i as u8).wrapping_add(self.scroll_x);
+          if x >= window_x {
+            x = i as u8 - window_x;
+          }
+          let col = (x / 8) as usize;
 
-        let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
-        let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
-        let raw_color = Color::from_u8(color_value);
-        let color = self.bg_palette.get(&raw_color);
-        bg_prio[i] = raw_color != Color::Off;
-        pixels[i] = color;
+          let tile_num = self.vram[(((row * 32 + col) | map_mask) & 0x1fff)] as usize;
+          let tile_num = if self.control.contains(Control::BG_ADDR) {
+            tile_num as usize
+          } else {
+            128 + ((tile_num as i8 as i16) + 128) as usize
+          };
+
+          let line = ((y % 8) * 2) as usize;
+          let tile_mask = tile_num << 4;
+          let data1 = self.vram[(tile_mask | line) & 0x1fff];
+          let data2 = self.vram[(tile_mask | (line + 1)) & 0x1fff];
+
+          let bit = (x % 8).wrapping_sub(7).wrapping_mul(0xff) as usize;
+          let color_value = (data2.bit(bit) << 1) | data1.bit(bit);
+          let raw_color = Color::from_u8(color_value);
+          let color = self.bg_palette.get(&raw_color);
+          bg_prio[i] = raw_color != Color::Off;
+          pixels[i] = color;
+        }
       }
     }
     if self.control.contains(Control::OBJ_ON) {
