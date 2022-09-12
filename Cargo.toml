@@ -26,7 +26,7 @@ serde_derive = "1.0"
 simplelog = "0.9"
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.4"
 
 [profile.test]
 opt-level = 2
