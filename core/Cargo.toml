@@ -18,7 +18,7 @@ log = "0.4"
 num-traits = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
-snafu = "0.6"
+snafu = "0.7"
 
 [dev-dependencies]
 quickcheck = "1.0"
